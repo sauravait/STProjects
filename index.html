@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A modern chess game built with HTML5, CSS3, and JavaScript." />
+  <title>Modern Chess</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♛</text></svg>" />
+</head>
+<body>
+
+  <header>
+    <h1>♟ Modern Chess</h1>
+    <p>Two-player chess · All rules enforced · En passant · Castling · Promotion</p>
+  </header>
+
+  <main class="main-layout">
+
+    <!-- ── Board + player bars ── -->
+    <div class="board-wrapper">
+      <!-- Black player bar (top) -->
+      <div class="player-bar">
+        <span class="avatar">♚</span>
+        <span class="name">Black</span>
+        <span class="captured" id="captured-by-white" title="Pieces captured by White"></span>
+      </div>
+
+      <!-- Chess board -->
+      <div id="board" role="grid" aria-label="Chess board"></div>
+
+      <!-- White player bar (bottom) -->
+      <div class="player-bar">
+        <span class="avatar">♔</span>
+        <span class="name">White</span>
+        <span class="captured" id="captured-by-black" title="Pieces captured by Black"></span>
+      </div>
+    </div>
+
+    <!-- ── Side panel ── -->
+    <aside class="side-panel">
+
+      <!-- Turn / Status -->
+      <div class="panel-card">
+        <h3>Turn</h3>
+        <div class="turn-row">
+          <span id="turn-indicator" class="turn-indicator white-turn">♔ White</span>
+        </div>
+        <p id="status" class="status">White's turn</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="panel-card">
+        <h3>Controls</h3>
+        <button id="new-game-btn" class="btn btn-primary">⟳ New Game</button>
+        <p class="hint">Click a piece to select · Click ESC to deselect</p>
+      </div>
+
+      <!-- Move history -->
+      <div class="panel-card">
+        <h3>Move History</h3>
+        <ol id="move-list"></ol>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ── Game-over overlay ── -->
+  <div id="game-over-banner" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-text">
+    <div class="overlay-card">
+      <h2>Game Over</h2>
+      <p id="game-over-text"></p>
+      <button id="new-game-banner-btn" class="btn btn-primary">⟳ Play Again</button>
+    </div>
+  </div>
+
+  <!-- ── Pawn promotion overlay ── -->
+  <div id="promotion-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Choose promotion piece">
+    <div class="overlay-card">
+      <h2>Promote Pawn</h2>
+      <div id="promotion-choices"></div>
+    </div>
+  </div>
+
+  <script src="chess.js"></script>
+</body>
+</html>
