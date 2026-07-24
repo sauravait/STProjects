@@ -4,8 +4,8 @@
   --edge: #334155;
   --text: #e2e8f0;
   --muted: #94a3b8;
-  --light-square: #f8fafc;
-  --dark-square: #94a3b8;
+  --light-square: #f0d9b5;
+  --dark-square: #b58863;
   --accent: #f59e0b;
   --accent-2: #38bdf8;
   --danger: #ef4444;
@@ -170,10 +170,11 @@ body {
 
 .cell.selected {
   box-shadow: inset 0 0 0 4px rgba(56, 189, 248, 0.95);
+  background-color: rgba(56, 189, 248, 0.2) !important;
 }
 
 .cell.last-move {
-  box-shadow: inset 0 0 0 999px rgba(250, 204, 21, 0.18);
+  background-color: rgba(205, 210, 106, 0.55) !important;
 }
 
 .cell.move-hint::after,
@@ -184,9 +185,10 @@ body {
 }
 
 .cell.move-hint::after {
-  width: 18%;
-  height: 18%;
-  background: rgba(15, 23, 42, 0.35);
+  width: 30%;
+  height: 30%;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
 }
 
 .cell.capture-hint::after {
@@ -203,15 +205,23 @@ body {
   z-index: 1;
   font-size: clamp(1.9rem, 5vw, 3.2rem);
   line-height: 1;
-  text-shadow: 0 3px 8px rgba(15, 23, 42, 0.32);
 }
 
 .white-piece {
-  color: #f8fafc;
+  color: #fff;
+  text-shadow:
+    0 0 2px #000,
+    0 0 4px rgba(0, 0, 0, 0.7),
+    1px 1px 0 #333,
+    -1px -1px 0 #333;
 }
 
 .black-piece {
-  color: #020617;
+  color: #1a1008;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.9),
+    1px 1px 0 rgba(255, 255, 255, 0.6),
+    -1px -1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .rank-label,
@@ -219,7 +229,16 @@ body {
   position: absolute;
   font-size: 0.72rem;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.58);
+}
+
+.cell.light .rank-label,
+.cell.light .file-label {
+  color: var(--dark-square);
+}
+
+.cell.dark .rank-label,
+.cell.dark .file-label {
+  color: var(--light-square);
 }
 
 .rank-label {
