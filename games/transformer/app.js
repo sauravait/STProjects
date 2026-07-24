@@ -84,8 +84,8 @@ class AudioManager {
     this._utterance = null;
   }
 
-  narrate(text, rate = 1, interrupt = true) {
-    if (!this.enabled || !this.narrationEnabled || !this._speech || !text) return;
+  narrate(text, rate = 1, interrupt = true, onEnd = null) {
+    if (!this.enabled || !this.narrationEnabled || !this._speech || !text) return false;
     if (interrupt) this.stopNarration();
     const utter = new SpeechSynthesisUtterance(String(text).trim());
     utter.rate = Math.min(2, Math.max(0.6, rate));
@@ -101,8 +101,15 @@ class AudioManager {
     }
     if (this._voice) utter.voice = this._voice;
     utter.lang = this._voice?.lang || (wantHindi ? 'hi-IN' : 'en-US');
+    if (typeof onEnd === 'function') {
+      let done = false;
+      const fire = () => { if (!done) { done = true; onEnd(); } };
+      utter.onend = fire;
+      utter.onerror = fire;
+    }
     this._utterance = utter;
     this._speech.speak(utter);
+    return true;
   }
 
   playClick() {
@@ -170,6 +177,8 @@ let activeTimeline = null;
 let activeFlowTweens = [];
 let activeFluxTweens = [];
 let waveformFrameId = null;
+let workingRunId = 0;          // token to cancel an in-flight step sequence
+let workingStepTimeout = null; // pending step timer
 
 // Narration OFF by default (matches audio being disabled initially).
 const toggles = { labels: true, flux: true, equations: false, subtitles: true, narrate: false };
@@ -180,6 +189,8 @@ function clearTransientAnimations() {
   activeFluxTweens.forEach(t => t.kill());
   activeFlowTweens = [];
   activeFluxTweens = [];
+  workingRunId++;                 // invalidate any running step sequence
+  if (workingStepTimeout) { clearTimeout(workingStepTimeout); workingStepTimeout = null; }
   stopWaveforms();
 }
 
@@ -320,35 +331,38 @@ function buildSVG(cfg = {}) {
   function currentDots() {
     const dots = (cls, color, count) =>
       new Array(count).fill(0)
-        .map(() => `<circle r="3.6" fill="${color}" class="flow-dot ${cls}"/>`).join('');
+        .map(() => `<circle r="4" fill="${color}" class="flow-dot ${cls}"/>`).join('');
+    // No SVG blur filters on moving groups — filtered content re-rasterizes every
+    // frame and makes nearby text flicker. Bright dots read fine on their own.
     return `
       <path id="pp-${id}" d="${primLoop}" fill="none" stroke="none" visibility="hidden"/>
       <path id="fp-${id}" d="${fluxLoop}" fill="none" stroke="none" visibility="hidden"/>
       <path id="sp-${id}" d="${secLoop}" fill="none" stroke="none" visibility="hidden"/>
-      <g class="flow-particles particles-primary"   filter="url(#glow-b-${id})">${dots('flow-primary', '#bfdbfe', 7)}</g>
-      <g class="flow-particles particles-flux"      filter="url(#glow-g-${id})">${dots('flow-flux', '#86efac', 8)}</g>
-      <g class="flow-particles particles-secondary" filter="url(#glow-r-${id})">${dots('flow-secondary', '#fecaca', 7)}</g>`;
+      <g class="flow-particles particles-primary">${dots('flow-primary', '#bfdbfe', 7)}</g>
+      <g class="flow-particles particles-flux">${dots('flow-flux', '#86efac', 8)}</g>
+      <g class="flow-particles particles-secondary">${dots('flow-secondary', '#fecaca', 7)}</g>`;
   }
 
-  /* ── Labels ── */
+  /* ── Labels (with dark halo so they never flicker against the coils) ── */
   function labels() {
     if (!showLabels) return '';
+    const halo = 'stroke="#0b1220" stroke-width="3.2" paint-order="stroke" style="paint-order:stroke"';
     return `
       <text x="${leftLimbCx - coilRx - 20}" y="${midY}" text-anchor="middle"
-            fill="#60a5fa" font-size="13" font-weight="700"
+            fill="#93c5fd" font-size="13" font-weight="800" ${halo}
             transform="rotate(-90, ${leftLimbCx - coilRx - 20}, ${midY})"
-            class="svg-label" data-part="primary">Primary (Np=${Np})</text>
+            class="svg-label" data-part="primary">Primary coil · ${Np} loops</text>
       <text x="${rightLimbCx + coilRx + 20}" y="${midY}" text-anchor="middle"
-            fill="#f87171" font-size="13" font-weight="700"
+            fill="#fca5a5" font-size="13" font-weight="800" ${halo}
             transform="rotate(90, ${rightLimbCx + coilRx + 20}, ${midY})"
-            class="svg-label" data-part="secondary">Secondary (Ns=${Ns})</text>
+            class="svg-label" data-part="secondary">Secondary coil · ${Ns} loops</text>
       <text x="${(fL + fR) / 2}" y="${coreY + coreH / 2 + 4}" text-anchor="middle"
-            fill="#d6b981" font-size="13" font-weight="600"
-            class="svg-label" data-part="core">Laminated Iron Core</text>
+            fill="#f0d9a8" font-size="13" font-weight="700" ${halo}
+            class="svg-label" data-part="core">Iron Core</text>
       <text x="${srcX}" y="${srcY + srcR + 20}" text-anchor="middle"
-            fill="#60a5fa" font-size="12" font-weight="700" class="svg-label">AC Source · Vp</text>
+            fill="#93c5fd" font-size="12" font-weight="800" ${halo} class="svg-label">⚡ Power IN</text>
       <text x="${bulbX}" y="${bulbY + bulbR + 22}" text-anchor="middle"
-            fill="#f87171" font-size="12" font-weight="700" class="svg-label">Load · Vs</text>`;
+            fill="#fca5a5" font-size="12" font-weight="800" ${halo} class="svg-label">💡 Power OUT</text>`;
   }
 
   const partAttr = clickable ? 'style="cursor:pointer"' : '';
@@ -521,7 +535,132 @@ function illusStepDown() {
   </svg>`;
 }
 
-// ─── Quiz Data ────────────────────────────────────────────────────────────────
+// ─── Cinematic intro: the journey of electricity (animated in animateScene) ────
+
+function buildJourneySVG() {
+  // Wide scene: plant → step-up → towers → step-down → home, with an energy
+  // packet that travels the wire and lights each stage as it passes.
+  const VW = 920, VH = 300;
+  const wireY = 96;
+  // Node x-centres
+  const xPlant = 92, xUp = 268, xT1 = 420, xT2 = 540, xDown = 700, xHome = 858;
+  // The wire the energy packet rides (left plant → right home, along pylons)
+  const wirePath =
+    `M${xPlant + 6},${wireY} L${xUp},${wireY} L${xT1},${wireY - 26} L${xT2},${wireY - 26} ` +
+    `L${xDown},${wireY} L${xHome - 8},${wireY}`;
+
+  const tower = (cx) => `
+    <g class="jn-tower">
+      <path d="M${cx} ${wireY - 46} L${cx - 16} ${wireY + 70} M${cx} ${wireY - 46} L${cx + 16} ${wireY + 70}
+               M${cx - 8} ${wireY - 8} H${cx + 8} M${cx - 12} ${wireY + 20} H${cx + 12}"
+            stroke="#7c8aa0" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M${cx - 8} ${wireY - 26} L${cx} ${wireY - 44} L${cx + 8} ${wireY - 26}"
+            stroke="#5b6b82" stroke-width="2" fill="none"/>
+      <circle cx="${cx - 16}" cy="${wireY - 26}" r="2.4" fill="#64748b"/>
+      <circle cx="${cx + 16}" cy="${wireY - 26}" r="2.4" fill="#64748b"/>
+    </g>`;
+
+  return `
+<div class="journey-wrap">
+<svg id="journey" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="The journey of electricity from power plant to your home">
+  <defs>
+    <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1730"/>
+      <stop offset="1" stop-color="#060c1c"/>
+    </linearGradient>
+    <radialGradient id="packet-grad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.4" stop-color="#fde047"/>
+      <stop offset="1" stop-color="rgba(251,191,36,0)"/>
+    </radialGradient>
+    <linearGradient id="ground-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12203c"/>
+      <stop offset="1" stop-color="#0a1428"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Backdrop -->
+  <rect width="${VW}" height="${VH}" fill="url(#sky-grad)"/>
+  <g opacity="0.5">
+    ${new Array(26).fill(0).map((_, i) => {
+      const sx = 20 + i * 34, sy = 20 + (i * 47 % 60);
+      return `<circle class="jn-star" cx="${sx}" cy="${sy}" r="${(i % 3 === 0) ? 1.4 : 0.9}" fill="#cbd5e1" style="animation-delay:${(i % 7) * 0.4}s"/>`;
+    }).join('')}
+  </g>
+  <rect y="${wireY + 96}" width="${VW}" height="${VH - wireY - 96}" fill="url(#ground-grad)"/>
+  <line x1="0" y1="${wireY + 96}" x2="${VW}" y2="${wireY + 96}" stroke="#1e2f52" stroke-width="2"/>
+
+  <!-- The transmission wire + animated dashed energy -->
+  <path class="jn-wire" d="${wirePath}" fill="none" stroke="#334867" stroke-width="3"/>
+  <path class="jn-wire-live" d="${wirePath}" fill="none" stroke="#fcd34d" stroke-width="3"
+        stroke-linecap="round" stroke-dasharray="2 16" opacity="0.9"/>
+  <path id="journey-track" d="${wirePath}" fill="none" stroke="none"/>
+
+  <!-- Towers -->
+  ${tower(xT1)}
+  ${tower(xT2)}
+
+  <!-- Power plant -->
+  <g class="jn-node" data-node="plant">
+    <rect x="${xPlant - 44}" y="${wireY + 34}" width="86" height="62" rx="5" fill="#26344f" stroke="#3b4a68" stroke-width="1.5"/>
+    <rect x="${xPlant - 34}" y="${wireY + 8}" width="14" height="30" fill="#33425f"/>
+    <rect x="${xPlant - 12}" y="${wireY - 2}" width="14" height="40" fill="#33425f"/>
+    <ellipse class="jn-smoke" cx="${xPlant - 27}" cy="${wireY + 4}" rx="10" ry="5" fill="#8092ac" opacity="0.45"/>
+    <ellipse class="jn-smoke" cx="${xPlant - 5}" cy="${wireY - 6}" rx="12" ry="6" fill="#8092ac" opacity="0.4" style="animation-delay:0.8s"/>
+    <rect class="jn-win" x="${xPlant - 38}" y="${wireY + 48}" width="12" height="16" fill="#fcd34d"/>
+    <rect class="jn-win" x="${xPlant - 18}" y="${wireY + 48}" width="12" height="16" fill="#fcd34d"/>
+    <rect class="jn-win" x="${xPlant + 2}" y="${wireY + 48}" width="12" height="16" fill="#fcd34d"/>
+    <text x="${xPlant}" y="${wireY + 118}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Power Plant</text>
+    <text x="${xPlant}" y="${wireY + 136}" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="700">11 kV</text>
+  </g>
+
+  <!-- Step-up transformer -->
+  <g class="jn-node" data-node="up">
+    <rect x="${xUp - 26}" y="${wireY + 30}" width="52" height="52" rx="7" fill="#20304d" stroke="#3b4a68" stroke-width="1.5"/>
+    <circle class="jn-ring" cx="${xUp}" cy="${wireY + 56}" r="16" fill="none" stroke="#38bdf8" stroke-width="2.2"/>
+    <text x="${xUp}" y="${wireY + 61}" text-anchor="middle" fill="#7dd3fc" font-size="15" font-weight="800">↑</text>
+    <text x="${xUp}" y="${wireY + 108}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Step-Up</text>
+    <text x="${xUp}" y="${wireY + 126}" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="700">400 kV</text>
+  </g>
+
+  <!-- Grid label under towers -->
+  <text x="${(xT1 + xT2) / 2}" y="${wireY + 118}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Power Grid</text>
+  <text x="${(xT1 + xT2) / 2}" y="${wireY + 136}" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="700">long distance</text>
+
+  <!-- Step-down transformer -->
+  <g class="jn-node" data-node="down">
+    <rect x="${xDown - 26}" y="${wireY + 30}" width="52" height="52" rx="7" fill="#20304d" stroke="#3b4a68" stroke-width="1.5"/>
+    <circle class="jn-ring" cx="${xDown}" cy="${wireY + 56}" r="16" fill="none" stroke="#f87171" stroke-width="2.2"/>
+    <text x="${xDown}" y="${wireY + 61}" text-anchor="middle" fill="#fca5a5" font-size="15" font-weight="800">↓</text>
+    <text x="${xDown}" y="${wireY + 108}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Step-Down</text>
+    <text x="${xDown}" y="${wireY + 126}" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">240 V</text>
+  </g>
+
+  <!-- Home -->
+  <g class="jn-node" data-node="home">
+    <path d="M${xHome - 40} ${wireY + 52} L${xHome} ${wireY + 22} L${xHome + 40} ${wireY + 52} Z" fill="#8a4636"/>
+    <rect x="${xHome - 30}" y="${wireY + 52}" width="60" height="44" fill="#2b3a58"/>
+    <rect x="${xHome - 6}" y="${wireY + 70}" width="14" height="26" fill="#16233d"/>
+    <rect class="jn-win" x="${xHome - 24}" y="${wireY + 60}" width="12" height="12" fill="#fcd34d"/>
+    <rect class="jn-win" x="${xHome + 12}" y="${wireY + 60}" width="12" height="12" fill="#fcd34d"/>
+    <text x="${xHome}" y="${wireY + 118}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Your Home</text>
+    <text x="${xHome}" y="${wireY + 136}" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="700">safe supply</text>
+  </g>
+
+  <!-- Energy packet (glowing comet that travels the wire) -->
+  <g id="journey-packet" class="jn-packet">
+    <circle r="16" fill="url(#packet-grad)"/>
+    <circle r="5" fill="#fffbe6" filter="url(#soft-glow)"/>
+  </g>
+</svg>
+</div>`;
+}
+
+
 
 const QUIZ = [
   {
@@ -671,6 +810,9 @@ function getNarrationText(bucket, fallback = '') {
 
 function narrateScene(index) {
   if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
+  // Scene 2 narrates each step individually (synced to the animation), so skip
+  // the scene-level narration there to avoid cancelling the step sequence.
+  if (index === 2) return;
   const scene = document.getElementById(`scene-${index}`);
   if (!scene) return;
   const fallback = cleanNarrationText(scene.querySelector('.scene-subtitle')?.textContent || '');
@@ -678,13 +820,13 @@ function narrateScene(index) {
   audio.narrate(text, getNarrationRate(), true);
 }
 
-function narrateStep(stepId) {
-  if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
+function narrateStep(stepId, onEnd = null) {
+  if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return false;
   const stepEl = document.getElementById(stepId);
-  if (!stepEl) return;
+  if (!stepEl) return false;
   const fallback = cleanNarrationText(stepEl.textContent || '');
   const text = cleanNarrationText(getNarrationText(STEP_NARRATION[stepId], fallback));
-  audio.narrate(text, getNarrationRate(), true);
+  return audio.narrate(text, getNarrationRate(), true, onEnd);
 }
 
 // ─── Particle motion along SVG paths (GSAP) ────────────────────────────────────
@@ -753,7 +895,13 @@ function startFluxPulse(svg) {
 
 // ─── AC waveform canvas ────────────────────────────────────────────────────────
 
-function drawWave(canvas, timestamp, phaseShift = 0) {
+function drawWave(canvas, timestamp, opts = {}) {
+  const {
+    sAmpMul = 1,        // secondary amplitude relative to primary (= turns ratio)
+    showSecondary = true,
+    pLabel = 'Primary (input)',
+    sLabel = 'Secondary (output)',
+  } = opts;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const ratio = window.devicePixelRatio || 1;
@@ -770,9 +918,12 @@ function drawWave(canvas, timestamp, phaseShift = 0) {
   const w = rect.width;
   const h = rect.height;
   const mid = h * 0.5;
-  const amp = h * 0.34;
+  const baseAmp = h * 0.30;
+  // Both waves share the SAME phase & frequency; only amplitude differs (Vs/Vp = Ns/Np).
+  const pAmp = Math.min(baseAmp, h * 0.44 / Math.max(1, sAmpMul));
+  const sAmp = Math.min(h * 0.44, pAmp * sAmpMul);
   const freq = 0.022 * speedMultiplier;
-  const t = timestamp * 0.0032 + phaseShift;
+  const t = timestamp * 0.0032;
 
   // Grid
   ctx.lineWidth = 1;
@@ -788,42 +939,42 @@ function drawWave(canvas, timestamp, phaseShift = 0) {
   ctx.strokeStyle = 'rgba(148,163,184,0.28)';
   ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
 
-  const drawCurve = (color, glow, aMul, phase, fill) => {
-    // filled area under curve
+  const drawCurve = (color, glow, amp, fill) => {
     if (fill) {
       ctx.beginPath();
       for (let x = 0; x <= w; x += 2) {
-        const y = mid + Math.sin((x * freq) + t + phase) * (amp * aMul);
+        const y = mid - Math.sin((x * freq) + t) * amp;
         if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.lineTo(w, mid); ctx.lineTo(0, mid); ctx.closePath();
       ctx.fillStyle = fill;
       ctx.fill();
     }
-    // glowing stroke
     ctx.beginPath();
     ctx.lineWidth = 2.6;
     ctx.strokeStyle = color;
     ctx.shadowColor = glow;
     ctx.shadowBlur = 8;
     for (let x = 0; x <= w; x += 2) {
-      const y = mid + Math.sin((x * freq) + t + phase) * (amp * aMul);
+      const y = mid - Math.sin((x * freq) + t) * amp;
       if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.stroke();
     ctx.shadowBlur = 0;
   };
 
-  // Primary (input) then secondary (output, phase-shifted, smaller)
-  drawCurve('rgba(96,165,250,1)', 'rgba(59,130,246,0.7)', 1, 0, 'rgba(59,130,246,0.10)');
-  drawCurve('rgba(248,113,113,1)', 'rgba(239,68,68,0.7)', 0.72, Math.PI / 2, 'rgba(239,68,68,0.08)');
+  // Primary first, secondary on top (same phase — they rise and fall together)
+  drawCurve('rgba(96,165,250,1)', 'rgba(59,130,246,0.7)', pAmp, 'rgba(59,130,246,0.10)');
+  if (showSecondary) drawCurve('rgba(248,113,113,1)', 'rgba(239,68,68,0.7)', sAmp, 'rgba(239,68,68,0.08)');
 
   // Legend
   ctx.font = '600 10px Inter, system-ui, sans-serif';
   ctx.fillStyle = 'rgba(96,165,250,1)';
-  ctx.fillText('● Primary (input)', 8, 13);
-  ctx.fillStyle = 'rgba(248,113,113,1)';
-  ctx.fillText('● Secondary (output)', 108, 13);
+  ctx.fillText('● ' + pLabel, 8, 13);
+  if (showSecondary) {
+    ctx.fillStyle = 'rgba(248,113,113,1)';
+    ctx.fillText('● ' + sLabel, 8 + ctx.measureText('● ' + pLabel).width + 16, 13);
+  }
   ctx.restore();
 }
 
@@ -837,8 +988,16 @@ function startWaveforms() {
   const tick = (ts) => {
     const c0 = document.getElementById('wave-canvas-0');
     const c2 = document.getElementById('wave-canvas-2');
-    if (currentScene === 0 && c0) drawWave(c0, ts, 0);
-    if (currentScene === 2 && c2) drawWave(c2, ts, Math.PI / 3);
+    const c3 = document.getElementById('wave-canvas-3');
+    const c4 = document.getElementById('wave-canvas-4');
+    // Scene 0: single clean AC supply wave.
+    if (currentScene === 0 && c0) drawWave(c0, ts, { showSecondary: false, pLabel: 'AC supply voltage' });
+    // Scene 2: equal turns → equal, in-phase waves.
+    if (currentScene === 2 && c2) drawWave(c2, ts, { sAmpMul: 1 });
+    // Scene 3: step-up → secondary taller than primary.
+    if (currentScene === 3 && c3) drawWave(c3, ts, { sAmpMul: 2.2, pLabel: 'Vp (input)', sLabel: 'Vs (output ▲ higher)' });
+    // Scene 4: step-down → secondary shorter than primary.
+    if (currentScene === 4 && c4) drawWave(c4, ts, { sAmpMul: 0.45, pLabel: 'Vp (input)', sLabel: 'Vs (output ▼ lower)' });
     waveformFrameId = requestAnimationFrame(tick);
   };
   waveformFrameId = requestAnimationFrame(tick);
@@ -850,15 +1009,58 @@ function animateScene(index) {
   clearTransientAnimations();
   const gsapOk = typeof gsap !== 'undefined';
 
-  // ── Scene 0 · Intro ──
+  // ── Scene 0 · Intro — cinematic energy journey ──
   if (index === 0) {
     startWaveforms();
-    const items = document.querySelectorAll('#vis-0 .flow-item, #vis-0 .flow-arrow');
-    if (gsapOk && items.length) {
-      gsap.from(items, { opacity: 0, y: 20, stagger: 0.12, duration: 0.5, ease: 'power2.out' });
+    const journey = document.getElementById('journey');
+    if (gsapOk && journey) {
+      const packet = journey.querySelector('#journey-packet');
+      const track  = journey.querySelector('#journey-track');
+      const nodes  = Array.from(journey.querySelectorAll('.jn-node'));
+      const liveWire = journey.querySelector('.jn-wire-live');
+
+      // Intro reveal of the whole scene
+      gsap.from(journey, { opacity: 0, duration: 0.6, ease: 'power2.out' });
+      nodes.forEach((n, i) => gsap.from(n, { opacity: 0, y: 14, duration: 0.5, delay: 0.15 + i * 0.12, ease: 'power2.out' }));
+
+      // Dim all nodes to start
+      nodes.forEach(n => gsap.set(n, { opacity: 1 }));
+      const dimNode = (n) => { const w = n.querySelectorAll('.jn-win, .jn-ring'); w.forEach(el => gsap.set(el, { opacity: 0.25 })); };
+      nodes.forEach(dimNode);
+
+      // Energy dashes flowing along the wire
+      if (liveWire) {
+        const t = gsap.to(liveWire, { strokeDashoffset: -180, duration: 2.2, ease: 'none', repeat: -1 });
+        activeFluxTweens.push(t);
+      }
+
+      // Comet packet travels the wire on a loop, lighting each node as it passes
+      if (packet && track) {
+        const total = track.getTotalLength();
+        // node progress checkpoints along the path (0..1)
+        const checkpoints = [0.02, 0.28, 0.5, 0.75, 0.98];
+        const state = { p: 0 };
+        const lit = new Set();
+        const tw = gsap.to(state, {
+          p: 1, duration: 4.4, ease: 'none', repeat: -1,
+          onRepeat: () => { lit.clear(); nodes.forEach(dimNode); },
+          onUpdate: () => {
+            const pt = track.getPointAtLength(state.p * total);
+            packet.setAttribute('transform', `translate(${pt.x.toFixed(1)},${pt.y.toFixed(1)})`);
+            checkpoints.forEach((cp, i) => {
+              if (state.p >= cp && !lit.has(i) && nodes[i]) {
+                lit.add(i);
+                const w = nodes[i].querySelectorAll('.jn-win, .jn-ring');
+                gsap.to(w, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+                gsap.fromTo(nodes[i], { filter: 'brightness(1)' }, { filter: 'brightness(1.6)', duration: 0.25, yoyo: true, repeat: 1 });
+                audio.playStepBeep(360 + i * 70);
+              }
+            });
+          },
+        });
+        activeFlowTweens.push(tw);
+      }
     }
-    const icon = document.querySelector('#vis-0 .intro-icon');
-    if (gsapOk && icon) gsap.from(icon, { scale: 0.4, opacity: 0, duration: 0.7, ease: 'back.out(1.7)' });
   }
 
   // ── Scene 1 · Construction — smooth power-on reveal ──
@@ -880,16 +1082,14 @@ function animateScene(index) {
     }
   }
 
-  // ── Scene 2 · Working Principle — sequenced 4-step energising ──
+  // ── Scene 2 · Working Principle — steps advance when narration finishes ──
   if (index === 2) {
-    ['step-1', 'step-2', 'step-3', 'step-4'].forEach(sid => {
-      document.getElementById(sid)?.classList.remove('active');
-    });
+    const stepIds = ['step-1', 'step-2', 'step-3', 'step-4'];
+    stepIds.forEach(sid => document.getElementById(sid)?.classList.remove('active'));
 
     const svg = document.getElementById('svg-2');
     const cpFront = svg ? svg.querySelector('.coil-primary-front')   : null;
     const csFront = svg ? svg.querySelector('.coil-secondary-front') : null;
-    const fa   = svg ? svg.querySelectorAll('.flux-arrow')  : [];
     const cr   = svg ? svg.querySelectorAll('.core-rect')   : [];
     const pp   = svg ? svg.querySelector('.particles-primary')   : null;
     const fp   = svg ? svg.querySelector('.particles-flux')      : null;
@@ -899,6 +1099,7 @@ function animateScene(index) {
     const fila = svg ? svg.querySelector('.bulb-filament')   : null;
     const loop = svg ? svg.querySelector('.flux-loop')       : null;
 
+    // Dim everything to the "off" state first.
     if (gsapOk) {
       if (cpFront) gsap.set(cpFront, { opacity: 0.4 });
       if (csFront) gsap.set(csFront, { opacity: 0.4 });
@@ -909,70 +1110,58 @@ function animateScene(index) {
       if (src) gsap.set(src, { attr: { stroke: '#94a3b8' } });
       if (bulb) gsap.set(bulb, { attr: { stroke: '#94a3b8', fill: 'rgba(15,23,42,0.85)' } });
       if (fila) gsap.set(fila, { opacity: 0.35 });
-      fa.forEach(a => gsap.set(a, { opacity: 0.35 }));
       cr.forEach(r => gsap.set(r, { attr: { fill: '#8b7355' } }));
     }
 
-    // Step pacing: give narration room to breathe when it is enabled.
+    startWaveforms();
+    startWorkingFlow(svg, 1);
+
     const narrating = toggles.narrate && audio.enabled && audio.narrationEnabled;
-    const stepDur = (narrating ? 3.6 : 2.4) / speedMultiplier;
 
-    if (gsapOk) {
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-
-      // Step 1 — AC source energises the primary
-      tl.add(() => {
-        document.getElementById('step-1')?.classList.add('active');
-        narrateStep('step-1'); audio.playStepBeep(440);
+    // Apply the visual change for step i.
+    const applyStep = (i) => {
+      audio.playStepBeep([440, 520, 600, 700][i]);
+      document.getElementById(stepIds[i])?.classList.add('active');
+      if (!gsapOk) return;
+      if (i === 0) {
         audio.startHum();
-      }, 0);
-      if (cpFront) tl.to(cpFront, { opacity: 1, duration: 0.6 }, 0.1);
-      if (pp)  tl.to(pp,  { opacity: 1, duration: 0.5 }, 0.15);
-      if (src) tl.to(src, { attr: { stroke: '#60a5fa' }, duration: 0.5 }, 0.1);
-
-      // Step 2 — flux builds in the core
-      tl.add(() => {
-        document.getElementById('step-2')?.classList.add('active');
-        narrateStep('step-2'); audio.playStepBeep(520);
+        if (cpFront) gsap.to(cpFront, { opacity: 1, duration: 0.5 });
+        if (pp) gsap.to(pp, { opacity: 1, duration: 0.4 });
+        if (src) gsap.to(src, { attr: { stroke: '#60a5fa' }, duration: 0.4 });
+      } else if (i === 1) {
         if (fp) gsap.to(fp, { opacity: 1, duration: 0.35 });
+        cr.forEach(r => gsap.to(r, { attr: { fill: '#b8954a' }, duration: 0.5 }));
+        if (loop) gsap.to(loop, { opacity: 0.4, duration: 0.4 });
         startFluxPulse(svg);
-      }, stepDur);
-      cr.forEach(r => tl.to(r, { attr: { fill: '#b8954a' }, duration: 0.6 }, stepDur + 0.05));
-      if (loop) tl.to(loop, { opacity: 0.4, duration: 0.4 }, stepDur + 0.05);
+      } else if (i === 2) {
+        if (csFront) gsap.to(csFront, { opacity: 1, duration: 0.5 });
+        if (sp2) gsap.to(sp2, { opacity: 1, duration: 0.4 });
+      } else if (i === 3) {
+        if (bulb) gsap.to(bulb, { attr: { stroke: '#facc15', fill: 'rgba(250,204,21,0.18)' }, duration: 0.5 });
+        if (fila) gsap.to(fila, { opacity: 1, duration: 0.5, onComplete: () => {
+          const g1 = gsap.to(fila, { opacity: 0.55, repeat: -1, yoyo: true, duration: 0.6, ease: 'sine.inOut' }); activeFlowTweens.push(g1);
+          const g2 = gsap.to(bulb, { attr: { fill: 'rgba(250,204,21,0.3)' }, repeat: -1, yoyo: true, duration: 0.6, ease: 'sine.inOut' }); activeFlowTweens.push(g2);
+        }});
+      }
+    };
 
-      // Step 3 — flux links the secondary
-      tl.add(() => {
-        document.getElementById('step-3')?.classList.add('active');
-        narrateStep('step-3'); audio.playStepBeep(600);
-      }, stepDur * 2);
-      if (csFront) tl.to(csFront, { opacity: 1, duration: 0.6 }, stepDur * 2 + 0.1);
-      if (sp2) tl.to(sp2, { opacity: 1, duration: 0.5 }, stepDur * 2 + 0.15);
-
-      // Step 4 — load (bulb) lights up
-      tl.add(() => {
-        document.getElementById('step-4')?.classList.add('active');
-        narrateStep('step-4'); audio.playStepBeep(700);
-      }, stepDur * 3);
-      if (bulb) tl.to(bulb, { attr: { stroke: '#facc15', fill: 'rgba(250,204,21,0.18)' }, duration: 0.5 }, stepDur * 3 + 0.05);
-      if (fila) tl.to(fila, { opacity: 1, duration: 0.5 }, stepDur * 3 + 0.05);
-      // Gentle sustained glow pulse once the bulb is lit.
-      tl.add(() => {
-        if (fila) { const g = gsap.to(fila, { opacity: 0.55, repeat: -1, yoyo: true, duration: 0.6, ease: 'sine.inOut' }); activeFlowTweens.push(g); }
-        if (bulb) { const g = gsap.to(bulb, { attr: { fill: 'rgba(250,204,21,0.3)' }, repeat: -1, yoyo: true, duration: 0.6, ease: 'sine.inOut' }); activeFlowTweens.push(g); }
-      }, stepDur * 3 + 0.6);
-
-      activeTimeline = tl;
-      startWorkingFlow(svg, narrating ? 1.25 : 1);
-      startWaveforms();
-    } else {
-      startWaveforms();
-      ['step-1', 'step-2', 'step-3', 'step-4'].forEach((sid, i) => {
-        setTimeout(() => {
-          document.getElementById(sid)?.classList.add('active');
-          narrateStep(sid); audio.playStepBeep(440 + i * 80);
-        }, i * 2400 / speedMultiplier);
-      });
-    }
+    // Sequence driver: advance ONLY when the step's narration finishes.
+    // When narration is off, fall back to a comfortable fixed pace.
+    const runId = ++workingRunId;
+    const fixedGap = 2.8 / speedMultiplier * 1000;
+    const runStep = (i) => {
+      if (i >= stepIds.length || runId !== workingRunId) return;
+      applyStep(i);
+      const advance = () => {
+        if (runId !== workingRunId) return;
+        workingStepTimeout = setTimeout(() => runStep(i + 1), 500 / speedMultiplier);
+      };
+      const spoke = narrating ? narrateStep(stepIds[i], advance) : false;
+      if (!spoke) {
+        workingStepTimeout = setTimeout(() => runStep(i + 1), fixedGap);
+      }
+    };
+    runStep(0);
   }
 
   // ── Scene 3 · Step-Up ──
@@ -985,6 +1174,7 @@ function animateScene(index) {
       if (cs.length) gsap.from(cs, { opacity: 0, stagger: 0.03, duration: 0.5, delay: 0.3, ease: 'power2.out' });
       startAmbient(svg);
     }
+    startWaveforms();
   }
 
   // ── Scene 4 · Step-Down ──
@@ -997,6 +1187,7 @@ function animateScene(index) {
       if (cp.length) gsap.from(cp, { opacity: 0, stagger: 0.03, duration: 0.5, delay: 0.3, ease: 'power2.out' });
       startAmbient(svg);
     }
+    startWaveforms();
   }
 
   // ── Scene 5 · Formulas ──
@@ -1059,26 +1250,15 @@ function applyToggles() {
 // ─── Scene injection ───────────────────────────────────────────────────────────
 
 function injectVisuals() {
-  // Scene 0 — intro power-flow graphic (self-drawn illustrations)
+  // Scene 0 — cinematic "journey of electricity" + live AC waveform
   const v0 = document.getElementById('vis-0');
   if (v0) {
     v0.innerHTML = `
-      <div class="intro-icon-wrap">
-        <div class="intro-icon">⚡</div>
+      <div class="intro-stage">
+        ${buildJourneySVG()}
         <div class="wave-panel">
-          <div class="wave-panel-title">AC waveform at source</div>
+          <div class="wave-panel-title">⚡ AC waveform leaving the power station</div>
           <canvas id="wave-canvas-0" class="ac-wave-canvas" aria-label="Animated AC waveform"></canvas>
-        </div>
-        <div class="intro-flow">
-          <div class="flow-item">${illusPowerPlant()}<span>Power Plant<br><small>11 kV</small></span></div>
-          <span class="flow-arrow">→</span>
-          <div class="flow-item">${illusPylon()}<span>Step-Up<br><small>up to 400 kV</small></span></div>
-          <span class="flow-arrow">→</span>
-          <div class="flow-item">${illusPylon()}<span>Grid<br><small>long distance</small></span></div>
-          <span class="flow-arrow">→</span>
-          <div class="flow-item">${illusHome()}<span>Step-Down<br><small>240 V</small></span></div>
-          <span class="flow-arrow">→</span>
-          <div class="flow-item">${illusHome()}<span>Your Home<br><small>safe supply</small></span></div>
         </div>
       </div>`;
   }
@@ -1105,20 +1285,38 @@ function injectVisuals() {
     v2.innerHTML = `
       <div class="working-visual-wrap">
         <div class="wave-panel compact">
-          <div class="wave-panel-title">Live induction waveform (primary vs. secondary)</div>
+          <div class="wave-panel-title">Live voltage: input vs. output (same shape, same size)</div>
           <canvas id="wave-canvas-2" class="ac-wave-canvas compact" aria-label="Animated induction waveform"></canvas>
         </div>
         ${buildSVG({ Np: 6, Ns: 6, showFlux: toggles.flux, showLabels: toggles.labels, id: 'svg-2' })}
       </div>`;
   }
 
-  // Scene 3 — step-up (Np=4, Ns=9)
+  // Scene 3 — step-up (Np=4, Ns=9): fewer input loops, more output loops
   const v3 = document.getElementById('vis-3');
-  if (v3) v3.innerHTML = buildSVG({ Np: 4, Ns: 9, showFlux: toggles.flux, showLabels: toggles.labels, id: 'svg-3' });
+  if (v3) {
+    v3.innerHTML = `
+      <div class="working-visual-wrap">
+        <div class="wave-panel compact">
+          <div class="wave-panel-title">Output wave is TALLER → higher voltage</div>
+          <canvas id="wave-canvas-3" class="ac-wave-canvas compact" aria-label="Step-up waveform"></canvas>
+        </div>
+        ${buildSVG({ Np: 4, Ns: 9, showFlux: toggles.flux, showLabels: toggles.labels, id: 'svg-3' })}
+      </div>`;
+  }
 
-  // Scene 4 — step-down (Np=9, Ns=4)
+  // Scene 4 — step-down (Np=9, Ns=4): more input loops, fewer output loops
   const v4 = document.getElementById('vis-4');
-  if (v4) v4.innerHTML = buildSVG({ Np: 9, Ns: 4, showFlux: toggles.flux, showLabels: toggles.labels, id: 'svg-4' });
+  if (v4) {
+    v4.innerHTML = `
+      <div class="working-visual-wrap">
+        <div class="wave-panel compact">
+          <div class="wave-panel-title">Output wave is SHORTER → lower voltage</div>
+          <canvas id="wave-canvas-4" class="ac-wave-canvas compact" aria-label="Step-down waveform"></canvas>
+        </div>
+        ${buildSVG({ Np: 9, Ns: 4, showFlux: toggles.flux, showLabels: toggles.labels, id: 'svg-4' })}
+      </div>`;
+  }
 
   // Scene 5 — driven live by the interactive calculator (Np / Ns)
   const v5 = document.getElementById('vis-5');
