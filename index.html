@@ -3,57 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="2D archery action game built with HTML5 Canvas and vanilla JavaScript." />
-  <title>Archer's Path</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Launch the games available in the STProjects collection." />
+  <title>STProjects Game Hub</title>
+  <link rel="stylesheet" href="/home/runner/work/STProjects/STProjects/style.css" />
 </head>
 <body>
-  <div class="game-shell">
-    <header class="topbar">
-      <h1>🏹 Archer's Path</h1>
-      <p>Survive ambushes from both sides and reach the destination.</p>
+  <main class="hub-shell">
+    <header class="hero">
+      <p class="eyebrow">STProjects</p>
+      <h1>Game Hub</h1>
+      <p class="hero-copy">Choose a game and launch it from one place.</p>
     </header>
 
-    <section class="game-stage">
-      <canvas id="gameCanvas" width="960" height="540" aria-label="Archer action game canvas"></canvas>
+    <section class="game-grid" aria-label="Available games">
+      <article class="game-card">
+        <div>
+          <p class="game-tag">Action</p>
+          <h2>Archer's Path</h2>
+          <p>Fight through ambushes, manage health and power, and reach the finish alive.</p>
+        </div>
+        <a class="launch-btn" href="games/archers-path/index.html">Launch Archer's Path</a>
+      </article>
 
-      <div id="hud" class="hud hidden">
-        <div class="hud-row">
-          <div class="meter-block">
-            <span>Health</span>
-            <div class="meter"><div id="healthFill" class="fill health"></div></div>
-          </div>
-          <div class="meter-block">
-            <span>Power</span>
-            <div class="meter"><div id="powerFill" class="fill power"></div></div>
-          </div>
+      <article class="game-card">
+        <div>
+          <p class="game-tag">Board Game</p>
+          <h2>Chess</h2>
+          <p>Play a full local chess match with legal move checks, castling, en passant, and promotion.</p>
         </div>
-        <div class="hud-row stats">
-          <span id="levelText">Level 1</span>
-          <span id="scoreText">Score: 0</span>
-          <span id="enemyText">Enemies: 0</span>
-          <span id="progressText">Progress: 0%</span>
-        </div>
-      </div>
-
-      <div id="overlay" class="overlay">
-        <div class="panel">
-          <h2 id="overlayTitle">Archer's Path</h2>
-          <p id="overlayMessage">Defeat enemies and reach the destination alive.</p>
-          <div id="controlHelp" class="controls-list"></div>
-          <div class="actions">
-            <button id="startBtn" class="btn">Start Game</button>
-            <button id="instructionsBtn" class="btn ghost">Instructions</button>
-            <button id="resumeBtn" class="btn hidden">Resume</button>
-            <button id="nextBtn" class="btn hidden">Next Level</button>
-            <button id="restartBtn" class="btn hidden">Restart</button>
-            <button id="menuBtn" class="btn ghost hidden">Main Menu</button>
-          </div>
-        </div>
-      </div>
+        <a class="launch-btn" href="games/chess/index.html">Launch Chess</a>
+      </article>
     </section>
-  </div>
-
-  <script src="game.js"></script>
+  </main>
 </body>
 </html>

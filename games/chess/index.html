@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Play a browser-based chess game built with vanilla JavaScript." />
+  <title>Chess</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">STProjects</p>
+        <h1>♟️ Chess</h1>
+        <p class="subtitle">Local two-player chess with move history, captured pieces, promotion, and endgame detection.</p>
+      </div>
+      <div class="header-actions">
+        <a class="back-link" href="../../index.html">← Back to Game Hub</a>
+        <button id="new-game-btn" class="primary-btn" type="button">New Game</button>
+      </div>
+    </header>
+
+    <section class="status-bar" aria-label="Game status">
+      <div id="turn-indicator" class="turn-indicator">♔ White</div>
+      <div id="status" class="status">White's turn</div>
+    </section>
+
+    <section class="layout-grid">
+      <div class="board-panel">
+        <div id="board" class="board" aria-label="Chess board"></div>
+      </div>
+
+      <aside class="sidebar">
+        <section class="info-card">
+          <h2>Captured by White</h2>
+          <p id="captured-by-white" class="captured-row" aria-live="polite"></p>
+        </section>
+
+        <section class="info-card">
+          <h2>Captured by Black</h2>
+          <p id="captured-by-black" class="captured-row" aria-live="polite"></p>
+        </section>
+
+        <section class="info-card moves-card">
+          <h2>Move History</h2>
+          <ol id="move-list" class="move-list"></ol>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div id="promotion-overlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="promotion-title">
+    <div class="modal-card">
+      <h2 id="promotion-title">Choose promotion</h2>
+      <div id="promotion-choices" class="promotion-choices"></div>
+    </div>
+  </div>
+
+  <div id="game-over-banner" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
+    <div class="modal-card">
+      <h2 id="game-over-title">Game Over</h2>
+      <p id="game-over-text"></p>
+      <button id="new-game-banner-btn" class="primary-btn" type="button">Play Again</button>
+    </div>
+  </div>
+
+  <script src="chess.js"></script>
+</body>
+</html>
