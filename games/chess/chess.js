@@ -324,53 +324,25 @@ function initGame() {
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 
-function renderBoard() {
+/**
+ * Create the 64 board cells exactly once.  Each cell gets a permanent piece
+ * <span> (index 0) plus optional rank/file label spans.  After this the DOM
+ * structure never changes — renderBoard() only updates classes and text.
+ */
+function initBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
-
-  const inCheck = isInCheck(board, currentTurn);
-  let kingR = -1, kingC = -1;
-  if (inCheck) {
-    for (let r = 0; r < 8; r++)
-      for (let c = 0; c < 8; c++)
-        if (board[r][c] === currentTurn + 'K') { kingR = r; kingC = c; }
-  }
-
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const cell = document.createElement('div');
-      cell.className = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
       cell.dataset.r = r;
       cell.dataset.c = c;
+      cell.addEventListener('click', onCellClick);
 
-      // highlights
-      if (selectedCell && selectedCell[0] === r && selectedCell[1] === c)
-        cell.classList.add('selected');
+      // Permanent piece placeholder — always child index 0.
+      const pieceSpan = document.createElement('span');
+      cell.appendChild(pieceSpan);
 
-      if (legalMoves.some(([mr, mc]) => mr === r && mc === c)) {
-        if (board[r][c]) cell.classList.add('capture-hint');
-        else cell.classList.add('move-hint');
-      }
-
-      if (inCheck && r === kingR && c === kingC)
-        cell.classList.add('in-check');
-
-      if (moveHistory.length > 0) {
-        const last = moveHistory[moveHistory.length - 1];
-        if ((last.from[0] === r && last.from[1] === c) ||
-            (last.to[0] === r && last.to[1] === c))
-          cell.classList.add('last-move');
-      }
-
-      const piece = board[r][c];
-      if (piece) {
-        const span = document.createElement('span');
-        span.className = 'piece ' + (color(piece) === 'w' ? 'white-piece' : 'black-piece');
-        span.textContent = PIECES[piece];
-        cell.appendChild(span);
-      }
-
-      // rank/file labels
       if (c === 0) {
         const label = document.createElement('span');
         label.className = 'rank-label';
@@ -384,8 +356,62 @@ function renderBoard() {
         cell.appendChild(label);
       }
 
-      cell.addEventListener('click', onCellClick);
       boardEl.appendChild(cell);
+    }
+  }
+}
+
+/**
+ * Update cell classes and piece content in-place — no DOM teardown,
+ * no flicker.
+ */
+function renderBoard() {
+  const boardEl = document.getElementById('board');
+
+  const inCheck = isInCheck(board, currentTurn);
+  let kingR = -1, kingC = -1;
+  if (inCheck) {
+    for (let r = 0; r < 8; r++)
+      for (let c = 0; c < 8; c++)
+        if (board[r][c] === currentTurn + 'K') { kingR = r; kingC = c; }
+  }
+
+  const cells = boardEl.children;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = cells[r * 8 + c];
+      const piece = board[r][c];
+
+      // Build class string from scratch to avoid stale classes.
+      let cls = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+
+      if (selectedCell && selectedCell[0] === r && selectedCell[1] === c)
+        cls += ' selected';
+
+      if (legalMoves.some(([mr, mc]) => mr === r && mc === c))
+        cls += piece ? ' capture-hint' : ' move-hint';
+
+      if (inCheck && r === kingR && c === kingC)
+        cls += ' in-check';
+
+      if (moveHistory.length > 0) {
+        const last = moveHistory[moveHistory.length - 1];
+        if ((last.from[0] === r && last.from[1] === c) ||
+            (last.to[0] === r && last.to[1] === c))
+          cls += ' last-move';
+      }
+
+      cell.className = cls;
+
+      // Update the permanent piece span (always first child).
+      const pieceSpan = cell.firstElementChild;
+      if (piece) {
+        pieceSpan.className = 'piece ' + (color(piece) === 'w' ? 'white-piece' : 'black-piece');
+        pieceSpan.textContent = PIECES[piece];
+      } else {
+        pieceSpan.className = '';
+        pieceSpan.textContent = '';
+      }
     }
   }
 }
@@ -559,6 +585,9 @@ document.addEventListener('keydown', e => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Build the 64-cell grid once; subsequent renders update cells in-place.
+  initBoard();
+
   document.getElementById('new-game-btn').addEventListener('click', initGame);
   document.getElementById('new-game-banner-btn').addEventListener('click', () => {
     document.getElementById('game-over-banner').classList.add('hidden');
