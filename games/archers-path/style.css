@@ -26,19 +26,40 @@ body {
 }
 
 .topbar {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .topbar h1 {
   margin: 0;
   font-size: clamp(1.6rem, 3.8vw, 2.3rem);
+  flex: 1;
+  text-align: center;
 }
 
 .topbar p {
-  margin: 6px 0 0;
+  width: 100%;
+  margin: 0;
   color: var(--muted);
+  text-align: center;
 }
+
+.back-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.back-link:hover { background: rgba(245, 158, 11, 0.1); }
 
 .game-stage {
   position: relative;

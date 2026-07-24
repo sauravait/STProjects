@@ -12,14 +12,170 @@
 
 'use strict';
 
+// ─── Audio Manager ─────────────────────────────────────────────────────────────
+
+class AudioManager {
+  constructor() {
+    this._ctx = null;
+    this._hum = null;
+    this._humGain = null;
+    this.enabled = true;
+    this.narrationEnabled = true;
+    this._speech = typeof window !== 'undefined' ? window.speechSynthesis : null;
+    this._utterance = null;
+    this._voice = null;
+  }
+
+  _ctx_get() {
+    if (!this._ctx) {
+      try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { this.enabled = false; }
+    }
+    return this._ctx;
+  }
+
+  startHum() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    this.stopHum();
+    const osc  = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';  osc.frequency.value  = 50;
+    osc2.type = 'sine'; osc2.frequency.value = 100;
+    const g2 = ctx.createGain(); g2.gain.value = 0.25;
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.6);
+    osc.connect(gain); osc2.connect(g2); g2.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(); osc2.start();
+    this._hum = [osc, osc2]; this._humGain = gain;
+  }
+
+  stopHum() {
+    if (!this._hum) return;
+    try {
+      const ctx = this._ctx;
+      if (ctx && this._humGain) {
+        this._humGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      }
+      const h = this._hum;
+      setTimeout(() => h.forEach(o => { try { o.stop(); } catch (e) {} }), 500);
+    } catch (e) {}
+    this._hum = null; this._humGain = null;
+  }
+
+  stopNarration() {
+    if (!this._speech) return;
+    this._speech.cancel();
+    this._utterance = null;
+  }
+
+  narrate(text, rate = 1, interrupt = true) {
+    if (!this.enabled || !this.narrationEnabled || !this._speech || !text) return;
+    if (interrupt) this.stopNarration();
+    const utter = new SpeechSynthesisUtterance(String(text).trim());
+    utter.rate = Math.min(2, Math.max(0.6, rate));
+    utter.pitch = 1;
+    utter.volume = 1;
+    const voices = this._speech.getVoices();
+    if (!this._voice && voices.length) {
+      this._voice = voices.find(v => /en/i.test(v.lang)) || voices[0];
+    }
+    if (this._voice) utter.voice = this._voice;
+    this._utterance = utter;
+    this._speech.speak(utter);
+  }
+
+  playClick() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.008));
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain(); gain.gain.value = 0.18;
+    src.buffer = buf; src.connect(gain); gain.connect(ctx.destination); src.start();
+  }
+
+  playStepBeep(freq = 440) {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.07, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.18);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.2);
+  }
+
+  playSuccess() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = f;
+      const t = ctx.currentTime + i * 0.13;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.1, t + 0.02);
+      gain.gain.linearRampToValueAtTime(0, t + 0.28);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.32);
+    });
+  }
+
+  playFail() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.35);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.45);
+  }
+}
+
+const audio = new AudioManager();
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let currentScene = 0;
 const TOTAL_SCENES = 7;
 let speedMultiplier = 1;
 let activeTimeline = null;
+let activeFlowTweens = [];
+let activeFluxTweens = [];
+let waveformFrameId = null;
 
-const toggles = { labels: true, flux: true, equations: false, subtitles: true };
+const toggles = { labels: true, flux: true, equations: false, subtitles: true, narrate: true };
+
+function clearTransientAnimations() {
+  if (activeTimeline) { activeTimeline.kill(); activeTimeline = null; }
+  activeFlowTweens.forEach(t => t.kill());
+  activeFluxTweens.forEach(t => t.kill());
+  activeFlowTweens = [];
+  activeFluxTweens = [];
+  stopWaveforms();
+}
+
+function getNarrationRate() {
+  return Math.min(1.4, Math.max(0.8, speedMultiplier));
+}
+
+function cleanNarrationText(text = '') {
+  return text
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, 'and')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 // ─── SVG Transformer Generator ────────────────────────────────────────────────
 
@@ -182,6 +338,27 @@ function buildSVG(cfg = {}) {
                   style="animation-delay:0.4s"/>`;
   }
 
+  /* ── Current flow particles ── */
+  function currentParticles() {
+    if (!showFlux) return '';
+    const primPath = `M ${srcX + srcR},${srcY - 14} L ${wireL},${coilTop} L ${wireL},${coilBot} L ${srcX + srcR},${srcY + 14}`;
+    const fluxPath = `M ${winL + 24},${coilBot - 14} C ${winL + 90},${midY + 60} ${winR - 90},${midY - 60} ${winR - 24},${coilTop + 14}`;
+    const secPath  = `M ${wireR},${coilTop} L ${ldX},${ldY} L ${ldX + ldW / 2},${ldY + ldH / 2} L ${ldX},${ldY + ldH} L ${wireR},${coilBot}`;
+    return `
+      <path id="pp-${id}" d="${primPath}" fill="none" stroke="none" visibility="hidden"/>
+      <path id="fp-${id}" d="${fluxPath}" fill="none" stroke="none" visibility="hidden"/>
+      <path id="sp-${id}" d="${secPath}"  fill="none" stroke="none" visibility="hidden"/>
+      <g class="flow-particles particles-primary" filter="url(#glow-b-${id})">
+        ${new Array(6).fill(0).map(() => `<circle r="3.8" fill="#93c5fd" class="flow-dot flow-primary"/>`).join('')}
+      </g>
+      <g class="flow-particles particles-flux" filter="url(#glow-g-${id})">
+        ${new Array(6).fill(0).map(() => `<circle r="3.4" fill="#86efac" class="flow-dot flow-flux"/>`).join('')}
+      </g>
+      <g class="flow-particles particles-secondary" filter="url(#glow-r-${id})">
+        ${new Array(6).fill(0).map(() => `<circle r="3.8" fill="#fca5a5" class="flow-dot flow-secondary"/>`).join('')}
+      </g>`;
+  }
+
   const cPrimary  = coilPath(primEdgeX, primBumpX, coilTop, coilH, Np);
   const cSecondary = coilPath(secEdgeX, secBumpX, coilTop, coilH, Ns);
 
@@ -190,17 +367,26 @@ function buildSVG(cfg = {}) {
   return `
 <div class="tx-svg-wrap">
 <svg id="${id}" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
      role="img" aria-label="Transformer diagram with ${Np} primary and ${Ns} secondary turns">
   <defs>
     <marker id="arrow-grn-${id}" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
       <path d="M0,0 L0,7 L7,3.5 z" fill="#22c55e"/>
     </marker>
-    <filter id="glow-b-${id}" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="glow-b-${id}" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-r-${id}" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-g-${id}" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="glow-r-${id}" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
+    <filter id="glow-core-${id}" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
@@ -208,70 +394,78 @@ function buildSVG(cfg = {}) {
   <!-- Iron core — top bar -->
   <rect x="${coreX}" y="${topBarY}" width="${coreW}" height="${barH}"
         fill="#8b7355" stroke="#6b5735" stroke-width="1" rx="3"
-        data-part="core" ${partAttr}/>
+        class="core-rect" data-part="core" ${partAttr}/>
   ${laminationLines(coreX, topBarY, coreW, barH, 5)}
 
   <!-- Iron core — bottom bar -->
   <rect x="${coreX}" y="${botBarY}" width="${coreW}" height="${barH}"
         fill="#8b7355" stroke="#6b5735" stroke-width="1" rx="3"
-        data-part="core" ${partAttr}/>
+        class="core-rect" data-part="core" ${partAttr}/>
   ${laminationLines(coreX, botBarY, coreW, barH, 5)}
 
   <!-- Iron core — left arm -->
   <rect x="${leftArmX}" y="${coilTop}" width="${armW}" height="${coilH}"
         fill="#8b7355" stroke="#6b5735" stroke-width="1"
-        data-part="core" ${partAttr}/>
+        class="core-rect" data-part="core" ${partAttr}/>
   ${laminationLines(leftArmX, coilTop, armW, coilH, 8)}
 
   <!-- Iron core — right arm -->
   <rect x="${rightArmX}" y="${coilTop}" width="${armW}" height="${coilH}"
         fill="#8b7355" stroke="#6b5735" stroke-width="1"
-        data-part="core" ${partAttr}/>
+        class="core-rect" data-part="core" ${partAttr}/>
   ${laminationLines(rightArmX, coilTop, armW, coilH, 8)}
 
   <!-- Flux lines -->
   ${fluxLines()}
+  <g class="flux-rings" filter="url(#glow-g-${id})">
+    <circle class="flux-ring" cx="${(winL + winR) / 2}" cy="${midY}" r="24" fill="none" stroke="#4ade80" stroke-width="2"/>
+    <circle class="flux-ring" cx="${(winL + winR) / 2}" cy="${midY}" r="42" fill="none" stroke="#4ade80" stroke-width="2"/>
+    <circle class="flux-ring" cx="${(winL + winR) / 2}" cy="${midY}" r="60" fill="none" stroke="#4ade80" stroke-width="2"/>
+  </g>
 
   <!-- Connecting wires — primary (U-shape left) -->
-  <polyline points="${primBumpX},${coilTop} ${wireL},${coilTop}
+  <polyline class="wire-primary"
+            points="${primBumpX},${coilTop} ${wireL},${coilTop}
                     ${wireL},${coilBot} ${primBumpX},${coilBot}"
             fill="none" stroke="#3b82f6" stroke-width="2"/>
 
   <!-- Connecting wires — secondary (U-shape right) -->
-  <polyline points="${secBumpX},${coilTop} ${wireR},${coilTop}
+  <polyline class="wire-secondary"
+            points="${secBumpX},${coilTop} ${wireR},${coilTop}
                     ${wireR},${coilBot} ${secBumpX},${coilBot}"
             fill="none" stroke="#ef4444" stroke-width="2"/>
 
   <!-- AC source -->
-  <circle cx="${srcX}" cy="${srcY}" r="${srcR}"
-          fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="${srcX}" cy="${srcY}" r="${srcR}" class="ac-source-ring"
+          fill="rgba(15,23,42,0.6)" stroke="#94a3b8" stroke-width="2"/>
   <text x="${srcX}" y="${srcY + 8}" text-anchor="middle"
         fill="#94a3b8" font-size="22" font-weight="bold">~</text>
   <!-- Wires from source to left U-wire -->
   <line x1="${srcX + srcR}" y1="${srcY - 14}" x2="${wireL}" y2="${coilTop}"
-        stroke="#3b82f6" stroke-width="2"/>
+        stroke="#3b82f6" stroke-width="2" class="wire-primary"/>
   <line x1="${srcX + srcR}" y1="${srcY + 14}" x2="${wireL}" y2="${coilBot}"
-        stroke="#3b82f6" stroke-width="2"/>
+        stroke="#3b82f6" stroke-width="2" class="wire-primary"/>
 
   <!-- Load (resistor) -->
   <rect x="${ldX}" y="${ldY}" width="${ldW}" height="${ldH}"
-        fill="none" stroke="#94a3b8" stroke-width="2" rx="4"/>
+        fill="rgba(15,23,42,0.6)" stroke="#94a3b8" stroke-width="2" rx="4"
+        class="load-rect"/>
   <text x="${ldX + ldW / 2}" y="${ldY + ldH / 2 + 5}" text-anchor="middle"
         fill="#94a3b8" font-size="13" font-weight="bold">R</text>
   <!-- Wires from right U-wire to load -->
   <line x1="${wireR}" y1="${coilTop}" x2="${ldX}" y2="${ldY}"
-        stroke="#ef4444" stroke-width="2"/>
+        stroke="#ef4444" stroke-width="2" class="wire-secondary"/>
   <line x1="${wireR}" y1="${coilBot}" x2="${ldX}" y2="${ldY + ldH}"
-        stroke="#ef4444" stroke-width="2"/>
+        stroke="#ef4444" stroke-width="2" class="wire-secondary"/>
 
   <!-- Primary coil -->
-  <path class="coil-primary" d="${cPrimary}"
+  <path class="coil-primary" id="cp-${id}" d="${cPrimary}"
         stroke="#3b82f6" fill="none" stroke-width="4" stroke-linecap="round"
         filter="url(#glow-b-${id})"
         data-part="primary" ${partAttr}/>
 
   <!-- Secondary coil -->
-  <path class="coil-secondary" d="${cSecondary}"
+  <path class="coil-secondary" id="cs-${id}" d="${cSecondary}"
         stroke="#ef4444" fill="none" stroke-width="4" stroke-linecap="round"
         filter="url(#glow-r-${id})"
         data-part="secondary" ${partAttr}/>
@@ -279,6 +473,9 @@ function buildSVG(cfg = {}) {
   <!-- Input / output waves -->
   ${inputWave()}
   ${outputWave()}
+
+  <!-- Current particles -->
+  ${currentParticles()}
 
   ${labels()}
 </svg>
@@ -377,51 +574,341 @@ const PART_INFO = {
   },
 };
 
+function narrateScene(index) {
+  if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
+  const scene = document.getElementById(`scene-${index}`);
+  if (!scene) return;
+  const title = cleanNarrationText(scene.querySelector('.scene-title')?.textContent || '');
+  const desc = cleanNarrationText(
+    scene.querySelector('.scene-desc')?.textContent
+      || scene.querySelector('.scene-subtitle')?.textContent
+      || ''
+  );
+  audio.narrate(`${title}. ${desc}`, getNarrationRate(), true);
+}
+
+function narrateStep(stepId) {
+  if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
+  const stepEl = document.getElementById(stepId);
+  if (!stepEl) return;
+  const text = cleanNarrationText(stepEl.textContent || '');
+  audio.narrate(text, getNarrationRate(), true);
+}
+
+function animateDotsOnPath(dots, pathEl, duration = 2.2, stagger = 0.22) {
+  if (typeof gsap === 'undefined' || !dots.length || !pathEl) return;
+  const total = pathEl.getTotalLength();
+  dots.forEach((dot, i) => {
+    const tracker = { progress: (i / dots.length) % 1 };
+    const tween = gsap.to(tracker, {
+      progress: tracker.progress + 1,
+      duration,
+      ease: 'none',
+      repeat: -1,
+      delay: i * stagger,
+      onUpdate: () => {
+        const p = pathEl.getPointAtLength((tracker.progress % 1) * total);
+        dot.setAttribute('cx', p.x.toFixed(2));
+        dot.setAttribute('cy', p.y.toFixed(2));
+      },
+    });
+    activeFlowTweens.push(tween);
+  });
+}
+
+function startWorkingFlow(svg) {
+  if (!svg) return;
+  activeFlowTweens.forEach(t => t.kill());
+  activeFlowTweens = [];
+  const primaryPath = svg.querySelector('#pp-svg-2');
+  const fluxPath = svg.querySelector('#fp-svg-2');
+  const secondaryPath = svg.querySelector('#sp-svg-2');
+  animateDotsOnPath(Array.from(svg.querySelectorAll('.flow-primary')), primaryPath, 1.6 / speedMultiplier, 0.18);
+  animateDotsOnPath(Array.from(svg.querySelectorAll('.flow-flux')), fluxPath, 1.9 / speedMultiplier, 0.2);
+  animateDotsOnPath(Array.from(svg.querySelectorAll('.flow-secondary')), secondaryPath, 1.7 / speedMultiplier, 0.18);
+}
+
+function startFluxPulse(svg) {
+  if (!svg || typeof gsap === 'undefined') return;
+  activeFluxTweens.forEach(t => t.kill());
+  activeFluxTweens = [];
+  svg.querySelectorAll('.flux-arrow').forEach((arrow, i) => {
+    const tween = gsap.to(arrow, {
+      opacity: 0.95,
+      attr: { 'stroke-width': 4.2 },
+      repeat: -1,
+      yoyo: true,
+      duration: 0.42,
+      delay: i * 0.08,
+      ease: 'sine.inOut',
+    });
+    activeFluxTweens.push(tween);
+  });
+  svg.querySelectorAll('.flux-ring').forEach((ring, i) => {
+    const tween = gsap.fromTo(
+      ring,
+      { opacity: 0, scale: 0.5, transformOrigin: '50% 50%' },
+      { opacity: 0.42, scale: 1.25, repeat: -1, duration: 1.6 / speedMultiplier, ease: 'power1.out', delay: i * 0.25 }
+    );
+    activeFluxTweens.push(tween);
+  });
+}
+
+function drawWave(canvas, timestamp, phaseShift = 0) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const ratio = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const targetW = Math.max(1, Math.round(rect.width * ratio));
+  const targetH = Math.max(1, Math.round(rect.height * ratio));
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+  }
+  ctx.clearRect(0, 0, targetW, targetH);
+  ctx.save();
+  ctx.scale(ratio, ratio);
+  const w = rect.width;
+  const h = rect.height;
+  const mid = h * 0.5;
+  const amp = h * (0.18 + (Math.sin(timestamp * 0.0013) * 0.06));
+  const freq = 0.024 * speedMultiplier;
+  const t = timestamp * 0.004 + phaseShift;
+
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(59,130,246,0.95)';
+  for (let x = 0; x <= w; x += 2) {
+    const y = mid + Math.sin((x * freq) + t) * amp;
+    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(239,68,68,0.9)';
+  for (let x = 0; x <= w; x += 2) {
+    const y = mid + Math.sin((x * (freq * 1.1)) + t + Math.PI / 2) * (amp * 0.72);
+    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function stopWaveforms() {
+  if (waveformFrameId) cancelAnimationFrame(waveformFrameId);
+  waveformFrameId = null;
+}
+
+function startWaveforms() {
+  stopWaveforms();
+  const tick = (ts) => {
+    const c0 = document.getElementById('wave-canvas-0');
+    const c2 = document.getElementById('wave-canvas-2');
+    if (currentScene === 0 && c0) drawWave(c0, ts, 0);
+    if (currentScene === 2 && c2) drawWave(c2, ts, Math.PI / 3);
+    waveformFrameId = requestAnimationFrame(tick);
+  };
+  waveformFrameId = requestAnimationFrame(tick);
+}
+
 // ─── Scene animations ─────────────────────────────────────────────────────────
 
 function animateScene(index) {
-  if (activeTimeline) { activeTimeline.kill(); activeTimeline = null; }
+  clearTransientAnimations();
   const gsapOk = typeof gsap !== 'undefined';
 
+  // ── Scene 0 · Intro — animate flow items ──
+  if (index === 0) {
+    const items = document.querySelectorAll('#vis-0 .flow-item, #vis-0 .flow-arrow');
+    if (gsapOk && items.length) {
+      gsap.from(items, { opacity: 0, y: 20, stagger: 0.15, duration: 0.5, ease: 'power2.out' });
+    }
+    const icon = document.querySelector('#vis-0 .intro-icon');
+    if (gsapOk && icon) {
+      gsap.from(icon, { scale: 0.4, opacity: 0, duration: 0.7, ease: 'back.out(1.7)' });
+    }
+    const wavePanel = document.querySelector('#vis-0 .wave-panel');
+    if (gsapOk && wavePanel) {
+      gsap.fromTo(wavePanel, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' });
+    }
+  }
+
+  // ── Scene 1 · Construction — pulse the coils on load ──
+  if (index === 1) {
+    const svg = document.getElementById('svg-1');
+    if (gsapOk && svg) {
+      const cp = svg.querySelector('.coil-primary');
+      const cs = svg.querySelector('.coil-secondary');
+      if (cp) gsap.fromTo(cp, { opacity: 0, attr: { 'stroke-width': 2 } }, { opacity: 1, attr: { 'stroke-width': 4 }, duration: 0.8, delay: 0.2, ease: 'power2.out' });
+      if (cs) gsap.fromTo(cs, { opacity: 0, attr: { 'stroke-width': 2 } }, { opacity: 1, attr: { 'stroke-width': 4 }, duration: 0.8, delay: 0.5, ease: 'power2.out' });
+    }
+  }
+
+  // ── Scene 2 · Working Principle — sequential step + SVG highlighting ──
   if (index === 2) {
-    // Working principle — highlight steps sequentially
     const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
-    steps.forEach(id => {
-      const el = document.getElementById(id);
+    steps.forEach(sid => {
+      const el = document.getElementById(sid);
       if (el) el.classList.remove('active');
     });
 
+    const svg = document.getElementById('svg-2');
+    const cp  = svg ? svg.querySelector('.coil-primary')   : null;
+    const cs  = svg ? svg.querySelector('.coil-secondary')  : null;
+    const fa  = svg ? svg.querySelectorAll('.flux-arrow')   : [];
+    const cr  = svg ? svg.querySelectorAll('.core-rect')    : [];
+    const pp  = svg ? svg.querySelector('.particles-primary')   : null;
+    const fp  = svg ? svg.querySelector('.particles-flux')      : null;
+    const sp2 = svg ? svg.querySelector('.particles-secondary') : null;
+    const rings = svg ? svg.querySelectorAll('.flux-ring')      : [];
+    const src = svg ? svg.querySelector('.ac-source-ring')  : null;
+    const ld  = svg ? svg.querySelector('.load-rect')       : null;
+
+    // Reset SVG element styles
+    if (gsapOk) {
+      if (cp)  gsap.set(cp,  { attr: { stroke: '#3b82f6', 'stroke-width': 4 }, opacity: 0.45 });
+      if (cs)  gsap.set(cs,  { attr: { stroke: '#ef4444', 'stroke-width': 4 }, opacity: 0.45 });
+      if (pp)  gsap.set(pp,  { opacity: 0 });
+      if (fp)  gsap.set(fp,  { opacity: 0 });
+      if (sp2) gsap.set(sp2, { opacity: 0 });
+      rings.forEach(r => gsap.set(r, { opacity: 0 }));
+      if (src) gsap.set(src, { attr: { stroke: '#94a3b8' } });
+      if (ld)  gsap.set(ld,  { attr: { stroke: '#94a3b8' } });
+      fa.forEach(a => gsap.set(a, { opacity: 0.4, attr: { 'stroke-width': 2.5 } }));
+      cr.forEach(r => gsap.set(r, { attr: { fill: '#8b7355' } }));
+    }
+
+    const stepDur = 1.4 / speedMultiplier;
+
     if (gsapOk) {
       const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-      steps.forEach((id, i) => {
-        tl.add(() => {
-          const el = document.getElementById(id);
-          if (el) el.classList.add('active');
-        }, i * 1.2 / speedMultiplier);
-      });
+
+      // Step 1 — AC source lights up, primary coil glows, particles flow
+      tl.add(() => {
+        const step = document.getElementById('step-1');
+        step?.classList.add('active');
+        if (gsapOk && step) gsap.fromTo(step, { boxShadow: '0 0 0 rgba(34,197,94,0)' }, { boxShadow: '0 0 0.9rem rgba(34,197,94,0.45)', duration: 0.35, yoyo: true, repeat: 1 });
+        narrateStep('step-1');
+        audio.playStepBeep(440);
+      }, 0);
+      if (cp)  tl.to(cp,  { attr: { stroke: '#93c5fd', 'stroke-width': 6.5 }, opacity: 1, duration: 0.6 }, 0.1);
+      if (pp)  tl.to(pp,  { opacity: 1, duration: 0.5 }, 0.15);
+      if (src) tl.to(src, { attr: { stroke: '#60a5fa' }, duration: 0.5 }, 0.1);
+
+      // Step 2 — core glows amber, flux arrows pulse bright
+      tl.add(() => {
+        const step = document.getElementById('step-2');
+        step?.classList.add('active');
+        if (gsapOk && step) gsap.fromTo(step, { boxShadow: '0 0 0 rgba(34,197,94,0)' }, { boxShadow: '0 0 0.9rem rgba(34,197,94,0.45)', duration: 0.35, yoyo: true, repeat: 1 });
+        narrateStep('step-2');
+        audio.playStepBeep(520);
+        if (fp) gsap.to(fp, { opacity: 1, duration: 0.35 });
+        startFluxPulse(svg);
+      }, stepDur);
+      cr.forEach(r => tl.to(r, { attr: { fill: '#b8954a' }, duration: 0.6 }, stepDur + 0.05));
+      fa.forEach((a, i) => tl.to(a, { opacity: 1, attr: { 'stroke-width': 4 }, duration: 0.5 }, stepDur + 0.05 + i * 0.08));
+
+      // Step 3 — secondary coil glows, particles appear on secondary
+      tl.add(() => {
+        const step = document.getElementById('step-3');
+        step?.classList.add('active');
+        if (gsapOk && step) gsap.fromTo(step, { boxShadow: '0 0 0 rgba(34,197,94,0)' }, { boxShadow: '0 0 0.9rem rgba(34,197,94,0.45)', duration: 0.35, yoyo: true, repeat: 1 });
+        narrateStep('step-3');
+        audio.playStepBeep(600);
+      }, stepDur * 2);
+      if (cs)  tl.to(cs,  { attr: { stroke: '#fca5a5', 'stroke-width': 6.5 }, opacity: 1, duration: 0.6 }, stepDur * 2 + 0.1);
+      if (sp2) tl.to(sp2, { opacity: 1, duration: 0.5 }, stepDur * 2 + 0.15);
+
+      // Step 4 — load lights up, everything at full brightness
+      tl.add(() => {
+        const step = document.getElementById('step-4');
+        step?.classList.add('active');
+        if (gsapOk && step) gsap.fromTo(step, { boxShadow: '0 0 0 rgba(34,197,94,0)' }, { boxShadow: '0 0 0.9rem rgba(34,197,94,0.45)', duration: 0.35, yoyo: true, repeat: 1 });
+        narrateStep('step-4');
+        audio.playStepBeep(700);
+      }, stepDur * 3);
+      if (ld) tl.to(ld, { attr: { stroke: '#f87171' }, duration: 0.5 }, stepDur * 3 + 0.05);
+
       activeTimeline = tl;
+
+      // Start electrical hum on scene 2
+      audio.startHum();
+      startWorkingFlow(svg);
+
     } else {
-      // CSS fallback: activate all steps with delays
-      steps.forEach((id, i) => {
+      // CSS fallback
+      steps.forEach((sid, i) => {
         setTimeout(() => {
-          const el = document.getElementById(id);
-          if (el) el.classList.add('active');
-        }, i * 1200 / speedMultiplier);
+          document.getElementById(sid)?.classList.add('active');
+          narrateStep(sid);
+          audio.playStepBeep(440 + i * 80);
+        }, i * 1400 / speedMultiplier);
       });
     }
   }
 
+  // ── Scene 3 · Step-Up — animate voltage bar ──
   if (index === 3) {
-    // Step-up: animate bar to 100%
     const bar = document.getElementById('bar-vs-up');
-    if (bar) setTimeout(() => { bar.style.width = '99%'; }, 200 / speedMultiplier);
+    if (bar) setTimeout(() => { bar.style.width = '99%'; }, 300 / speedMultiplier);
+    const svg = document.getElementById('svg-3');
+    if (gsapOk && svg) {
+      const cs = svg.querySelector('.coil-secondary');
+      const cp = svg.querySelector('.coil-primary');
+      if (cp) gsap.fromTo(cp, { opacity: 0 }, { opacity: 1, duration: 0.6 });
+      if (cs) gsap.fromTo(cs, { opacity: 0 }, { opacity: 1, duration: 0.9, delay: 0.3, ease: 'power2.out' });
+    }
   }
 
+  // ── Scene 4 · Step-Down — animate voltage bar ──
   if (index === 4) {
-    // Step-down: animate bar to 33%
     const bar = document.getElementById('bar-vs-down');
-    if (bar) setTimeout(() => { bar.style.width = '33%'; }, 200 / speedMultiplier);
+    if (bar) setTimeout(() => { bar.style.width = '33%'; }, 300 / speedMultiplier);
+    const svg = document.getElementById('svg-4');
+    if (gsapOk && svg) {
+      const cp = svg.querySelector('.coil-primary');
+      const cs = svg.querySelector('.coil-secondary');
+      if (cp) gsap.fromTo(cp, { opacity: 0 }, { opacity: 1, duration: 0.9 });
+      if (cs) gsap.fromTo(cs, { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.3, ease: 'power2.out' });
+    }
   }
+
+  // ── Scene 5 · Formulas — reveal cards ──
+  if (index === 5 && gsapOk) {
+    const cards = document.querySelectorAll('#scene-5 .formula-card');
+    if (cards.length) gsap.from(cards, { opacity: 0, y: 16, stagger: 0.2, duration: 0.5, ease: 'power2.out' });
+  }
+}
+
+// ─── Replay (resets state before re-running animation) ──────────────────────
+
+function replayScene(index) {
+  clearTransientAnimations();
+  audio.stopHum();
+  audio.stopNarration();
+  audio.playClick();
+
+  // Reset per-scene transient state
+  if (index === 3) {
+    const bar = document.getElementById('bar-vs-up');
+    if (bar) { bar.style.transition = 'none'; bar.style.width = '0%';
+               requestAnimationFrame(() => { bar.style.transition = ''; }); }
+  }
+  if (index === 4) {
+    const bar = document.getElementById('bar-vs-down');
+    if (bar) { bar.style.transition = 'none'; bar.style.width = '0%';
+               requestAnimationFrame(() => { bar.style.transition = ''; }); }
+  }
+
+  // Re-inject SVG so CSS keyframe animations restart cleanly
+  injectVisuals();
+  applyToggles();
+  startWaveforms();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => animateScene(index));
+  });
 }
 
 // ─── Toggle helpers ────────────────────────────────────────────────────────────
@@ -433,6 +920,12 @@ function applyToggles() {
   });
   // Flux arrows
   document.querySelectorAll('.flux-arrow').forEach(el => {
+    el.style.display = toggles.flux ? '' : 'none';
+  });
+  document.querySelectorAll('.flux-ring').forEach(el => {
+    el.style.display = toggles.flux ? '' : 'none';
+  });
+  document.querySelectorAll('.particles-flux').forEach(el => {
     el.style.display = toggles.flux ? '' : 'none';
   });
   // Equations (formula-card elements)
@@ -454,6 +947,10 @@ function injectVisuals() {
     v0.innerHTML = `
       <div class="intro-icon-wrap">
         <div class="intro-icon">⚡</div>
+        <div class="wave-panel">
+          <div class="wave-panel-title">AC waveform at source</div>
+          <canvas id="wave-canvas-0" class="ac-wave-canvas" aria-label="Animated AC waveform"></canvas>
+        </div>
         <div class="intro-flow">
           <div class="flow-item">
             <span class="flow-icon">🏭</span>
@@ -501,7 +998,14 @@ function injectVisuals() {
   // Scene 2 — working principle (animated flux + waves)
   const v2 = document.getElementById('vis-2');
   if (v2) {
-    v2.innerHTML = buildSVG({ Np: 4, Ns: 4, showFlux: toggles.flux, showLabels: toggles.labels, showWaveIn: true, showWaveOut: true, id: 'svg-2' });
+    v2.innerHTML = `
+      <div class="working-visual-wrap">
+        <div class="wave-panel compact">
+          <div class="wave-panel-title">Live magnetic induction waveform</div>
+          <canvas id="wave-canvas-2" class="ac-wave-canvas compact" aria-label="Animated induction waveform"></canvas>
+        </div>
+        ${buildSVG({ Np: 4, Ns: 4, showFlux: toggles.flux, showLabels: toggles.labels, showWaveIn: true, showWaveOut: true, id: 'svg-2' })}
+      </div>`;
   }
 
   // Scene 3 — step-up (Np=3, Ns=7)
@@ -611,6 +1115,9 @@ function submitQuiz() {
   document.getElementById('quiz-takeaways').classList.remove('hidden');
   document.getElementById('quiz-submit-btn').classList.add('hidden');
   document.getElementById('quiz-retry-btn').classList.remove('hidden');
+
+  // Audio feedback based on score
+  if (pct >= 50) audio.playSuccess(); else audio.playFail();
 }
 
 function retryQuiz() {
@@ -663,9 +1170,14 @@ function showScene(index) {
   document.getElementById('btn-prev').disabled = index === 0;
   document.getElementById('btn-next').textContent = index === TOTAL_SCENES - 1 ? '↩ Restart' : 'Next ›';
 
+  // Stop hum when leaving working-principle scene
+  if (index !== 2) audio.stopHum();
+
   // Run scene animation
   animateScene(index);
   applyToggles();
+  startWaveforms();
+  narrateScene(index);
 }
 
 // ─── Calculator (scene 5) ─────────────────────────────────────────────────────
@@ -715,13 +1227,27 @@ document.addEventListener('DOMContentLoaded', () => {
     toggles.subtitles = e.target.checked;
     applyToggles();
   });
+  document.getElementById('tog-narrate').addEventListener('change', e => {
+    toggles.narrate = e.target.checked;
+    audio.narrationEnabled = toggles.narrate;
+    if (!toggles.narrate) audio.stopNarration();
+    else narrateScene(currentScene);
+  });
+  document.getElementById('tog-audio').addEventListener('change', e => {
+    audio.enabled = e.target.checked;
+    if (!audio.enabled) {
+      audio.stopHum();
+      audio.stopNarration();
+    }
+  });
 
   // Navigation buttons
   document.getElementById('btn-prev').addEventListener('click', () => {
-    if (currentScene > 0) goToScene(currentScene - 1);
+    if (currentScene > 0) { audio.playClick(); goToScene(currentScene - 1); }
   });
 
   document.getElementById('btn-next').addEventListener('click', () => {
+    audio.playClick();
     if (currentScene < TOTAL_SCENES - 1) {
       goToScene(currentScene + 1);
     } else {
@@ -730,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-replay').addEventListener('click', () => {
-    animateScene(currentScene);
+    replayScene(currentScene);
   });
 
   // Speed
@@ -743,10 +1269,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
-      if (currentScene < TOTAL_SCENES - 1) goToScene(currentScene + 1);
+      if (currentScene < TOTAL_SCENES - 1) { audio.playClick(); goToScene(currentScene + 1); }
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
-      if (currentScene > 0) goToScene(currentScene - 1);
+      if (currentScene > 0) { audio.playClick(); goToScene(currentScene - 1); }
     }
   });
 
