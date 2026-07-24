@@ -152,7 +152,6 @@ let activeTimeline = null;
 let activeFlowTweens = [];
 let activeFluxTweens = [];
 let waveformFrameId = null;
-let speechQueuedForScene = -1;
 
 const toggles = { labels: true, flux: true, equations: false, subtitles: true, narrate: true };
 
@@ -162,6 +161,7 @@ function clearTransientAnimations() {
   activeFluxTweens.forEach(t => t.kill());
   activeFlowTweens = [];
   activeFluxTweens = [];
+  stopWaveforms();
 }
 
 function getNarrationRate() {
@@ -922,6 +922,12 @@ function applyToggles() {
   document.querySelectorAll('.flux-arrow').forEach(el => {
     el.style.display = toggles.flux ? '' : 'none';
   });
+  document.querySelectorAll('.flux-ring').forEach(el => {
+    el.style.display = toggles.flux ? '' : 'none';
+  });
+  document.querySelectorAll('.particles-flux').forEach(el => {
+    el.style.display = toggles.flux ? '' : 'none';
+  });
   // Equations (formula-card elements)
   document.querySelectorAll('.formula-card').forEach(el => {
     el.style.display = toggles.equations ? '' : 'none';
@@ -1170,6 +1176,8 @@ function showScene(index) {
   // Run scene animation
   animateScene(index);
   applyToggles();
+  startWaveforms();
+  narrateScene(index);
 }
 
 // ─── Calculator (scene 5) ─────────────────────────────────────────────────────
@@ -1219,9 +1227,18 @@ document.addEventListener('DOMContentLoaded', () => {
     toggles.subtitles = e.target.checked;
     applyToggles();
   });
+  document.getElementById('tog-narrate').addEventListener('change', e => {
+    toggles.narrate = e.target.checked;
+    audio.narrationEnabled = toggles.narrate;
+    if (!toggles.narrate) audio.stopNarration();
+    else narrateScene(currentScene);
+  });
   document.getElementById('tog-audio').addEventListener('change', e => {
     audio.enabled = e.target.checked;
-    if (!audio.enabled) audio.stopHum();
+    if (!audio.enabled) {
+      audio.stopHum();
+      audio.stopNarration();
+    }
   });
 
   // Navigation buttons
