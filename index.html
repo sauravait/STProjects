@@ -8,32 +8,77 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
   <main class="hub-shell">
     <header class="hero">
-      <p class="eyebrow">STProjects</p>
+      <p class="eyebrow">✦ STProjects</p>
       <h1>Game Hub</h1>
-      <p class="hero-copy">Choose a game and launch it from one place.</p>
+      <p class="hero-copy">Pick your challenge. Two handcrafted browser games, ready to play instantly.</p>
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>2 games available</span>
+      </div>
     </header>
 
     <section class="game-grid" aria-label="Available games">
-      <article class="game-card">
-        <div>
-          <p class="game-tag">Action</p>
+
+      <article class="game-card card-archer" tabindex="0">
+        <div class="card-glow"></div>
+        <div class="card-icon">🏹</div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="game-tag tag-action">Action</span>
+            <span class="game-tag tag-solo">Solo</span>
+          </div>
           <h2>Archer's Path</h2>
-          <p>Fight through ambushes, manage health and power, and reach the finish alive.</p>
+          <p>Fight through ambushes from both sides, manage health and power, and survive to the destination.</p>
+          <ul class="feature-list">
+            <li>🎯 Multi-level progression</li>
+            <li>⚡ Real-time physics</li>
+            <li>🏆 Score tracking</li>
+          </ul>
         </div>
-        <a class="launch-btn" href="games/archers-path/index.html">Launch Archer's Path</a>
+        <a class="launch-btn" href="games/archers-path/index.html" aria-label="Launch Archer's Path">
+          <span>Play Now</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </article>
 
-      <article class="game-card">
-        <div>
-          <p class="game-tag">Board Game</p>
+      <article class="game-card card-chess" tabindex="0">
+        <div class="card-glow"></div>
+        <div class="card-icon">♟️</div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="game-tag tag-board">Board</span>
+            <span class="game-tag tag-two">2 Players</span>
+          </div>
           <h2>Chess</h2>
-          <p>Play a full local chess match with legal move checks, castling, en passant, and promotion.</p>
+          <p>Full local two-player chess with legal move checks, castling, en passant, promotion, and endgame detection.</p>
+          <ul class="feature-list">
+            <li>♔ Full rule enforcement</li>
+            <li>📜 Move history</li>
+            <li>👑 Promotion & castling</li>
+          </ul>
         </div>
-        <a class="launch-btn" href="games/chess/index.html">Launch Chess</a>
+        <a class="launch-btn" href="games/chess/index.html" aria-label="Launch Chess">
+          <span>Play Now</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </article>
+
     </section>
+
+    <footer class="hub-footer">
+      <p>STProjects · Browser Games · Open Source</p>
+    </footer>
   </main>
 </body>
 </html>
