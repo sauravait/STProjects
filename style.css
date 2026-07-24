@@ -13,6 +13,8 @@
   --archer-b: #fb923c;
   --chess-a: #818cf8;
   --chess-b: #a78bfa;
+  --tx-a: #22c55e;
+  --tx-b: #38bdf8;
 }
 
 * { box-sizing: border-box; }
@@ -175,6 +177,7 @@ body {
 }
 
 .game-card:nth-child(2) { animation-delay: 0.12s; }
+.game-card:nth-child(3) { animation-delay: 0.22s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -196,6 +199,13 @@ body {
     0 0 0 1px rgba(129, 140, 248, 0.3);
 }
 
+/* Transformer card accent */
+.card-transformer:hover, .card-transformer:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(34, 197, 94, 0.18),
+    0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
 /* ─── Card glow (background gradient blobs) ──────────────────────────────────── */
 .card-glow {
   position: absolute;
@@ -212,6 +222,7 @@ body {
 
 .card-archer .card-glow  { background: var(--archer-a); }
 .card-chess  .card-glow  { background: var(--chess-a); }
+.card-transformer .card-glow { background: var(--tx-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -260,6 +271,8 @@ body {
 .tag-solo   { background: rgba(56, 189, 248, 0.1);  color: var(--accent);    border: 1px solid rgba(56, 189, 248, 0.2); }
 .tag-board  { background: rgba(129, 140, 248, 0.15); color: var(--chess-a);  border: 1px solid rgba(129, 140, 248, 0.25); }
 .tag-two    { background: rgba(167, 139, 250, 0.1);  color: var(--chess-b);  border: 1px solid rgba(167, 139, 250, 0.2); }
+.tag-science { background: rgba(34, 197, 94, 0.12);  color: var(--tx-a);     border: 1px solid rgba(34, 197, 94, 0.25); }
+.tag-edu     { background: rgba(56, 189, 248, 0.1);  color: var(--tx-b);     border: 1px solid rgba(56, 189, 248, 0.2); }
 
 .card-body h2 {
   margin: 0;
@@ -341,6 +354,11 @@ body {
 .card-chess .launch-btn {
   background: linear-gradient(135deg, var(--chess-a), var(--chess-b));
   color: #0a0012;
+}
+
+.card-transformer .launch-btn {
+  background: linear-gradient(135deg, var(--tx-a), var(--tx-b));
+  color: #001a08;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */

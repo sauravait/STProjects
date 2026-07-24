@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive educational module explaining how an electrical transformer works — step-up, step-down, construction, and quizzes."/>
+  <title>Electrical Transformer – Interactive Module</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── Module header ──────────────────────────────────────────────────── -->
+  <header class="mod-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">← Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">⚡ STProjects · Science Module</span>
+      <h1 class="mod-title">Electrical Transformer</h1>
+    </div>
+    <div class="progress-wrap" aria-label="Module progress">
+      <div class="progress-bar" id="progress-bar" role="progressbar"
+           aria-valuenow="1" aria-valuemin="1" aria-valuemax="7"></div>
+    </div>
+    <span class="scene-counter" id="scene-counter" aria-live="polite">1 / 7</span>
+  </header>
+
+  <!-- ── Toggles panel ──────────────────────────────────────────────────── -->
+  <div class="toggles-panel" id="toggles-panel" aria-label="Display options">
+    <label class="tog-label" title="Show or hide part labels">
+      <input type="checkbox" id="tog-labels" checked aria-label="Show labels"> Labels
+    </label>
+    <label class="tog-label" title="Show or hide magnetic field lines">
+      <input type="checkbox" id="tog-flux" checked aria-label="Show field lines"> Field Lines
+    </label>
+    <label class="tog-label" title="Show or hide equations">
+      <input type="checkbox" id="tog-equations" aria-label="Show equations"> Equations
+    </label>
+    <label class="tog-label" title="Show or hide subtitles">
+      <input type="checkbox" id="tog-subtitles" checked aria-label="Show subtitles"> Subtitles
+    </label>
+  </div>
+
+  <!-- ── Scene container ────────────────────────────────────────────────── -->
+  <main id="app" class="app-shell" aria-live="polite">
+
+    <!-- Scene 0 · Intro ──────────────────────────────────────────────── -->
+    <section class="scene active" id="scene-0" data-scene="0" aria-labelledby="s0-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 1 of 7</p>
+          <h2 class="scene-title" id="s0-title">What is an Electrical Transformer?</h2>
+          <p class="scene-desc">
+            A <strong>transformer</strong> is a static electrical device that transfers electrical
+            energy between two circuits using <em>electromagnetic induction</em>. It can raise
+            (step up) or lower (step down) AC voltage levels while keeping power approximately
+            constant.
+          </p>
+          <div class="key-points reveal-up" style="animation-delay:0.3s">
+            <h3>Key Facts</h3>
+            <ul>
+              <li>🔌 Works on <strong>AC (Alternating Current)</strong> only — not DC</li>
+              <li>🧲 Uses <strong>Faraday's Law</strong> of electromagnetic induction</li>
+              <li>⚡ No direct electrical connection between input and output</li>
+              <li>🏭 Essential for efficient long-distance power transmission</li>
+            </ul>
+          </div>
+          <div class="real-world-box reveal-up" style="animation-delay:0.5s">
+            <span class="rw-icon">🌍</span>
+            <p>Every power outlet in your home works because transformers step down the
+               high-voltage grid (typically 11 000 V – 400 000 V) to safe household
+               voltages (110 V – 240 V).</p>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-0"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-0">
+        A transformer transfers electrical energy between circuits using electromagnetic induction.
+      </div>
+    </section>
+
+    <!-- Scene 1 · Construction ───────────────────────────────────────── -->
+    <section class="scene" id="scene-1" data-scene="1" aria-labelledby="s1-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 2 of 7</p>
+          <h2 class="scene-title" id="s1-title">Construction of a Transformer</h2>
+          <p class="scene-desc">
+            A transformer has three main parts. Click on any highlighted part in the diagram
+            to learn more about it.
+          </p>
+          <div id="tooltip-box" class="tooltip-box" aria-live="polite">
+            <p class="tooltip-hint">👆 Click a component in the diagram.</p>
+          </div>
+          <div class="part-legend">
+            <div class="legend-item"><span class="dot dot-core"></span> Laminated Iron Core</div>
+            <div class="legend-item"><span class="dot dot-primary"></span> Primary Winding (Blue)</div>
+            <div class="legend-item"><span class="dot dot-secondary"></span> Secondary Winding (Red)</div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-1"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-1">
+        Primary winding receives AC input; secondary winding delivers output — both linked by the iron core.
+      </div>
+    </section>
+
+    <!-- Scene 2 · Working Principle ─────────────────────────────────── -->
+    <section class="scene" id="scene-2" data-scene="2" aria-labelledby="s2-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 3 of 7</p>
+          <h2 class="scene-title" id="s2-title">How a Transformer Works</h2>
+          <ol class="step-list">
+            <li class="step-item" id="step-1">
+              <span class="step-num">1</span>
+              <div>
+                <strong>AC enters primary winding</strong> — alternating current flows through
+                the primary coil (blue), creating an alternating magnetic field.
+              </div>
+            </li>
+            <li class="step-item" id="step-2">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Alternating magnetic flux in core</strong> — the iron core channels the
+                rapidly changing magnetic flux (green arrows) through its cross-section.
+              </div>
+            </li>
+            <li class="step-item" id="step-3">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Flux links to secondary winding</strong> — the same changing flux passes
+                through the secondary coil (red), inducing an EMF (Faraday's Law).
+              </div>
+            </li>
+            <li class="step-item" id="step-4">
+              <span class="step-num">4</span>
+              <div>
+                <strong>AC output delivered</strong> — the induced EMF drives alternating current
+                through the connected load. No direct electrical path exists between input and output.
+              </div>
+            </li>
+          </ol>
+        </div>
+        <div class="scene-visual" id="vis-2"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-2">
+        Energy transfers magnetically — there is no direct electrical connection between the two circuits.
+      </div>
+    </section>
+
+    <!-- Scene 3 · Step-Up ────────────────────────────────────────────── -->
+    <section class="scene" id="scene-3" data-scene="3" aria-labelledby="s3-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 4 of 7</p>
+          <h2 class="scene-title" id="s3-title">Step-Up Transformer</h2>
+          <p class="scene-desc">
+            When the secondary winding has <strong>more turns</strong> than the primary
+            (N<sub>s</sub> &gt; N<sub>p</sub>), the output voltage is <em>higher</em> than
+            the input — and the output current is proportionally lower.
+          </p>
+          <div class="formula-card reveal-up" id="eq-stepup" style="animation-delay:0.2s">
+            <div class="formula">V<sub>s</sub> / V<sub>p</sub> = N<sub>s</sub> / N<sub>p</sub> &gt; 1</div>
+            <p>Output voltage &gt; Input voltage &nbsp;|&nbsp; Output current &lt; Input current</p>
+          </div>
+          <div class="real-world-box reveal-up" style="animation-delay:0.4s">
+            <span class="rw-icon">🏭</span>
+            <p><strong>Real-world example:</strong> Power stations step up 11 kV to
+               400 kV for efficient long-distance transmission through overhead lines.</p>
+          </div>
+          <div class="bar-charts" id="bars-stepup">
+            <div class="bar-group">
+              <div class="bar-label">Vp (input)</div>
+              <div class="bar-track"><div class="bar bar-blue" style="width:33%"></div></div>
+              <span class="bar-val">1×</span>
+            </div>
+            <div class="bar-group">
+              <div class="bar-label">Vs (output)</div>
+              <div class="bar-track"><div class="bar bar-red" id="bar-vs-up" style="width:0%"></div></div>
+              <span class="bar-val" id="bv-vs-up">3×</span>
+            </div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-3"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-3">
+        More secondary turns → higher voltage, lower current. Used in power grid transmission.
+      </div>
+    </section>
+
+    <!-- Scene 4 · Step-Down ──────────────────────────────────────────── -->
+    <section class="scene" id="scene-4" data-scene="4" aria-labelledby="s4-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 5 of 7</p>
+          <h2 class="scene-title" id="s4-title">Step-Down Transformer</h2>
+          <p class="scene-desc">
+            When the secondary winding has <strong>fewer turns</strong> than the primary
+            (N<sub>s</sub> &lt; N<sub>p</sub>), the output voltage is <em>lower</em> than
+            the input — and the output current is proportionally higher.
+          </p>
+          <div class="formula-card reveal-up" id="eq-stepdown" style="animation-delay:0.2s">
+            <div class="formula">V<sub>s</sub> / V<sub>p</sub> = N<sub>s</sub> / N<sub>p</sub> &lt; 1</div>
+            <p>Output voltage &lt; Input voltage &nbsp;|&nbsp; Output current &gt; Input current</p>
+          </div>
+          <div class="real-world-box reveal-up" style="animation-delay:0.4s">
+            <span class="rw-icon">📱</span>
+            <p><strong>Real-world example:</strong> Your mobile charger contains a step-down
+               transformer that converts 240 V mains supply to 5 V for charging.</p>
+          </div>
+          <div class="bar-charts" id="bars-stepdown">
+            <div class="bar-group">
+              <div class="bar-label">Vp (input)</div>
+              <div class="bar-track"><div class="bar bar-blue" style="width:100%"></div></div>
+              <span class="bar-val">1×</span>
+            </div>
+            <div class="bar-group">
+              <div class="bar-label">Vs (output)</div>
+              <div class="bar-track"><div class="bar bar-red" id="bar-vs-down" style="width:0%"></div></div>
+              <span class="bar-val" id="bv-vs-down">0.33×</span>
+            </div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-4"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-4">
+        Fewer secondary turns → lower voltage, higher current. Used in chargers and appliances.
+      </div>
+    </section>
+
+    <!-- Scene 5 · Formula ────────────────────────────────────────────── -->
+    <section class="scene" id="scene-5" data-scene="5" aria-labelledby="s5-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Scene 6 of 7</p>
+          <h2 class="scene-title" id="s5-title">Formulas &amp; Key Concepts</h2>
+
+          <div class="formula-group">
+            <div class="formula-card big" id="eq-main">
+              <div class="formula">V<sub>s</sub> / V<sub>p</sub> = N<sub>s</sub> / N<sub>p</sub> = I<sub>p</sub> / I<sub>s</sub></div>
+              <p>Turns ratio governs both voltage and current transformation.</p>
+            </div>
+            <div class="formula-card big" id="eq-power">
+              <div class="formula">V<sub>p</sub> · I<sub>p</sub> ≈ V<sub>s</sub> · I<sub>s</sub></div>
+              <p>Ideal transformer: input power equals output power (100% efficiency).</p>
+            </div>
+          </div>
+
+          <div class="calculator" id="calc">
+            <h3>Interactive Calculator</h3>
+            <div class="calc-grid">
+              <label>Vp (V) <input type="number" id="calc-vp" value="230" min="1" max="10000"/></label>
+              <label>Np (turns) <input type="number" id="calc-np" value="100" min="1" max="10000"/></label>
+              <label>Ns (turns) <input type="number" id="calc-ns" value="500" min="1" max="10000"/></label>
+            </div>
+            <div class="calc-result" id="calc-result">
+              Vs = <span id="r-vs">1150</span> V &nbsp;|&nbsp;
+              Turns ratio = <span id="r-ratio">5.00</span>
+            </div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-5"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-5">
+        The turns ratio determines everything: voltage, current, and power transformation.
+      </div>
+    </section>
+
+    <!-- Scene 6 · Quiz ───────────────────────────────────────────────── -->
+    <section class="scene" id="scene-6" data-scene="6" aria-labelledby="s6-title">
+      <div class="scene-body single-col">
+        <p class="scene-eyebrow">Scene 7 of 7</p>
+        <h2 class="scene-title" id="s6-title">🎓 Knowledge Check</h2>
+        <p class="scene-desc">Answer all 6 questions, then submit to see your score.</p>
+
+        <div id="quiz-container" class="quiz-container"></div>
+
+        <div class="quiz-footer">
+          <button id="quiz-submit-btn" class="quiz-btn" type="button" disabled>
+            Submit Answers
+          </button>
+          <button id="quiz-retry-btn" class="quiz-btn quiz-btn-sec hidden" type="button">
+            Try Again
+          </button>
+        </div>
+
+        <div id="quiz-result" class="quiz-result hidden" aria-live="polite"></div>
+        <div id="quiz-takeaways" class="takeaways hidden">
+          <h3>📌 Key Takeaways</h3>
+          <ul>
+            <li>Transformers work on <strong>AC only</strong> via Faraday's Law.</li>
+            <li>Turns ratio = Ns / Np determines voltage transformation.</li>
+            <li>Step-up: Ns &gt; Np → higher voltage, lower current.</li>
+            <li>Step-down: Ns &lt; Np → lower voltage, higher current.</li>
+            <li>Ideal transformer conserves power: Vp·Ip = Vs·Is.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="scene-subtitle" id="sub-6">
+        Test your understanding of transformer theory!
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Controls bar ───────────────────────────────────────────────────── -->
+  <nav class="controls-bar" aria-label="Module controls">
+    <button id="btn-prev" class="ctrl-btn" aria-label="Previous scene" disabled>‹ Prev</button>
+    <button id="btn-replay" class="ctrl-btn" aria-label="Replay animation">↺ Replay</button>
+    <button id="btn-next" class="ctrl-btn ctrl-primary" aria-label="Next scene">Next ›</button>
+    <div class="speed-wrap">
+      <label for="speed-sel" class="speed-label">Speed</label>
+      <select id="speed-sel" aria-label="Playback speed">
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+      </select>
+    </div>
+  </nav>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
+          integrity="sha512-16esztaSRplJROstbIIdwX3N97V1+pZvV33ABoG1H2OJ9K35F63eIh9v+YotrHNe0nh7tbd3YwJV3ib2EjEDQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="app.js"></script>
+</body>
+</html>
