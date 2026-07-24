@@ -3,85 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A modern chess game built with HTML5, CSS3, and JavaScript." />
-  <title>Modern Chess</title>
+  <meta name="description" content="2D archery action game built with HTML5 Canvas and vanilla JavaScript." />
+  <title>Archer's Path</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♛</text></svg>" />
 </head>
 <body>
+  <div class="game-shell">
+    <header class="topbar">
+      <h1>🏹 Archer's Path</h1>
+      <p>Survive ambushes from both sides and reach the destination.</p>
+    </header>
 
-  <header>
-    <h1>♟ Modern Chess</h1>
-    <p>Two-player chess · All rules enforced · En passant · Castling · Promotion</p>
-  </header>
+    <section class="game-stage">
+      <canvas id="gameCanvas" width="960" height="540" aria-label="Archer action game canvas"></canvas>
 
-  <main class="main-layout">
-
-    <!-- ── Board + player bars ── -->
-    <div class="board-wrapper">
-      <!-- Black player bar (top) -->
-      <div class="player-bar">
-        <span class="avatar">♚</span>
-        <span class="name">Black</span>
-        <span class="captured" id="captured-by-white" title="Pieces captured by White"></span>
-      </div>
-
-      <!-- Chess board -->
-      <div id="board" role="grid" aria-label="Chess board"></div>
-
-      <!-- White player bar (bottom) -->
-      <div class="player-bar">
-        <span class="avatar">♔</span>
-        <span class="name">White</span>
-        <span class="captured" id="captured-by-black" title="Pieces captured by Black"></span>
-      </div>
-    </div>
-
-    <!-- ── Side panel ── -->
-    <aside class="side-panel">
-
-      <!-- Turn / Status -->
-      <div class="panel-card">
-        <h3>Turn</h3>
-        <div class="turn-row">
-          <span id="turn-indicator" class="turn-indicator white-turn">♔ White</span>
+      <div id="hud" class="hud hidden">
+        <div class="hud-row">
+          <div class="meter-block">
+            <span>Health</span>
+            <div class="meter"><div id="healthFill" class="fill health"></div></div>
+          </div>
+          <div class="meter-block">
+            <span>Power</span>
+            <div class="meter"><div id="powerFill" class="fill power"></div></div>
+          </div>
         </div>
-        <p id="status" class="status">White's turn</p>
+        <div class="hud-row stats">
+          <span id="levelText">Level 1</span>
+          <span id="scoreText">Score: 0</span>
+          <span id="enemyText">Enemies: 0</span>
+          <span id="progressText">Progress: 0%</span>
+        </div>
       </div>
 
-      <!-- Controls -->
-      <div class="panel-card">
-        <h3>Controls</h3>
-        <button id="new-game-btn" class="btn btn-primary">⟳ New Game</button>
-        <p class="hint">Click a piece to select · Click ESC to deselect</p>
+      <div id="overlay" class="overlay">
+        <div class="panel">
+          <h2 id="overlayTitle">Archer's Path</h2>
+          <p id="overlayMessage">Defeat enemies and reach the destination alive.</p>
+          <div id="controlHelp" class="controls-list"></div>
+          <div class="actions">
+            <button id="startBtn" class="btn">Start Game</button>
+            <button id="instructionsBtn" class="btn ghost">Instructions</button>
+            <button id="resumeBtn" class="btn hidden">Resume</button>
+            <button id="nextBtn" class="btn hidden">Next Level</button>
+            <button id="restartBtn" class="btn hidden">Restart</button>
+            <button id="menuBtn" class="btn ghost hidden">Main Menu</button>
+          </div>
+        </div>
       </div>
-
-      <!-- Move history -->
-      <div class="panel-card">
-        <h3>Move History</h3>
-        <ol id="move-list"></ol>
-      </div>
-
-    </aside>
-  </main>
-
-  <!-- ── Game-over overlay ── -->
-  <div id="game-over-banner" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-text">
-    <div class="overlay-card">
-      <h2>Game Over</h2>
-      <p id="game-over-text"></p>
-      <button id="new-game-banner-btn" class="btn btn-primary">⟳ Play Again</button>
-    </div>
+    </section>
   </div>
 
-  <!-- ── Pawn promotion overlay ── -->
-  <div id="promotion-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Choose promotion piece">
-    <div class="overlay-card">
-      <h2>Promote Pawn</h2>
-      <div id="promotion-choices"></div>
-    </div>
-  </div>
-
-  <script src="chess.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
