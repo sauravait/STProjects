@@ -43,6 +43,20 @@
     <label class="tog-label" title="Toggle voice narration">
       <input type="checkbox" id="tog-narrate" checked aria-label="Voice narration"> 🗣️ Narrate
     </label>
+    <label class="tog-label tog-inline" title="Narration language">
+      Language
+      <select id="narration-lang" aria-label="Narration language">
+        <option value="hi" selected>Hindi</option>
+        <option value="en">English</option>
+      </select>
+    </label>
+    <label class="tog-label tog-inline" title="Narration speed">
+      Voice pace
+      <select id="narration-pace" aria-label="Narration pace">
+        <option value="slow" selected>Slow</option>
+        <option value="normal">Normal</option>
+      </select>
+    </label>
   </div>
 
   <!-- ── Scene container ────────────────────────────────────────────────── -->
@@ -169,7 +183,7 @@
             <p>Output voltage &gt; Input voltage &nbsp;|&nbsp; Output current &lt; Input current</p>
           </div>
           <div class="real-world-box reveal-up" style="animation-delay:0.4s">
-            <span class="rw-icon">🏭</span>
+            <img class="rw-photo" src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=640&q=80" alt="High-voltage transmission infrastructure"/>
             <p><strong>Real-world example:</strong> Power stations step up 11 kV to
                400 kV for efficient long-distance transmission through overhead lines.</p>
           </div>
@@ -209,7 +223,7 @@
             <p>Output voltage &lt; Input voltage &nbsp;|&nbsp; Output current &gt; Input current</p>
           </div>
           <div class="real-world-box reveal-up" style="animation-delay:0.4s">
-            <span class="rw-icon">📱</span>
+            <img class="rw-photo" src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?auto=format&fit=crop&w=640&q=80" alt="Mobile charger and adapter"/>
             <p><strong>Real-world example:</strong> Your mobile charger contains a step-down
                transformer that converts 240 V mains supply to 5 V for charging.</p>
           </div>

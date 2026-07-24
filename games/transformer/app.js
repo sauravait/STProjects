@@ -24,6 +24,11 @@ class AudioManager {
     this._speech = typeof window !== 'undefined' ? window.speechSynthesis : null;
     this._utterance = null;
     this._voice = null;
+    this.narrationLocale = 'hi';
+    this.narrationPace = 'slow';
+    if (this._speech && typeof this._speech.addEventListener === 'function') {
+      this._speech.addEventListener('voiceschanged', () => { this._voice = null; });
+    }
   }
 
   _ctx_get() {
@@ -79,10 +84,15 @@ class AudioManager {
     utter.pitch = 1;
     utter.volume = 1;
     const voices = this._speech.getVoices();
+    const wantHindi = this.narrationLocale === 'hi';
     if (!this._voice && voices.length) {
-      this._voice = voices.find(v => /en/i.test(v.lang)) || voices[0];
+      this._voice = wantHindi
+        ? (voices.find(v => /^hi\b/i.test(v.lang)) || voices.find(v => /india|hindi/i.test(`${v.name} ${v.lang}`)))
+        : (voices.find(v => /^en\b/i.test(v.lang)) || voices.find(v => /english/i.test(v.name)));
+      this._voice = this._voice || voices[0];
     }
     if (this._voice) utter.voice = this._voice;
+    utter.lang = this._voice?.lang || (wantHindi ? 'hi-IN' : 'en-US');
     this._utterance = utter;
     this._speech.speak(utter);
   }
@@ -165,7 +175,9 @@ function clearTransientAnimations() {
 }
 
 function getNarrationRate() {
-  return Math.min(1.4, Math.max(0.8, speedMultiplier));
+  const paceFactor = audio.narrationPace === 'slow' ? 0.84 : 1;
+  const speedFactor = Math.min(1.08, Math.max(0.9, speedMultiplier));
+  return Math.min(1.05, Math.max(0.72, paceFactor * speedFactor));
 }
 
 function cleanNarrationText(text = '') {
@@ -574,24 +586,77 @@ const PART_INFO = {
   },
 };
 
+const SCENE_NARRATION = {
+  0: {
+    hi: 'Is scene mein hum samjhenge transformer kyun zaroori hai. Grid se high voltage aata hai, aur transformer usse ghar ke liye safe level par convert karta hai.',
+    en: 'In this scene, you can see why transformers matter. They help move power efficiently over long distances and then make voltage safe for homes.',
+  },
+  1: {
+    hi: 'Yeh transformer ke main parts hain: primary coil, iron core, aur secondary coil. In teenon ke coordination se energy transfer hota hai.',
+    en: 'Here are the main transformer parts: primary coil, iron core, and secondary coil. Their coordination enables energy transfer.',
+  },
+  2: {
+    hi: 'Step by step dekhiye: AC primary mein jaata hai, core mein changing flux banta hai, aur secondary mein induced voltage milti hai.',
+    en: 'Watch the sequence: AC enters the primary, changing flux forms in the core, and induced voltage appears in the secondary.',
+  },
+  3: {
+    hi: 'Step-up transformer mein secondary turns zyada hote hain. Isliye output voltage badh jaati hai, jo transmission ke liye useful hai.',
+    en: 'In a step-up transformer, secondary turns are higher, so output voltage increases, which is useful for transmission.',
+  },
+  4: {
+    hi: 'Step-down transformer mein secondary turns kam hote hain. Output voltage kam ho jaati hai, jaisa phone charger mein hota hai.',
+    en: 'In a step-down transformer, secondary turns are lower, so output voltage decreases, like in phone chargers.',
+  },
+  5: {
+    hi: 'Yahan key formulas dikh rahe hain. Turns ratio se voltage aur current dono ka relation samajh aata hai.',
+    en: 'This scene summarizes the key formulas. The turns ratio explains both voltage and current relationships.',
+  },
+  6: {
+    hi: 'Ab quiz complete karke apni understanding check kijiye. Har answer ke saath explanation bhi milega.',
+    en: 'Now complete the quiz to check your understanding. You will get explanations with each answer.',
+  },
+};
+
+const STEP_NARRATION = {
+  'step-1': {
+    hi: 'Pehla step: AC primary winding mein flow karta hai aur alternating magnetic field create karta hai.',
+    en: 'Step one: AC flows in the primary winding and creates an alternating magnetic field.',
+  },
+  'step-2': {
+    hi: 'Doosra step: iron core is field ko channel karta hai aur changing magnetic flux banata hai.',
+    en: 'Step two: the iron core channels this field and builds changing magnetic flux.',
+  },
+  'step-3': {
+    hi: 'Teesra step: yahi flux secondary winding ko link karta hai aur EMF induce karta hai.',
+    en: 'Step three: this same flux links the secondary winding and induces EMF.',
+  },
+  'step-4': {
+    hi: 'Chautha step: induced voltage load tak pahunchti hai, bina direct electrical contact ke.',
+    en: 'Step four: induced voltage reaches the load without direct electrical contact.',
+  },
+};
+
+function getNarrationText(bucket, fallback = '') {
+  if (!bucket) return fallback;
+  const key = audio.narrationLocale === 'hi' ? 'hi' : 'en';
+  return bucket[key] || bucket.en || bucket.hi || fallback;
+}
+
 function narrateScene(index) {
   if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
   const scene = document.getElementById(`scene-${index}`);
   if (!scene) return;
-  const title = cleanNarrationText(scene.querySelector('.scene-title')?.textContent || '');
-  const desc = cleanNarrationText(
-    scene.querySelector('.scene-desc')?.textContent
-      || scene.querySelector('.scene-subtitle')?.textContent
-      || ''
-  );
-  audio.narrate(`${title}. ${desc}`, getNarrationRate(), true);
+  const fallback = cleanNarrationText(scene.querySelector('.scene-subtitle')?.textContent || '');
+  const text = cleanNarrationText(getNarrationText(SCENE_NARRATION[index], fallback));
+  audio.narrate(text, getNarrationRate(), true);
 }
 
 function narrateStep(stepId) {
   if (!toggles.narrate || !audio.enabled || !audio.narrationEnabled) return;
   const stepEl = document.getElementById(stepId);
   if (!stepEl) return;
-  const text = cleanNarrationText(stepEl.textContent || '');
+  const fallback = cleanNarrationText(stepEl.textContent || '');
+  const text = cleanNarrationText(getNarrationText(STEP_NARRATION[stepId], fallback));
   audio.narrate(text, getNarrationRate(), true);
 }
 
@@ -952,29 +1017,29 @@ function injectVisuals() {
           <canvas id="wave-canvas-0" class="ac-wave-canvas" aria-label="Animated AC waveform"></canvas>
         </div>
         <div class="intro-flow">
-          <div class="flow-item">
-            <span class="flow-icon">🏭</span>
-            <span>Power Plant<br><small>11 kV</small></span>
+          <div class="flow-item flow-item-photo">
+            <img class="flow-photo" src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=640&q=80" alt="Power generation station"/>
+            <span>Power Plant<br><small>11 kV generation</small></span>
           </div>
           <span class="flow-arrow">→</span>
-          <div class="flow-item" style="border-color:rgba(56,189,248,0.4)">
-            <span class="flow-icon">🔧</span>
-            <span>Step-Up TX<br><small>400 kV</small></span>
+          <div class="flow-item flow-item-photo" style="border-color:rgba(56,189,248,0.4)">
+            <img class="flow-photo" src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=640&q=80" alt="High voltage transmission infrastructure"/>
+            <span>Step-Up Transformer<br><small>up to 400 kV</small></span>
           </div>
           <span class="flow-arrow">→</span>
-          <div class="flow-item">
-            <span class="flow-icon">⚡</span>
-            <span>Grid Lines<br><small>long distance</small></span>
+          <div class="flow-item flow-item-photo">
+            <img class="flow-photo" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=640&q=80" alt="Long-distance power grid lines"/>
+            <span>Grid Transmission<br><small>long distance</small></span>
           </div>
           <span class="flow-arrow">→</span>
-          <div class="flow-item" style="border-color:rgba(56,189,248,0.4)">
-            <span class="flow-icon">🔧</span>
-            <span>Step-Down TX<br><small>240 V</small></span>
+          <div class="flow-item flow-item-photo" style="border-color:rgba(56,189,248,0.4)">
+            <img class="flow-photo" src="https://images.unsplash.com/photo-1601933470928-c0f6f220d2f6?auto=format&fit=crop&w=640&q=80" alt="Distribution transformer station"/>
+            <span>Step-Down Transformer<br><small>240 V output</small></span>
           </div>
           <span class="flow-arrow">→</span>
-          <div class="flow-item">
-            <span class="flow-icon">🏠</span>
-            <span>Your Home<br><small>240 V</small></span>
+          <div class="flow-item flow-item-photo">
+            <img class="flow-photo" src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=640&q=80" alt="Residential home electricity usage"/>
+            <span>Your Home<br><small>safe supply</small></span>
           </div>
         </div>
       </div>`;
@@ -1233,6 +1298,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!toggles.narrate) audio.stopNarration();
     else narrateScene(currentScene);
   });
+  document.getElementById('narration-lang').addEventListener('change', e => {
+    audio.narrationLocale = e.target.value === 'en' ? 'en' : 'hi';
+    audio._voice = null;
+    if (toggles.narrate && audio.enabled && audio.narrationEnabled) narrateScene(currentScene);
+  });
+  document.getElementById('narration-pace').addEventListener('change', e => {
+    audio.narrationPace = e.target.value === 'normal' ? 'normal' : 'slow';
+    if (toggles.narrate && audio.enabled && audio.narrationEnabled) narrateScene(currentScene);
+  });
   document.getElementById('tog-audio').addEventListener('change', e => {
     audio.enabled = e.target.checked;
     if (!audio.enabled) {
@@ -1280,5 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCalc();
 
   // Start at scene 0
+  audio.narrationLocale = document.getElementById('narration-lang')?.value === 'en' ? 'en' : 'hi';
+  audio.narrationPace = document.getElementById('narration-pace')?.value === 'normal' ? 'normal' : 'slow';
   goToScene(0);
 });
