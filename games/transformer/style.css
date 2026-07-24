@@ -71,6 +71,7 @@ html, body {
   color: var(--accent);
   line-height: 1;
   margin-bottom: 3px;
+  display: block;
 }
 
 .mod-title {
@@ -166,18 +167,10 @@ html, body {
   animation: scene-in 0.45s ease both;
 }
 .scene.active { display: flex; }
-.scene.leaving {
-  display: flex;
-  animation: scene-out 0.35s ease forwards;
-}
 
 @keyframes scene-in {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes scene-out {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-18px); }
 }
 
 .scene-body {
@@ -278,13 +271,16 @@ html, body {
   padding: 12px 14px;
 }
 .rw-icon { font-size: 1.4rem; flex-shrink: 0; }
-.rw-photo {
-  width: 82px;
-  height: 64px;
-  object-fit: cover;
+.rw-illus {
+  flex-shrink: 0;
+  width: 104px;
+}
+.rw-illus-svg {
+  width: 104px;
+  height: auto;
   border-radius: 8px;
   border: 1px solid rgba(245, 158, 11, 0.28);
-  flex-shrink: 0;
+  display: block;
 }
 .real-world-box p { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
 .real-world-box p strong { color: var(--gold); }
@@ -350,12 +346,13 @@ html, body {
   color: var(--muted);
   line-height: 1.6;
   opacity: 0.4;
-  transition: opacity 0.4s, border-color 0.4s, background 0.4s;
+  transition: opacity 0.4s, border-color 0.4s, background 0.4s, box-shadow 0.4s;
 }
 .step-item.active {
   opacity: 1;
   border-color: var(--green);
   background: rgba(34, 197, 94, 0.06);
+  box-shadow: 0 0 0.9rem rgba(34, 197, 94, 0.25);
 }
 .step-item strong { color: var(--text); }
 .step-num {
@@ -701,7 +698,7 @@ html, body {
 /* ─── SVG transformer ────────────────────────────────────────────────────── */
 .tx-svg-wrap {
   width: 100%;
-  max-width: 860px;
+  max-width: 900px;
   background: radial-gradient(circle at center, rgba(14, 116, 144, 0.16) 0%, rgba(15, 23, 42, 0.2) 55%, transparent 100%);
   border-radius: 18px;
   padding: 10px 14px;
@@ -712,26 +709,16 @@ html, body {
   overflow: visible;
 }
 
-/* Animated flux arrows */
-@keyframes flux-drift {
-  0%   { stroke-dashoffset: 24; }
-  100% { stroke-dashoffset: 0;  }
-}
-.flux-anim {
-  stroke-dasharray: 8 4;
-  animation: flux-drift 0.9s linear infinite;
-}
+/* Coil turns keep crisp joints */
+.coil-primary path, .coil-secondary path,
+.coil-primary-back path, .coil-secondary-back path { stroke-linejoin: round; }
 
-/* Animated sine wave drawing */
-@keyframes wave-draw {
-  from { stroke-dashoffset: 400; }
-  to   { stroke-dashoffset: 0; }
+/* AC source sine mark subtle pulse */
+@keyframes source-pulse {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 1; }
 }
-.wave-anim {
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
-  animation: wave-draw 1.5s ease forwards;
-}
+.ac-sine { animation: source-pulse 1.6s ease-in-out infinite; }
 
 /* Intro floating icon */
 .intro-icon-wrap {
@@ -755,7 +742,7 @@ html, body {
 .intro-flow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -764,29 +751,25 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 10px 14px;
+  padding: 10px;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--edge);
   border-radius: 10px;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--muted);
   text-align: center;
   transition: border-color 0.4s, background 0.4s;
+  min-width: 96px;
 }
 .flow-item:hover { border-color: var(--accent); background: rgba(56,189,248,0.07); }
-.flow-icon { font-size: 1.5rem; }
-.flow-item.flow-item-photo {
-  min-width: 146px;
-  overflow: hidden;
-}
-.flow-photo {
-  width: 100%;
-  height: 74px;
-  object-fit: cover;
+.flow-item .illus {
+  width: 88px;
+  height: auto;
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, 0.25);
-  margin-bottom: 4px;
+  display: block;
 }
+.flow-item small { color: var(--accent); font-weight: 700; }
 .flow-arrow {
   font-size: 1.2rem;
   color: var(--accent);
@@ -820,12 +803,24 @@ html, body {
 }
 .ac-wave-canvas {
   width: 100%;
-  height: 92px;
+  height: 110px;
   border-radius: 8px;
   background: rgba(2, 6, 23, 0.7);
+  display: block;
 }
 .wave-panel.compact .ac-wave-canvas {
-  height: 78px;
+  height: 96px;
+}
+
+/* Finish-button nudge when the quiz is incomplete */
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+.nudge {
+  animation: nudge 0.5s ease 2;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.45) !important;
 }
 
 /* Reveal animation */
@@ -837,56 +832,13 @@ html, body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Current particle animations ───────────────────────────────────────── */
-.current-particle {
-  opacity: 0.92;
-}
-/* Subtle pulsing glow on particle groups */
-.particles-primary,
-.particles-secondary {
-  transition: opacity 0.5s ease;
-}
-
-/* ─── Coil pulse animations (applied by GSAP / class) ─────────────────── */
-@keyframes coil-pulse-blue {
-  0%, 100% { filter: drop-shadow(0 0 4px #3b82f6); }
-  50%       { filter: drop-shadow(0 0 12px #93c5fd); }
-}
-@keyframes coil-pulse-red {
-  0%, 100% { filter: drop-shadow(0 0 4px #ef4444); }
-  50%       { filter: drop-shadow(0 0 12px #fca5a5); }
-}
-@keyframes core-glow {
-  0%, 100% { filter: drop-shadow(0 0 0px #b8954a); }
-  50%       { filter: drop-shadow(0 0 8px #f59e0b); }
-}
-
-/* AC source ring pulse */
-@keyframes source-ring-pulse {
-  0%, 100% { stroke-width: 2; opacity: 0.8; }
-  50%       { stroke-width: 3; opacity: 1; }
-}
-.ac-source-ring {
-  animation: source-ring-pulse 1.8s ease-in-out infinite;
-}
-
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .scene-body.two-col { flex-direction: column; }
-  .scene-visual { min-height: 250px; }
-  .tx-svg-wrap { max-width: 100%; padding: 8px; }
-  .flow-photo { height: 62px; }
-  .rw-photo { width: 72px; height: 56px; }
-  .calc-grid { grid-template-columns: 1fr 1fr; }
-  .mod-title { font-size: 1rem; }
-  .progress-wrap { display: none; }
-  .controls-bar { gap: 8px; padding: 0 12px; }
-  .ctrl-btn { padding: 0 12px; font-size: 0.82rem; }
+  .scene-visual { min-height: 260px; }
+  .toggles-panel { gap: 6px 12px; }
 }
 
-@media (max-width: 480px) {
-  .app-shell { padding: 16px 12px 10px; }
-  .toggles-panel { padding: 8px 12px; }
-  .calc-grid { grid-template-columns: 1fr; }
-  .scene-title { font-size: 1.2rem; }
+@media (prefers-reduced-motion: reduce) {
+  .intro-icon, .flow-arrow, .ac-sine { animation: none !important; }
 }
