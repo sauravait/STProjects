@@ -670,8 +670,18 @@ html, body {
   background: linear-gradient(135deg, var(--accent), var(--blue));
   border-color: transparent;
   color: #020617;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
 }
-.ctrl-btn.ctrl-primary:hover { filter: brightness(1.1); }
+/* Keep the gradient (and brighten it) on hover — the generic hover rule above
+   was replacing it with a faded translucent fill. */
+.ctrl-btn.ctrl-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7dd3fc, #60a5fa);
+  border-color: transparent;
+  color: #020617;
+  filter: none;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
+}
 
 .speed-wrap {
   display: flex;
@@ -738,6 +748,44 @@ html, body {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-10px); }
 }
+
+/* ─── Cinematic intro "journey of electricity" ───────────────────────────── */
+.intro-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.journey-wrap {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--edge2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 0 40px rgba(56, 189, 248, 0.05);
+}
+.journey-wrap svg { width: 100%; height: auto; display: block; }
+
+.jn-packet { filter: drop-shadow(0 0 8px rgba(253, 224, 71, 0.9)); }
+.jn-wire-live { filter: drop-shadow(0 0 4px rgba(252, 211, 77, 0.8)); }
+.jn-node text { paint-order: stroke; stroke: #060c1c; stroke-width: 2.4px; }
+
+@keyframes jn-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 1; }
+}
+.jn-star { animation: jn-twinkle 3s ease-in-out infinite; }
+
+@keyframes jn-smoke-rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0.45; }
+  100% { transform: translateY(-16px) scale(1.5); opacity: 0; }
+}
+.jn-smoke { animation: jn-smoke-rise 2.6s ease-out infinite; transform-origin: center; }
+
+@keyframes jn-win-flicker {
+  0%, 100% { opacity: 0.85; }
+  50%       { opacity: 1; }
+}
+.jn-node .jn-win { animation: jn-win-flicker 2.4s ease-in-out infinite; }
 
 .intro-flow {
   display: flex;
@@ -840,5 +888,6 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-icon, .flow-arrow, .ac-sine { animation: none !important; }
+  .intro-icon, .flow-arrow, .ac-sine,
+  .jn-star, .jn-smoke, .jn-node .jn-win, .jn-wire-live { animation: none !important; }
 }
