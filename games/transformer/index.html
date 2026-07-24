@@ -37,11 +37,11 @@
     <label class="tog-label" title="Show or hide subtitles">
       <input type="checkbox" id="tog-subtitles" checked aria-label="Show subtitles"> Subtitles
     </label>
-    <label class="tog-label" title="Toggle sound effects">
-      <input type="checkbox" id="tog-audio" checked aria-label="Sound effects"> 🔊 Sound
+    <label class="tog-label" title="Toggle sound effects (off by default)">
+      <input type="checkbox" id="tog-audio" aria-label="Sound effects"> 🔊 Sound
     </label>
-    <label class="tog-label" title="Toggle voice narration">
-      <input type="checkbox" id="tog-narrate" checked aria-label="Voice narration"> 🗣️ Narrate
+    <label class="tog-label" title="Toggle voice narration (off by default)">
+      <input type="checkbox" id="tog-narrate" aria-label="Voice narration"> 🗣️ Narrate
     </label>
     <label class="tog-label tog-inline" title="Narration language">
       Language
@@ -141,7 +141,7 @@
               <span class="step-num">2</span>
               <div>
                 <strong>Alternating magnetic flux in core</strong> — the iron core channels the
-                rapidly changing magnetic flux (green arrows) through its cross-section.
+                rapidly changing magnetic flux (green) around its closed magnetic loop.
               </div>
             </li>
             <li class="step-item" id="step-3">
@@ -183,7 +183,7 @@
             <p>Output voltage &gt; Input voltage &nbsp;|&nbsp; Output current &lt; Input current</p>
           </div>
           <div class="real-world-box reveal-up" style="animation-delay:0.4s">
-            <img class="rw-photo" src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=640&q=80" alt="High-voltage transmission infrastructure"/>
+            <span class="rw-illus" id="illus-stepup" aria-hidden="true"></span>
             <p><strong>Real-world example:</strong> Power stations step up 11 kV to
                400 kV for efficient long-distance transmission through overhead lines.</p>
           </div>
@@ -223,7 +223,7 @@
             <p>Output voltage &lt; Input voltage &nbsp;|&nbsp; Output current &gt; Input current</p>
           </div>
           <div class="real-world-box reveal-up" style="animation-delay:0.4s">
-            <img class="rw-photo" src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?auto=format&fit=crop&w=640&q=80" alt="Mobile charger and adapter"/>
+            <span class="rw-illus" id="illus-stepdown" aria-hidden="true"></span>
             <p><strong>Real-world example:</strong> Your mobile charger contains a step-down
                transformer that converts 240 V mains supply to 5 V for charging.</p>
           </div>
@@ -328,20 +328,18 @@
     <button id="btn-replay" class="ctrl-btn" aria-label="Replay animation">↺ Replay</button>
     <button id="btn-next" class="ctrl-btn ctrl-primary" aria-label="Next scene">Next ›</button>
     <div class="speed-wrap">
-      <label for="speed-sel" class="speed-label">Speed</label>
-      <select id="speed-sel" aria-label="Playback speed">
-        <option value="0.75">0.75×</option>
+      <span class="speed-label">Speed</span>
+      <select id="speed-sel" aria-label="Animation speed">
+        <option value="0.5">0.5×</option>
         <option value="1" selected>1×</option>
-        <option value="1.25">1.25×</option>
         <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
       </select>
     </div>
   </nav>
 
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
-          integrity="sha512-16esztaSRplJROstbIIdwX3N97V1+pZvV33ABoG1H2OJ9K35F63eIh9v+YotrHNe0nh7tbd3YwJV3ib2EjEDQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- GSAP animation library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
