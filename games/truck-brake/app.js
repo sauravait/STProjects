@@ -90,12 +90,86 @@ function svgWrap(w, h, content) {
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"
     style="width:100%;height:100%;max-height:360px" role="img" aria-hidden="true">
   <defs>
+    <!-- Arrow markers -->
     <marker id="arr-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0,8 3,0 6" fill="${C.amber}"/></marker>
     <marker id="arr-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0,8 3,0 6" fill="${C.airRed}"/></marker>
     <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0,8 3,0 6" fill="${C.airBlue}"/></marker>
+    <marker id="arr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="${C.green}"/></marker>
+
+    <!-- Linear gradients -->
+    <linearGradient id="grad-steel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#6b7280"/>
+      <stop offset="40%"  stop-color="#374151"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+    <linearGradient id="grad-steel-h" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#4b5563"/>
+      <stop offset="50%"  stop-color="#6b7280"/>
+      <stop offset="100%" stop-color="#374151"/>
+    </linearGradient>
+    <linearGradient id="grad-cab" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="grad-amber-v" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="${C.amberL}"/>
+      <stop offset="100%" stop-color="${C.orange}"/>
+    </linearGradient>
+    <linearGradient id="grad-amber-h" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="${C.amber}"/>
+      <stop offset="100%" stop-color="${C.orange}"/>
+    </linearGradient>
+    <linearGradient id="grad-blue-h" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="${C.airBlue}"/>
+      <stop offset="100%" stop-color="${C.airBlueL}"/>
+    </linearGradient>
+    <linearGradient id="grad-red-h" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="${C.airRed}"/>
+      <stop offset="100%" stop-color="${C.airRedL}"/>
+    </linearGradient>
+    <linearGradient id="grad-road" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="grad-heat" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="${C.amber}"/>
+      <stop offset="50%"  stop-color="${C.orange}"/>
+      <stop offset="100%" stop-color="${C.airRed}"/>
+    </linearGradient>
+    <linearGradient id="grad-spring" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="${C.spring}"/>
+      <stop offset="100%" stop-color="#34d39988"/>
+    </linearGradient>
+    <linearGradient id="grad-drum" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#52525b"/>
+      <stop offset="50%"  stop-color="#3f3f46"/>
+      <stop offset="100%" stop-color="#27272a"/>
+    </linearGradient>
+    <linearGradient id="grad-tire" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#0c0a09"/>
+    </linearGradient>
+
+    <!-- Radial gradients -->
+    <radialGradient id="grad-spot-amber" cx="50%" cy="30%" r="60%">
+      <stop offset="0%"   stop-color="${C.amberL}" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="${C.amber}"  stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="grad-spot-blue" cx="50%" cy="50%" r="60%">
+      <stop offset="0%"   stop-color="${C.airBlueL}" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="${C.airBlue}"  stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="grad-heat-center" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="${C.amberL}"  stop-opacity="0.9"/>
+      <stop offset="40%"  stop-color="${C.orange}"  stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="${C.airRed}"  stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Filters -->
     <filter id="glow-r" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -103,6 +177,19 @@ function svgWrap(w, h, content) {
     <filter id="glow-a" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="5" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-b" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="shadow-sm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="blur-sm">
+      <feGaussianBlur stdDeviation="2"/>
     </filter>
   </defs>
   ${content}
@@ -114,122 +201,148 @@ function svgWrap(w, h, content) {
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS0(el) {
   const W = 580, H = 290;
-  const groundY = 258, frameY = 200, fH = 20;
+  const groundY = 258, frameY = 200, fH = 22;
   const wR = 38, wCY = groundY - wR;
   const fwX = 142, rw1X = 452, rw2X = 520;
 
   el.innerHTML = svgWrap(W, H, `
-  <!-- Ground -->
-  <rect x="0" y="${groundY}" width="${W}" height="${H - groundY}" fill="${C.road}"/>
-  <line x1="0" y1="${groundY}" x2="${W}" y2="${groundY}" stroke="${C.gray}" stroke-width="1"/>
+  <!-- Sky gradient background -->
+  <defs>
+    <linearGradient id="s0-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#0c1a36"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#s0-sky)"/>
 
-  <!-- FRAME -->
-  <rect id="s0-frame" x="110" y="${frameY}" width="432" height="${fH}" rx="3"
-        fill="${C.truckBody}" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <!-- Road surface with lane marking -->
+  <rect x="0" y="${groundY}" width="${W}" height="${H - groundY}" fill="url(#grad-road)"/>
+  <line x1="0" y1="${groundY}" x2="${W}" y2="${groundY}" stroke="${C.grayMid}" stroke-width="1.5" opacity="0.5"/>
+  <!-- Road centre dashes -->
+  ${[0,60,120,180,240,300,360,420,480,540].map(x =>
+    `<line x1="${x}" y1="${groundY + 8}" x2="${x+38}" y2="${groundY + 8}" stroke="rgba(251,191,36,0.25)" stroke-width="2"/>`).join('')}
 
-  <!-- CAB body -->
-  <rect id="s0-cab" x="28" y="65" width="132" height="142" rx="10"
-        fill="${C.truckCab}" stroke="${C.grayLt}" stroke-width="2"/>
+  <!-- FRAME with gradient -->
+  <rect id="s0-frame" x="110" y="${frameY}" width="432" height="${fH}" rx="4"
+        fill="url(#grad-steel)" stroke="${C.grayMid}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+
+  <!-- CAB body with gradient -->
+  <rect id="s0-cab" x="28" y="62" width="138" height="148" rx="12"
+        fill="url(#grad-cab)" stroke="${C.grayLt}" stroke-width="2" filter="url(#shadow)"/>
   <!-- Windshield panel -->
-  <path d="M157,65 L172,88 L172,170 L157,170 Z" fill="#0f2744" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <path d="M163,62 L180,88 L180,172 L163,172 Z" fill="#0d2140" stroke="${C.grayMid}" stroke-width="1.5"/>
   <!-- Window -->
-  <rect x="38" y="79" width="107" height="72" rx="6" fill="#0f2744" stroke="${C.grayMid}" stroke-width="1"/>
+  <rect x="36" y="76" width="115" height="76" rx="8" fill="#0d2140" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <!-- Window reflection sheen -->
+  <path d="M38,78 L70,78 L60,102 L38,102 Z" fill="rgba(255,255,255,0.04)" rx="4"/>
+  <!-- Door line -->
+  <line x1="36" y1="152" x2="162" y2="152" stroke="${C.grayMid}" stroke-width="1" opacity="0.5"/>
   <!-- Door handle -->
-  <rect x="128" y="162" width="22" height="5" rx="2.5" fill="${C.grayLt}"/>
+  <rect x="132" y="165" width="24" height="5" rx="2.5" fill="${C.grayLt}" opacity="0.8"/>
   <!-- Exhaust stack -->
-  <rect x="148" y="26" width="10" height="52" rx="5" fill="${C.gray}" stroke="${C.grayMid}" stroke-width="1"/>
-  <ellipse id="s0-smoke" cx="153" cy="19" rx="7" ry="5" fill="${C.grayMid}" opacity="0.5"/>
-  <!-- Headlight -->
-  <ellipse cx="170" cy="177" rx="8" ry="11" fill="#fef9c3" stroke="${C.grayLt}" stroke-width="1"/>
+  <rect x="152" y="20" width="11" height="55" rx="5.5" fill="url(#grad-steel-h)" stroke="${C.grayMid}" stroke-width="1"/>
+  <ellipse id="s0-smoke" cx="157" cy="14" rx="8" ry="6" fill="${C.grayMid}" opacity="0.6"/>
+  <!-- Headlight glow -->
+  <ellipse cx="178" cy="176" rx="10" ry="13" fill="#fffde7" opacity="0.15" filter="url(#glow-a)"/>
+  <ellipse cx="178" cy="176" rx="8" ry="11" fill="#fef9c3" stroke="${C.grayLt}" stroke-width="1"/>
   <!-- Bumper -->
-  <rect x="162" y="197" width="24" height="12" rx="3" fill="${C.truckBody}" stroke="${C.grayMid}" stroke-width="1"/>
+  <rect x="167" y="197" width="26" height="13" rx="4" fill="url(#grad-steel)" stroke="${C.grayMid}" stroke-width="1"/>
+  <!-- Mirror -->
+  <rect x="168" y="85" width="12" height="8" rx="3" fill="${C.grayMid}" stroke="${C.grayLt}" stroke-width="1"/>
 
   <!-- PEDAL in cab -->
-  <line id="s0-pedal-arm" x1="76" y1="156" x2="88" y2="197"
+  <line id="s0-pedal-arm" x1="78" y1="158" x2="92" y2="198"
         stroke="${C.grayLt}" stroke-width="5" stroke-linecap="round"/>
-  <rect id="s0-pedal" x="73" y="195" width="30" height="7" rx="3.5" fill="${C.amber}"/>
-  <ellipse id="s0-foot" cx="82" cy="192" rx="17" ry="9" fill="${C.orange}" opacity="0.45"/>
+  <rect id="s0-pedal" x="75" y="196" width="32" height="8" rx="4" fill="url(#grad-amber-h)"/>
+  <ellipse id="s0-foot" cx="84" cy="193" rx="18" ry="10" fill="${C.orange}" opacity="0.4"/>
 
   <!-- FRONT AXLE -->
   <line x1="${fwX}" y1="${frameY + fH}" x2="${fwX}" y2="${wCY - wR}"
-        stroke="${C.grayMid}" stroke-width="5"/>
+        stroke="url(#grad-steel-h)" stroke-width="6" stroke-linecap="round"/>
 
-  <!-- FRONT BRAKE CHAMBER -->
-  <rect id="s0-bcf" x="${fwX - 16}" y="${frameY - 22}" width="32" height="18" rx="4"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
-  <text x="${fwX}" y="${frameY - 10}" font-size="7" fill="${C.amberL}" text-anchor="middle"
+  <!-- FRONT BRAKE CHAMBER with gradient -->
+  <rect id="s0-bcf" x="${fwX - 18}" y="${frameY - 25}" width="36" height="20" rx="5"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <text x="${fwX}" y="${frameY - 11}" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
         font-weight="700" data-label="1">BCH</text>
 
-  <!-- AIR COMPRESSOR -->
-  <rect id="s0-comp" x="184" y="${frameY - 30}" width="52" height="24" rx="5"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
-  <text x="210" y="${frameY - 15}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
+  <!-- AIR COMPRESSOR with gradient -->
+  <rect id="s0-comp" x="184" y="${frameY - 32}" width="54" height="26" rx="6"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <text x="211" y="${frameY - 16}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
         font-weight="700" data-label="1">COMP.</text>
+  <!-- Compressor detail lines -->
+  <line x1="188" y1="${frameY - 22}" x2="234" y2="${frameY - 22}" stroke="${C.airBlue}" stroke-width="0.5" opacity="0.3"/>
 
-  <!-- AIR TANK 1 -->
-  <rect id="s0-tk1" x="246" y="${frameY - 32}" width="62" height="26" rx="13"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
-  <text x="277" y="${frameY - 16}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
+  <!-- AIR TANK 1 (proper cylindrical shape) -->
+  <rect id="s0-tk1" x="248" y="${frameY - 34}" width="62" height="28" rx="14"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <ellipse cx="310" cy="${frameY - 20}" rx="10" ry="14" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5"/>
+  <text x="272" y="${frameY - 17}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
         font-weight="700" data-label="1">AIR TANK</text>
 
   <!-- AIR TANK 2 -->
-  <rect id="s0-tk2" x="318" y="${frameY - 32}" width="62" height="26" rx="13"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
-  <text x="349" y="${frameY - 16}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
+  <rect id="s0-tk2" x="322" y="${frameY - 34}" width="62" height="28" rx="14"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <ellipse cx="384" cy="${frameY - 20}" rx="10" ry="14" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5"/>
+  <text x="346" y="${frameY - 17}" font-size="7.5" fill="${C.airBlueL}" text-anchor="middle"
         font-weight="700" data-label="1">AIR TANK</text>
 
   <!-- COMP → TANK connection -->
-  <line x1="236" y1="${frameY - 18}" x2="246" y2="${frameY - 18}"
-        stroke="${C.airBlue}" stroke-width="2.5"/>
-  <line x1="308" y1="${frameY - 18}" x2="318" y2="${frameY - 18}"
-        stroke="${C.airBlue}" stroke-width="2.5"/>
+  <line x1="238" y1="${frameY - 20}" x2="248" y2="${frameY - 20}"
+        stroke="${C.airBlue}" stroke-width="3" stroke-linecap="round"/>
+  <line x1="310" y1="${frameY - 20}" x2="322" y2="${frameY - 20}"
+        stroke="${C.airBlue}" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- BRAKE LINES (dashed) -->
+  <!-- BRAKE LINES (animated dashes) -->
   <path id="s0-ln1"
-        d="M380,${frameY - 18} C 420,${frameY - 18} 440,${frameY - 6} ${rw1X},${frameY - 6}"
-        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="5,3"/>
+        d="M384,${frameY - 20} C 425,${frameY - 20} 442,${frameY - 8} ${rw1X},${frameY - 8}"
+        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.7"/>
   <path id="s0-ln2"
-        d="M380,${frameY - 18} C 460,${frameY - 18} 505,${frameY - 6} ${rw2X},${frameY - 6}"
-        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="5,3"/>
+        d="M384,${frameY - 20} C 465,${frameY - 20} 508,${frameY - 8} ${rw2X},${frameY - 8}"
+        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.7"/>
   <path id="s0-ln3"
-        d="M246,${frameY - 18} C 200,${frameY - 18} 168,${frameY - 8} ${fwX},${frameY - 8}"
-        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="5,3"/>
+        d="M248,${frameY - 20} C 202,${frameY - 20} 172,${frameY - 10} ${fwX},${frameY - 10}"
+        fill="none" stroke="${C.airBlue}" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.7"/>
 
   <!-- REAR BRAKE CHAMBERS -->
-  <rect id="s0-bcr1" x="${rw1X - 18}" y="${frameY - 26}" width="36" height="20" rx="4"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
-  <text x="${rw1X}" y="${frameY - 12}" font-size="7" fill="${C.amberL}" text-anchor="middle"
+  <rect id="s0-bcr1" x="${rw1X - 20}" y="${frameY - 28}" width="40" height="22" rx="5"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <text x="${rw1X}" y="${frameY - 13}" font-size="7" fill="${C.amberL}" text-anchor="middle"
         font-weight="700" data-label="1">BCH</text>
-  <rect id="s0-bcr2" x="${rw2X - 18}" y="${frameY - 26}" width="36" height="20" rx="4"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
-  <text x="${rw2X}" y="${frameY - 12}" font-size="7" fill="${C.amberL}" text-anchor="middle"
+  <rect id="s0-bcr2" x="${rw2X - 20}" y="${frameY - 28}" width="40" height="22" rx="5"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <text x="${rw2X}" y="${frameY - 13}" font-size="7" fill="${C.amberL}" text-anchor="middle"
         font-weight="700" data-label="1">BCH</text>
 
   <!-- REAR AXLES -->
   <line x1="${rw1X}" y1="${frameY + fH}" x2="${rw1X}" y2="${wCY - wR}"
-        stroke="${C.grayMid}" stroke-width="5"/>
+        stroke="url(#grad-steel-h)" stroke-width="6" stroke-linecap="round"/>
   <line x1="${rw2X}" y1="${frameY + fH}" x2="${rw2X}" y2="${wCY - wR}"
-        stroke="${C.grayMid}" stroke-width="5"/>
+        stroke="url(#grad-steel-h)" stroke-width="6" stroke-linecap="round"/>
 
   <!-- WHEELS -->
   ${wheel(fwX, wCY, wR, 's0-wf')}
   ${wheel(rw1X, wCY, wR, 's0-wr1')}
   ${wheel(rw2X, wCY, wR, 's0-wr2')}
 
-  <!-- LABELS -->
-  <line x1="80" y1="198" x2="52" y2="235" stroke="${C.amberL}" stroke-width="1" stroke-dasharray="3,2" data-label="1"/>
-  <text x="50" y="244" font-size="9" fill="${C.amberL}" text-anchor="middle" data-label="1">BRAKE PEDAL</text>
+  <!-- Ambient glow under truck -->
+  <ellipse cx="330" cy="${groundY + 2}" rx="180" ry="8" fill="rgba(59,130,246,0.06)"/>
 
-  <text x="210" y="${frameY + 20}" font-size="9" fill="${C.airBlueL}" text-anchor="middle" data-label="1">COMPRESSOR</text>
-  <text x="313" y="${frameY + 20}" font-size="9" fill="${C.airBlueL}" text-anchor="middle" data-label="1">AIR TANKS</text>
+  <!-- LABELS with leader lines -->
+  <line x1="80" y1="198" x2="48" y2="238" stroke="${C.amberL}" stroke-width="1" stroke-dasharray="3,2" data-label="1"/>
+  <text x="46" y="248" font-size="8.5" fill="${C.amberL}" text-anchor="middle" data-label="1">BRAKE PEDAL</text>
 
-  <text x="${fwX}" y="${wCY + wR + 18}" font-size="9" fill="${C.grayLt}" text-anchor="middle" data-label="1">BRAKE DRUM</text>
-  <text x="${rw1X + 22}" y="${wCY + wR + 18}" font-size="9" fill="${C.grayLt}" text-anchor="middle" data-label="1">DRUMS</text>
+  <text x="211" y="${frameY + 22}" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" data-label="1">COMPRESSOR</text>
+  <text x="319" y="${frameY + 22}" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" data-label="1">AIR TANKS</text>
 
-  <line x1="${rw2X + 18}" y1="${frameY - 16}" x2="${rw2X + 46}" y2="${frameY - 34}"
+  <text x="${fwX}" y="${wCY + wR + 20}" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">BRAKE DRUM</text>
+  <text x="${rw1X + 22}" y="${wCY + wR + 20}" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">DRUMS</text>
+
+  <line x1="${rw2X + 20}" y1="${frameY - 18}" x2="${rw2X + 50}" y2="${frameY - 38}"
         stroke="${C.amber}" stroke-width="1" stroke-dasharray="3,2" data-label="1"/>
-  <text x="${rw2X + 48}" y="${frameY - 40}" font-size="9" fill="${C.amberL}" data-label="1">BRAKE</text>
-  <text x="${rw2X + 48}" y="${frameY - 29}" font-size="9" fill="${C.amberL}" data-label="1">CHAMBERS</text>
+  <text x="${rw2X + 52}" y="${frameY - 44}" font-size="8.5" fill="${C.amberL}" data-label="1">BRAKE</text>
+  <text x="${rw2X + 52}" y="${frameY - 32}" font-size="8.5" fill="${C.amberL}" data-label="1">CHAMBERS</text>
   `);
 }
 
@@ -239,132 +352,180 @@ function animateS0() {
                  '#s0-ln1','#s0-ln2','#s0-ln3',
                  '#s0-bcr1','#s0-bcr2','#s0-bcf',
                  '#s0-wf','#s0-wr1','#s0-wr2','#s0-pedal'];
-  tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+  tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
   elems.forEach((sel, i) => {
     tl.fromTo(sel,
-      { opacity: 0, scale: 0.88, transformOrigin: 'center' },
-      { opacity: 1, scale: 1, duration: 0.3 / spd }, i * 0.09 / spd);
+      { opacity: 0, scale: 0.85, transformOrigin: 'center' },
+      { opacity: 1, scale: 1, duration: 0.35 / spd }, i * 0.075 / spd);
   });
-  // Slowly spin wheels to show it's rolling
+  // Slowly spin wheels
   tl.to(['#s0-wf','#s0-wr1','#s0-wr2'], {
     rotation: 360, transformOrigin: 'center',
-    duration: 5 / spd, ease: 'none', repeat: -1
-  }, 1 / spd);
-  // Smoke puff
+    duration: 4.5 / spd, ease: 'none', repeat: -1
+  }, 1.2 / spd);
+  // Smoke puffs
   tl.to('#s0-smoke', {
-    attr: { ry: 8, rx: 10 }, opacity: 0.2, y: -4,
-    duration: 1 / spd, ease: 'sine.inOut', yoyo: true, repeat: -1
-  }, 0.5 / spd);
+    attr: { ry: 9, rx: 12 }, opacity: 0.15, y: -6,
+    duration: 0.9 / spd, ease: 'sine.inOut', yoyo: true, repeat: -1
+  }, 0.6 / spd);
+  // Animated brake-line dash-offset
+  ['#s0-ln1','#s0-ln2','#s0-ln3'].forEach(id => {
+    gsap.to(id, {
+      strokeDashoffset: -50, duration: 1.2 / spd,
+      ease: 'none', repeat: -1
+    });
+  });
+  // Brake chamber glow pulse
+  tl.to(['#s0-bcf','#s0-bcr1','#s0-bcr2'], {
+    attr: { stroke: C.amberL }, duration: 0.8 / spd,
+    ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: 0.25 / spd
+  }, 1.5 / spd);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
    SCENE 1 — BRAKE PEDAL PRESS (cab interior close-up)
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS1(el) {
-  el.innerHTML = svgWrap(400, 340, `
-  <!-- Cab floor/dash background -->
-  <rect x="0" y="0" width="400" height="340" fill="${C.truckDark}" rx="0"/>
-  <!-- Dashboard top -->
-  <rect x="0" y="0" width="400" height="80" fill="#111827" rx="0"/>
-  <!-- Steering column -->
-  <ellipse cx="200" cy="65" rx="55" ry="14" fill="${C.gray}" stroke="${C.grayLt}" stroke-width="2"/>
-  <rect x="195" y="55" width="10" height="90" fill="${C.gray}" stroke="${C.grayMid}" stroke-width="1"/>
-  <!-- Floor pedal area -->
-  <rect x="0" y="260" width="400" height="80" fill="#0f172a" rx="0"/>
+  el.innerHTML = svgWrap(420, 350, `
+  <!-- Background gradient -->
+  <rect x="0" y="0" width="420" height="350" fill="${C.truckDark}" rx="12"/>
+  <rect x="0" y="0" width="420" height="90" fill="#0d1425" rx="0"/>
 
-  <!-- BRAKE VALVE (on firewall/dash) -->
-  <rect id="s1-valve-body" x="148" y="90" width="104" height="70" rx="8"
-        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2"/>
-  <text x="200" y="120" font-size="11" fill="${C.grayLt}" text-anchor="middle" font-weight="700">FOOT VALVE</text>
-  <text x="200" y="138" font-size="9" fill="${C.grayMid}" text-anchor="middle">(Treadle Valve)</text>
+  <!-- Dashboard with gradient instruments -->
+  <rect x="0" y="0" width="420" height="78" fill="url(#grad-cab)" rx="0"/>
+  <!-- Dash surface -->
+  <rect x="0" y="72" width="420" height="8" fill="#1e293b" rx="0"/>
+
+  <!-- Dashboard gauges -->
+  <circle cx="60"  cy="38" r="22" fill="rgba(0,0,0,0.5)" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <circle cx="60"  cy="38" r="16" fill="rgba(0,0,0,0.7)" stroke="${C.grayDk}" stroke-width="1"/>
+  <line x1="60" y1="38" x2="60" y2="26" stroke="${C.green}" stroke-width="2" stroke-linecap="round"/>
+  <text x="60" y="64" font-size="6.5" fill="${C.muted}" text-anchor="middle">RPM</text>
+
+  <circle cx="108" cy="38" r="22" fill="rgba(0,0,0,0.5)" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <circle cx="108" cy="38" r="16" fill="rgba(0,0,0,0.7)" stroke="${C.grayDk}" stroke-width="1"/>
+  <line x1="108" y1="38" x2="118" y2="30" stroke="${C.amber}" stroke-width="2" stroke-linecap="round"/>
+  <text x="108" y="64" font-size="6.5" fill="${C.muted}" text-anchor="middle">SPEED</text>
+
+  <!-- Air pressure gauge (prominent) -->
+  <circle cx="360" cy="38" r="28" fill="rgba(59,130,246,0.1)" stroke="${C.airBlue}" stroke-width="1.5"/>
+  <circle cx="360" cy="38" r="20" fill="rgba(0,0,0,0.6)" stroke="${C.grayDk}" stroke-width="1"/>
+  <text x="360" y="35" font-size="8" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">110</text>
+  <text x="360" y="46" font-size="5.5" fill="${C.muted}" text-anchor="middle">PSI</text>
+  <text x="360" y="70" font-size="6.5" fill="${C.airBlueL}" text-anchor="middle">AIR PRESS.</text>
+
+  <!-- Steering column (with wheel detail) -->
+  <rect x="200" y="58" width="10" height="100" fill="${C.grayMid}" stroke="${C.grayDk}" stroke-width="1"/>
+  <!-- Steering wheel rim -->
+  <circle cx="205" cy="65" r="52" fill="none" stroke="${C.gray}" stroke-width="8"/>
+  <!-- Steering wheel spokes -->
+  <line x1="205" y1="65" x2="205" y2="25" stroke="${C.grayMid}" stroke-width="5" stroke-linecap="round"/>
+  <line x1="205" y1="65" x2="168" y2="85" stroke="${C.grayMid}" stroke-width="5" stroke-linecap="round"/>
+  <line x1="205" y1="65" x2="242" y2="85" stroke="${C.grayMid}" stroke-width="5" stroke-linecap="round"/>
+  <!-- Hub -->
+  <circle cx="205" cy="65" r="10" fill="${C.gray}" stroke="${C.grayLt}" stroke-width="1.5"/>
+
+  <!-- Floor pedal area with mat texture -->
+  <rect x="0" y="265" width="420" height="85" fill="#0f172a" rx="0"/>
+  <rect x="0" y="265" width="420" height="2" fill="rgba(148,163,184,0.1)"/>
+
+  <!-- BRAKE VALVE (firewall) with gradient -->
+  <rect id="s1-valve-body" x="148" y="92" width="110" height="74" rx="10"
+        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <!-- Valve inner detail -->
+  <rect x="158" y="102" width="90" height="54" rx="6" fill="rgba(0,0,0,0.3)"/>
+  <text x="203" y="126" font-size="10.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">FOOT VALVE</text>
+  <text x="203" y="142" font-size="8.5" fill="${C.grayMid}" text-anchor="middle">(Treadle Valve)</text>
   <!-- Valve port (air out) -->
-  <rect x="210" y="160" width="12" height="30" fill="${C.airBlue}" rx="2" id="s1-port"/>
+  <rect x="212" y="166" width="14" height="32" fill="${C.airBlue}" rx="3" id="s1-port"
+        filter="url(#glow-b)"/>
 
-  <!-- AIR ARROW from valve downward -->
-  <line id="s1-arr" x1="216" y1="195" x2="216" y2="255"
-        stroke="${C.airBlue}" stroke-width="3" marker-end="url(#arr-b)" opacity="0"/>
+  <!-- AIR ARROWS from valve downward (3 for drama) -->
+  <line id="s1-arr"  x1="206" y1="198" x2="206" y2="255"
+        stroke="${C.airBlue}" stroke-width="3.5" marker-end="url(#arr-b)" opacity="0"
+        filter="url(#glow-b)"/>
+  <line id="s1-arr2" x1="219" y1="198" x2="219" y2="255"
+        stroke="${C.airBlueL}" stroke-width="2" marker-end="url(#arr-b)" opacity="0"/>
 
-  <!-- PEDAL ARM -->
-  <g id="s1-pedal-grp" style="transform-origin:90px 225px">
-    <line x1="90" y1="225" x2="110" y2="255"
-          stroke="${C.grayLt}" stroke-width="8" stroke-linecap="round"/>
-    <!-- Pivot point -->
-    <circle cx="90" cy="225" r="7" fill="${C.gray}" stroke="${C.grayLt}" stroke-width="2"/>
-    <!-- Pedal platform -->
-    <rect x="95" y="250" width="58" height="12" rx="6" fill="${C.amber}"
+  <!-- PEDAL ARM with pivot detail -->
+  <g id="s1-pedal-grp" style="transform-origin:90px 228px">
+    <!-- Arm -->
+    <rect x="84" y="228" width="10" height="36" rx="3"
+          fill="url(#grad-steel)" stroke="${C.grayLt}" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Pivot -->
+    <circle cx="89" cy="230" r="8" fill="${C.grayDk}" stroke="${C.grayLt}" stroke-width="2"/>
+    <circle cx="89" cy="230" r="3" fill="${C.grayLt}"/>
+    <!-- Pedal platform with grip pattern -->
+    <rect x="78" y="258" width="68" height="14" rx="7" fill="url(#grad-amber-h)"
           stroke="${C.amberL}" stroke-width="1.5"/>
-    <!-- Rubber grip lines -->
-    <line x1="105" y1="251" x2="105" y2="261" stroke="${C.amberL}" stroke-width="2" opacity="0.5"/>
-    <line x1="115" y1="251" x2="115" y2="261" stroke="${C.amberL}" stroke-width="2" opacity="0.5"/>
-    <line x1="125" y1="251" x2="125" y2="261" stroke="${C.amberL}" stroke-width="2" opacity="0.5"/>
-    <line x1="135" y1="251" x2="135" y2="261" stroke="${C.amberL}" stroke-width="2" opacity="0.5"/>
-    <line x1="145" y1="251" x2="145" y2="261" stroke="${C.amberL}" stroke-width="2" opacity="0.5"/>
+    <line x1="90"  y1="259" x2="90"  y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
+    <line x1="100" y1="259" x2="100" y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
+    <line x1="110" y1="259" x2="110" y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
+    <line x1="120" y1="259" x2="120" y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
+    <line x1="130" y1="259" x2="130" y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
+    <line x1="140" y1="259" x2="140" y2="271" stroke="${C.amberL}" stroke-width="1.5" opacity="0.6"/>
   </g>
 
   <!-- DRIVER'S FOOT -->
-  <g id="s1-foot-grp" style="transform-origin:125px 248px">
-    <!-- Leg -->
-    <rect x="95" y="185" width="36" height="70" rx="16"
-          fill="#7c3aed" stroke="#6d28d9" stroke-width="1.5" opacity="0.9"/>
-    <!-- Boot -->
-    <path d="M90,245 L90,265 Q90,275 105,275 L155,275 Q165,275 165,265 L165,260 Q165,255 155,255 L130,255 L130,245 Z"
-          fill="#1c1917" stroke="#292524" stroke-width="1.5"/>
+  <g id="s1-foot-grp" style="transform-origin:125px 255px">
+    <!-- Leg (trouser) -->
+    <rect x="86" y="190" width="40" height="72" rx="18"
+          fill="#4c1d95" stroke="#3b0764" stroke-width="1.5" opacity="0.95"/>
+    <!-- Boot sole -->
+    <path d="M80,250 L80,272 Q80,283 96,283 L160,283 Q172,283 172,272 L172,266 Q172,260 160,260 L128,260 L128,250 Z"
+          fill="#0c0a09" stroke="#1c1917" stroke-width="1.5"/>
+    <!-- Boot toe cap detail -->
+    <ellipse cx="150" cy="272" rx="20" ry="8" fill="rgba(255,255,255,0.04)"/>
   </g>
 
   <!-- LABELS -->
-  <text x="200" y="28" font-size="13" fill="${C.amber}" text-anchor="middle"
+  <text x="205" y="24" font-size="12.5" fill="${C.amber}" text-anchor="middle"
         font-weight="800" data-label="1">Cab Interior — Step 1</text>
 
-  <line x1="148" y1="125" x2="100" y2="125" stroke="${C.grayLt}" stroke-width="1"
+  <line x1="148" y1="128" x2="96" y2="128" stroke="${C.grayLt}" stroke-width="1"
         stroke-dasharray="3,2" data-label="1"/>
-  <text x="98" y="121" font-size="9" fill="${C.grayLt}" text-anchor="end" data-label="1">FOOT VALVE</text>
-  <text x="98" y="132" font-size="9" fill="${C.grayLt}" text-anchor="end" data-label="1">(closed)</text>
+  <text x="94" y="124" font-size="8.5" fill="${C.grayLt}" text-anchor="end" data-label="1">FOOT VALVE</text>
+  <text x="94" y="135" font-size="8.5" fill="${C.grayLt}" text-anchor="end" data-label="1">(closed)</text>
 
-  <!-- Status: open/closed -->
-  <rect id="s1-status" x="250" y="156" width="80" height="22" rx="6"
-        fill="rgba(239,68,68,0.15)" stroke="${C.airRed}" stroke-width="1.5"/>
-  <text id="s1-status-txt" x="290" y="171" font-size="10" fill="${C.airRedL}"
-        text-anchor="middle" font-weight="700">CLOSED</text>
+  <!-- Status badge -->
+  <rect id="s1-status" x="256" y="158" width="86" height="24" rx="7"
+        fill="rgba(239,68,68,0.12)" stroke="${C.airRed}" stroke-width="1.5"/>
+  <text id="s1-status-txt" x="299" y="174" font-size="10.5" fill="${C.airRedL}"
+        text-anchor="middle" font-weight="800">CLOSED</text>
 
   <!-- Pedal label -->
-  <line x1="110" y1="255" x2="60" y2="310" stroke="${C.amberL}" stroke-width="1"
+  <line x1="115" y1="262" x2="62" y2="320" stroke="${C.amberL}" stroke-width="1"
         stroke-dasharray="3,2" data-label="1"/>
-  <text x="58" y="318" font-size="9" fill="${C.amberL}" text-anchor="middle" data-label="1">BRAKE PEDAL</text>
+  <text x="60" y="330" font-size="8.5" fill="${C.amberL}" text-anchor="middle" data-label="1">BRAKE PEDAL</text>
   `);
 }
 
 function animateS1() {
   killTl();
-  tl = gsap.timeline({ repeat: -1, repeatDelay: 0.8 / spd, defaults: { ease: 'power2.inOut' } });
+  tl = gsap.timeline({ repeat: -1, repeatDelay: 0.9 / spd, defaults: { ease: 'power2.inOut' } });
   // Foot and pedal press down
-  tl.to(['#s1-foot-grp','#s1-pedal-grp'], { y: 18, duration: 0.55 / spd })
-    // Valve turns green / open
-    .to('#s1-valve-body', { stroke: C.airBlue, duration: 0.2 / spd }, '-=0.1')
-    .to('#s1-status', { stroke: C.airBlue, fill: 'rgba(59,130,246,0.15)', duration: 0.2 / spd }, '<')
+  tl.to(['#s1-foot-grp','#s1-pedal-grp'], { y: 20, duration: 0.5 / spd })
+    // Valve lights up
+    .to('#s1-valve-body', { stroke: C.airBlue, fill: 'rgba(59,130,246,0.08)', duration: 0.25 / spd }, '-=0.1')
+    .to('#s1-status', { stroke: C.airBlue, fill: 'rgba(59,130,246,0.12)', duration: 0.2 / spd }, '<')
     .to('#s1-status-txt', { attr: { fill: C.airBlueL }, duration: 0.1 / spd }, '<')
     .to('#s1-port', { fill: C.airRed, duration: 0.15 / spd }, '<')
-    // Arrow appears
-    .to('#s1-arr', { opacity: 1, duration: 0.3 / spd })
+    // Arrows appear with stagger
+    .to('#s1-arr',  { opacity: 1, duration: 0.3 / spd })
+    .to('#s1-arr2', { opacity: 0.6, duration: 0.25 / spd }, '<+=0.08')
     // Hold
-    .to({}, { duration: 0.8 / spd })
+    .to({}, { duration: 0.85 / spd })
     // Release
-    .to(['#s1-foot-grp','#s1-pedal-grp'], { y: 0, duration: 0.5 / spd })
-    .to('#s1-valve-body', { stroke: C.grayMid, duration: 0.2 / spd }, '<')
-    .to('#s1-status', { stroke: C.airRed, fill: 'rgba(239,68,68,0.15)', duration: 0.2 / spd }, '<')
+    .to(['#s1-foot-grp','#s1-pedal-grp'], { y: 0, duration: 0.55 / spd })
+    .to('#s1-valve-body', { stroke: C.grayMid, fill: C.grayDk, duration: 0.25 / spd }, '<')
+    .to('#s1-status', { stroke: C.airRed, fill: 'rgba(239,68,68,0.12)', duration: 0.2 / spd }, '<')
     .to('#s1-status-txt', { attr: { fill: C.airRedL }, duration: 0.1 / spd }, '<')
-    .to('#s1-arr', { opacity: 0, duration: 0.2 / spd }, '<')
+    .to(['#s1-arr','#s1-arr2'], { opacity: 0, duration: 0.25 / spd }, '<')
     .to('#s1-port', { fill: C.airBlue, duration: 0.15 / spd }, '<');
 
-  // Update status text
-  tl.addLabel('press', 0.55 / spd);
-  tl.call(() => {
-    const el = $('s1-status-txt');
-    if (el) el.textContent = 'OPEN';
-  }, [], 'press');
-  tl.call(() => {
-    const el = $('s1-status-txt');
-    if (el) el.textContent = 'CLOSED';
-  }, [], (0.55 + 0.8 + 0.5) / spd + 0.3 / spd);
+  tl.addLabel('press', 0.5 / spd);
+  tl.call(() => { const e = $('s1-status-txt'); if (e) e.textContent = 'OPEN'; }, [], 'press');
+  tl.call(() => { const e = $('s1-status-txt'); if (e) e.textContent = 'CLOSED'; }, [], (0.5+0.85+0.55) / spd + 0.3 / spd);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -372,95 +533,86 @@ function animateS1() {
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS2(el) {
   el.innerHTML = svgWrap(540, 320, `
-  <!-- Background grid -->
+  <!-- Background -->
   <rect width="540" height="320" fill="${C.truckDark}" rx="12"/>
+  <!-- Subtle grid pattern -->
+  ${Array.from({length:11},(_,i)=>`<line x1="${i*54}" y1="0" x2="${i*54}" y2="320" stroke="rgba(148,163,184,0.03)" stroke-width="1"/>`).join('')}
+  ${Array.from({length:7},(_,i)=>`<line x1="0" y1="${i*54}" x2="540" y2="${i*54}" stroke="rgba(148,163,184,0.03)" stroke-width="1"/>`).join('')}
 
-  <!-- COMPRESSOR box -->
-  <rect id="s2-comp" x="20" y="130" width="74" height="52" rx="8"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2"/>
-  <text x="57" y="151" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR</text>
-  <text x="57" y="163" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">COMP.</text>
-  <text x="57" y="175" font-size="7.5" fill="${C.grayLt}" text-anchor="middle">100–120 PSI</text>
+  <!-- COMPRESSOR box with gradient -->
+  <rect id="s2-comp" x="18" y="128" width="78" height="56" rx="10"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <!-- Compressor fan detail -->
+  <circle cx="57" cy="152" r="14" fill="rgba(0,0,0,0.3)" stroke="${C.airBlue}" stroke-width="1" opacity="0.5"/>
+  <text x="57" y="158" font-size="8" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR COMP.</text>
+  <text x="57" y="174" font-size="7" fill="${C.grayLt}" text-anchor="middle">100–120 PSI</text>
 
-  <!-- TANK 1 -->
-  <rect id="s2-tk1" x="118" y="120" width="75" height="70" rx="14"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2"/>
-  <text x="155" y="150" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR</text>
-  <text x="155" y="162" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">TANK 1</text>
-  <text x="155" y="178" font-size="7.5" fill="${C.grayLt}" text-anchor="middle">Primary</text>
+  <!-- TANK 1 with cylindrical shape -->
+  <rect id="s2-tk1" x="116" y="118" width="78" height="74" rx="16"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <ellipse cx="194" cy="155" rx="12" ry="37" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5" opacity="0.7"/>
+  <text x="148" y="149" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR TANK 1</text>
+  <text x="148" y="164" font-size="7" fill="${C.grayLt}" text-anchor="middle">Primary</text>
 
-  <!-- TANK 2 -->
-  <rect id="s2-tk2" x="118" y="205" width="75" height="70" rx="14"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2"/>
-  <text x="155" y="235" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR</text>
-  <text x="155" y="247" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">TANK 2</text>
-  <text x="155" y="263" font-size="7.5" fill="${C.grayLt}" text-anchor="middle">Secondary</text>
+  <!-- TANK 2 with cylindrical shape -->
+  <rect id="s2-tk2" x="116" y="205" width="78" height="74" rx="16"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <ellipse cx="194" cy="242" rx="12" ry="37" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5" opacity="0.7"/>
+  <text x="148" y="236" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR TANK 2</text>
+  <text x="148" y="251" font-size="7" fill="${C.grayLt}" text-anchor="middle">Secondary</text>
 
   <!-- BRAKE VALVE -->
-  <rect id="s2-valve" x="230" y="134" width="70" height="44" rx="8"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2"/>
-  <text x="265" y="154" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">FOOT</text>
-  <text x="265" y="166" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">VALVE</text>
+  <rect id="s2-valve" x="228" y="132" width="74" height="48" rx="10"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <text x="265" y="153" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">FOOT</text>
+  <text x="265" y="167" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">VALVE</text>
 
-  <!-- BRAKE CHAMBERS (right side) -->
-  <rect id="s2-bcFL" x="432" y="52" width="76" height="44" rx="8"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2"/>
-  <text x="470" y="72" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">FRONT</text>
-  <text x="470" y="84" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <!-- BRAKE CHAMBERS -->
+  <rect id="s2-bcFL" x="430" y="50" width="82" height="48" rx="10"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <text x="471" y="71" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">FRONT</text>
+  <text x="471" y="85" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
 
-  <rect id="s2-bcRL" x="432" y="126" width="76" height="44" rx="8"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2"/>
-  <text x="470" y="146" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-L</text>
-  <text x="470" y="158" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <rect id="s2-bcRL" x="430" y="124" width="82" height="48" rx="10"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <text x="471" y="145" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-L</text>
+  <text x="471" y="159" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
 
-  <rect id="s2-bcRR" x="432" y="200" width="76" height="44" rx="8"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2"/>
-  <text x="470" y="220" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-R</text>
-  <text x="470" y="232" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <rect id="s2-bcRR" x="430" y="198" width="82" height="48" rx="10"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <text x="471" y="219" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-R</text>
+  <text x="471" y="233" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
 
-  <!-- PIPE ROUTES (static backdrop) -->
-  <!-- comp → tk1 -->
-  <line x1="94" y1="156" x2="118" y2="156" stroke="${C.airBlue}" stroke-width="5" stroke-linecap="round" opacity="0.3"/>
-  <!-- comp → tk2 -->
-  <path d="M94,156 L106,156 L106,240 L118,240" fill="none" stroke="${C.airBlue}" stroke-width="5" opacity="0.3"/>
-  <!-- tk1 → valve -->
-  <line x1="193" y1="156" x2="230" y2="156" stroke="${C.airBlue}" stroke-width="5" opacity="0.3"/>
-  <!-- valve → front chamber -->
-  <path d="M300,156 L330,156 L330,74 L432,74" fill="none" stroke="${C.airBlue}" stroke-width="5" opacity="0.3"/>
-  <!-- valve → rear-L -->
-  <path d="M300,156 L330,156 L330,148 L432,148" fill="none" stroke="${C.airBlue}" stroke-width="5" opacity="0.3"/>
-  <!-- valve → rear-R -->
-  <path d="M300,156 L330,156 L330,222 L432,222" fill="none" stroke="${C.airBlue}" stroke-width="5" opacity="0.3"/>
-  <!-- tk2 → valve (secondary supply) -->
-  <path d="M193,240 L214,240 L214,178 L265,178 L265,178" fill="none" stroke="${C.airBlue}" stroke-width="4" stroke-dasharray="6,4" opacity="0.25"/>
+  <!-- PIPE ROUTES (rounded joints, wider) -->
+  <line x1="96" y1="156" x2="116" y2="156" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+  <path d="M96,156 L108,156 L108,242 L116,242" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+  <line x1="194" y1="156" x2="228" y2="156" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+  <path d="M302,156 L334,156 L334,74 L430,74" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
+  <path d="M302,156 L334,156 L334,148 L430,148" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
+  <path d="M302,156 L334,156 L334,222 L430,222" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
+  <path d="M194,242 L216,242 L216,180 L265,180" fill="none" stroke="${C.airBlue}" stroke-width="5" stroke-dasharray="7,5" opacity="0.2"/>
 
-  <!-- ANIMATED FLOW PARTICLES (8 dots per route) -->
-  <!-- Route 1: comp → tk1 -->
-  <circle id="p1a" cx="94" cy="156" r="5" fill="${C.airBlue}" opacity="0"/>
-  <circle id="p1b" cx="94" cy="156" r="5" fill="${C.airBlue}" opacity="0"/>
-  <!-- Route 2: tk1 → valve -->
-  <circle id="p2a" cx="193" cy="156" r="5" fill="${C.airBlue}" opacity="0"/>
-  <circle id="p2b" cx="193" cy="156" r="5" fill="${C.airBlue}" opacity="0"/>
-  <!-- Route 3: valve → front chamber -->
-  <circle id="p3a" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="p3b" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <!-- Route 4: valve → rear-L -->
-  <circle id="p4a" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="p4b" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <!-- Route 5: valve → rear-R -->
-  <circle id="p5a" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="p5b" cx="300" cy="156" r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
+  <!-- Animated particles: blue → blue → red → red → red -->
+  <circle id="p1a" cx="96"  cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="p1b" cx="96"  cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="p2a" cx="194" cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="p2b" cx="194" cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="p3a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <circle id="p3b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <circle id="p4a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <circle id="p4b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <circle id="p5a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <circle id="p5b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
 
   <!-- Labels -->
-  <text x="57" y="200" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">ENGINE-DRIVEN</text>
-  <text x="265" y="195" font-size="8" fill="${C.grayLt}" text-anchor="middle" data-label="1">PEDAL</text>
-  <text x="265" y="205" font-size="8" fill="${C.grayLt}" text-anchor="middle" data-label="1">OPERATED</text>
+  <text x="57" y="200" font-size="8" fill="${C.grayLt}" text-anchor="middle" data-label="1">ENGINE-DRIVEN</text>
+  <text x="265" y="196" font-size="7.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">PEDAL OPERATED</text>
 
-  <!-- Pressure PSI display -->
-  <rect x="190" y="272" width="170" height="36" rx="8"
-        fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
-  <text x="275" y="288" font-size="10" fill="${C.amberL}" text-anchor="middle" font-weight="700">Air Pressure:</text>
-  <text id="s2-psi" x="275" y="302" font-size="13" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
+  <!-- PSI display with glow -->
+  <rect x="180" y="272" width="188" height="38" rx="10"
+        fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
+  <text x="274" y="289" font-size="9.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">Air Pressure</text>
+  <text id="s2-psi" x="274" y="304" font-size="13.5" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
   `);
 }
 
@@ -481,60 +633,31 @@ function animateS2() {
   }, 40 / spd);
 
   tl = gsap.timeline({ defaults: { ease: 'none' } });
-  const dur = 1.4 / spd;
-  const del = 0.6 / spd;
 
-  // Particles along each route
-  function flow(id, path, delay) {
-    const motionPath = typeof path === 'string'
-      ? { path }
-      : path;
-    gsap.set(id, { opacity: 0 });
-    tl.fromTo(id,
-      { motionPath: { path: motionPath, start: 0 }, opacity: 0 },
-      { motionPath: { path: motionPath, end: 1 }, opacity: 1,
-        duration: dur, ease: 'none', repeat: -1, delay },
-      delay
-    );
-  }
-
-  // Animate pipe colour changes sequentially
-  tl.to('#s2-comp', { stroke: C.amber, duration: 0.3 / spd })
+  // Pipe colour cascade (comp glow → valve → chambers pressurised)
+  tl.to('#s2-comp',  { stroke: C.amberL, filter: 'url(#glow-a)', duration: 0.35 / spd })
     .to('#s2-valve', { stroke: C.airRed, duration: 0.4 / spd }, 0.4 / spd)
     .to(['#s2-bcFL','#s2-bcRL','#s2-bcRR'],
-        { stroke: C.airRed, fill: 'rgba(239,68,68,0.18)', duration: 0.5 / spd }, 0.8 / spd);
+        { stroke: C.airRed, fill: 'rgba(239,68,68,0.15)', duration: 0.5 / spd, stagger: 0.1/spd }, 0.8 / spd);
 
-  // Simple particle animations using x/y
+  // Particle routes (start → end coords for each pipe segment)
   const routes = [
-    { sel: '#p1a', x: 118, y: 156, delay: 0 },
-    { sel: '#p1b', x: 118, y: 156, delay: 0.4 / spd },
-    { sel: '#p2a', x: 230, y: 156, delay: 0.3 / spd },
-    { sel: '#p2b', x: 230, y: 156, delay: 0.7 / spd },
-    { sel: '#p3a', x: 432, y:  74, delay: 0.7 / spd },
-    { sel: '#p3b', x: 432, y:  74, delay: 1.0 / spd },
-    { sel: '#p4a', x: 432, y: 148, delay: 0.75 / spd },
-    { sel: '#p4b', x: 432, y: 148, delay: 1.05 / spd },
-    { sel: '#p5a', x: 432, y: 222, delay: 0.8 / spd },
-    { sel: '#p5b', x: 432, y: 222, delay: 1.1 / spd },
+    { sel: '#p1a', sx: 96, sy: 156, ex: 116, ey: 156, delay: 0 },
+    { sel: '#p1b', sx: 96, sy: 156, ex: 116, ey: 156, delay: 0.38/spd },
+    { sel: '#p2a', sx: 194, sy: 156, ex: 228, ey: 156, delay: 0.3/spd },
+    { sel: '#p2b', sx: 194, sy: 156, ex: 228, ey: 156, delay: 0.68/spd },
+    { sel: '#p3a', sx: 302, sy: 156, ex: 430, ey: 74,  delay: 0.7/spd },
+    { sel: '#p3b', sx: 302, sy: 156, ex: 430, ey: 74,  delay: 1.0/spd },
+    { sel: '#p4a', sx: 302, sy: 156, ex: 430, ey: 148, delay: 0.75/spd },
+    { sel: '#p4b', sx: 302, sy: 156, ex: 430, ey: 148, delay: 1.05/spd },
+    { sel: '#p5a', sx: 302, sy: 156, ex: 430, ey: 222, delay: 0.8/spd },
+    { sel: '#p5b', sx: 302, sy: 156, ex: 430, ey: 222, delay: 1.1/spd },
   ];
-  const starts = [
-    { sel: '#p1a', sx: 94,  sy: 156 },
-    { sel: '#p1b', sx: 94,  sy: 156 },
-    { sel: '#p2a', sx: 193, sy: 156 },
-    { sel: '#p2b', sx: 193, sy: 156 },
-    { sel: '#p3a', sx: 300, sy: 156 },
-    { sel: '#p3b', sx: 300, sy: 156 },
-    { sel: '#p4a', sx: 300, sy: 156 },
-    { sel: '#p4b', sx: 300, sy: 156 },
-    { sel: '#p5a', sx: 300, sy: 156 },
-    { sel: '#p5b', sx: 300, sy: 156 },
-  ];
-  routes.forEach((r, i) => {
-    const s = starts[i];
+  routes.forEach(r => {
     tl.fromTo(r.sel,
-      { attr: { cx: s.sx, cy: s.sy }, opacity: 0 },
-      { attr: { cx: r.x,  cy: r.y  }, opacity: 1,
-        duration: 0.9 / spd, ease: 'none', repeat: -1, repeatDelay: 0.3 / spd },
+      { attr: { cx: r.sx, cy: r.sy }, opacity: 0 },
+      { attr: { cx: r.ex, cy: r.ey }, opacity: 1,
+        duration: 0.85/spd, ease: 'power1.in', repeat: -1, repeatDelay: 0.25/spd },
       r.delay
     );
   });
@@ -550,76 +673,91 @@ function renderS3(el) {
   <text x="250" y="30" font-size="13" fill="${C.amber}" text-anchor="middle"
         font-weight="800" data-label="1">Brake Chamber — Cross Section</text>
 
-  <!-- CHAMBER BODY (cylinder) -->
-  <rect x="160" y="80" width="200" height="155" rx="12"
-        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2.5"/>
+  <!-- CHAMBER BODY with gradient and depth -->
+  <rect x="158" y="76" width="208" height="162" rx="14"
+        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2.5" filter="url(#shadow)"/>
+  <!-- Top highlight -->
+  <rect x="162" y="78" width="200" height="4" rx="2" fill="rgba(255,255,255,0.05)"/>
   <!-- Chamber label -->
-  <text x="260" y="108" font-size="10" fill="${C.grayLt}" text-anchor="middle"
+  <text x="262" y="106" font-size="10.5" fill="${C.grayLt}" text-anchor="middle"
         font-weight="700" data-label="1">BRAKE CHAMBER</text>
 
+  <!-- HIGH PRESSURE side label -->
+  <text x="208" y="68" font-size="8" fill="${C.airBlueL}" text-anchor="middle" data-label="1">HIGH P.</text>
+  <!-- LOW PRESSURE side label -->
+  <text x="326" y="68" font-size="8" fill="${C.grayMid}" text-anchor="middle" data-label="1">LOW P.</text>
+
   <!-- INLET PORT (air enters from left) -->
-  <rect x="128" y="138" width="32" height="22" rx="4"
+  <rect x="122" y="136" width="36" height="24" rx="5"
         fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" id="s3-port"/>
-  <text x="113" y="129" font-size="8" fill="${C.airBlueL}" text-anchor="middle"
-        data-label="1">AIR</text>
-  <text x="113" y="140" font-size="8" fill="${C.airBlueL}" text-anchor="middle"
-        data-label="1">INLET</text>
+  <text x="108" y="126" font-size="8" fill="${C.airBlueL}" text-anchor="middle"
+        data-label="1">AIR INLET</text>
+  <line x1="120" y1="131" x2="140" y2="136" stroke="${C.airBlueL}" stroke-width="1" stroke-dasharray="2,2" data-label="1"/>
 
-  <!-- RETURN SPRING (right side, inside chamber) -->
+  <!-- RETURN SPRING — better coil path -->
   <path id="s3-spring"
-        d="M310,150 L316,150 L320,142 L328,158 L336,142 L344,158 L352,142 L356,150 L360,150"
-        fill="none" stroke="${C.spring}" stroke-width="3" stroke-linecap="round"/>
+        d="M308,148 L316,148 L320,140 L328,156 L336,140 L344,156 L352,140 L358,148 L364,148"
+        fill="none" stroke="${C.spring}" stroke-width="3.5" stroke-linecap="round"
+        filter="url(#glow-b)"/>
 
-  <!-- DIAPHRAGM (vertical line inside chamber) -->
-  <line id="s3-diaphragm" x1="285" y1="88" x2="285" y2="227"
-        stroke="${C.grayLt}" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
-  <text x="285" y="248" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
+  <!-- DIAPHRAGM (vertical, rubber look) -->
+  <line id="s3-diaphragm" x1="285" y1="84" x2="285" y2="230"
+        stroke="${C.grayLt}" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  <!-- Diaphragm center mark -->
+  <line id="s3-diaph-mark" x1="285" y1="152" x2="285" y2="162"
+        stroke="${C.grayDk}" stroke-width="3"/>
+  <text x="285" y="250" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
         data-label="1">DIAPHRAGM</text>
 
-  <!-- AIR FILL region (left of diaphragm) -->
-  <rect id="s3-airfill" x="163" y="83" width="120" height="149" rx="10"
-        fill="${C.airBlue}" opacity="0.12"/>
+  <!-- AIR FILL region (left of diaphragm, gradual color) -->
+  <rect id="s3-airfill" x="162" y="80" width="121" height="152" rx="12"
+        fill="${C.airBlue}" opacity="0.10"/>
 
-  <!-- PRESSURE ARROWS -->
-  <line id="s3-parr1" x1="180" y1="149" x2="240" y2="149"
-        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0"/>
-  <line id="s3-parr2" x1="180" y1="162" x2="240" y2="162"
-        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0"/>
-  <line id="s3-parr3" x1="180" y1="175" x2="240" y2="175"
-        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0"/>
+  <!-- PRESSURE ARROWS (5 for more drama) -->
+  <line id="s3-parr1" x1="178" y1="133" x2="244" y2="133"
+        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0" filter="url(#glow-r)"/>
+  <line id="s3-parr2" x1="178" y1="148" x2="244" y2="148"
+        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0" filter="url(#glow-r)"/>
+  <line id="s3-parr3" x1="178" y1="163" x2="244" y2="163"
+        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0" filter="url(#glow-r)"/>
+  <line id="s3-parr4" x1="178" y1="178" x2="244" y2="178"
+        stroke="${C.airRed}" stroke-width="3" marker-end="url(#arr-r)" opacity="0" filter="url(#glow-r)"/>
+  <line id="s3-parr5" x1="178" y1="193" x2="244" y2="193"
+        stroke="${C.airRed}" stroke-width="2" marker-end="url(#arr-r)" opacity="0" filter="url(#glow-r)"/>
 
-  <!-- PUSHROD -->
+  <!-- PUSHROD with gradient -->
   <g id="s3-pushrod-grp">
-    <rect id="s3-pushrod" x="285" y="145" width="110" height="24" rx="5"
-          fill="${C.amber}" stroke="${C.amberL}" stroke-width="1.5"/>
-    <text x="340" y="161" font-size="8.5" fill="#1a0800" text-anchor="middle"
+    <rect id="s3-pushrod" x="285" y="143" width="116" height="28" rx="6"
+          fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
+    <text x="342" y="161" font-size="8.5" fill="#1a0800" text-anchor="middle"
           font-weight="700" data-label="1">PUSHROD</text>
-    <!-- Clevis at end of pushrod -->
-    <rect x="392" y="141" width="18" height="32" rx="4"
-          fill="${C.grayLt}" stroke="${C.grayMid}" stroke-width="1.5"/>
-    <circle cx="401" cy="157" r="5" fill="${C.gray}" stroke="${C.grayMid}" stroke-width="1.5"/>
+    <!-- Clevis fork -->
+    <rect x="398" y="138" width="20" height="38" rx="5"
+          fill="url(#grad-steel)" stroke="${C.grayLt}" stroke-width="1.5"/>
+    <circle cx="408" cy="157" r="6" fill="${C.gray}" stroke="${C.grayLt}" stroke-width="1.5"/>
+    <circle cx="408" cy="157" r="2.5" fill="${C.grayLt}"/>
   </g>
 
-  <!-- SLACK ADJUSTER connection hint -->
-  <rect x="405" y="120" width="60" height="80" rx="8"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" opacity="0.7"/>
-  <text x="435" y="155" font-size="8" fill="${C.amberL}" text-anchor="middle"
+  <!-- SLACK ADJUSTER hint with gradient -->
+  <rect x="414" y="118" width="64" height="82" rx="10"
+        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" opacity="0.75"
+        filter="url(#shadow-sm)"/>
+  <text x="446" y="154" font-size="8.5" fill="${C.amberL}" text-anchor="middle"
         font-weight="700" data-label="1">SLACK</text>
-  <text x="435" y="167" font-size="8" fill="${C.amberL}" text-anchor="middle"
+  <text x="446" y="167" font-size="8.5" fill="${C.amberL}" text-anchor="middle"
         font-weight="700" data-label="1">ADJUSTER</text>
 
-  <!-- DIRECTION ARROW (main) -->
-  <line id="s3-main-arr" x1="230" y1="270" x2="420" y2="270"
-        stroke="${C.amber}" stroke-width="3" marker-end="url(#arr-a)" opacity="0"/>
-  <text id="s3-arr-lbl" x="325" y="290" font-size="9" fill="${C.amberL}"
-        text-anchor="middle" data-label="1" opacity="0">Extension Direction</text>
+  <!-- DIRECTION ARROW -->
+  <line id="s3-main-arr" x1="226" y1="270" x2="420" y2="270"
+        stroke="${C.amber}" stroke-width="3" marker-end="url(#arr-a)" opacity="0"
+        filter="url(#glow-a)"/>
+  <text id="s3-arr-lbl" x="322" y="288" font-size="9" fill="${C.amberL}"
+        text-anchor="middle" data-label="1" opacity="0">↑ Extension Direction ↑</text>
 
-  <!-- Labels -->
-  <text x="128" y="200" font-size="8" fill="${C.spring}" text-anchor="middle"
-        data-label="1">RETURN</text>
-  <text x="128" y="211" font-size="8" fill="${C.spring}" text-anchor="middle"
-        data-label="1">SPRING</text>
-  <line x1="160" y1="150" x2="145" y2="195" stroke="${C.spring}" stroke-width="1"
+  <!-- Return spring label -->
+  <text x="128" y="196" font-size="8" fill="${C.spring}" text-anchor="middle" data-label="1">RETURN</text>
+  <text x="128" y="208" font-size="8" fill="${C.spring}" text-anchor="middle" data-label="1">SPRING</text>
+  <line x1="158" y1="152" x2="142" y2="192" stroke="${C.spring}" stroke-width="1"
         stroke-dasharray="3,2" data-label="1"/>
   `);
 }
@@ -628,27 +766,27 @@ function animateS3() {
   killTl();
   tl = gsap.timeline({ repeat: -1, repeatDelay: 0.5 / spd, defaults: { ease: 'power2.inOut' } });
 
-  // Air enters: port turns red
+  const parrs = ['#s3-parr1','#s3-parr2','#s3-parr3','#s3-parr4','#s3-parr5'];
+  // Air enters: port turns red, fill glows
   tl.to('#s3-port',    { stroke: C.airRed, fill: 'rgba(239,68,68,0.2)', duration: 0.3 / spd })
-    .to('#s3-airfill', { fill: C.airRed, opacity: 0.2, duration: 0.4 / spd }, 0)
-    // Pressure arrows appear
-    .to(['#s3-parr1','#s3-parr2','#s3-parr3'], { opacity: 1, duration: 0.2 / spd })
-    // Diaphragm moves right
-    .to('#s3-diaphragm', { x: 30, duration: 0.5 / spd }, 0.4 / spd)
-    // Pushrod extends right
-    .to('#s3-pushrod-grp', { x: 30, duration: 0.5 / spd }, 0.4 / spd)
-    // Spring compresses (scale X from right)
-    .to('#s3-spring', { scaleX: 0.65, transformOrigin: 'right center', duration: 0.5 / spd }, 0.4 / spd)
-    // Show direction arrow
+    .to('#s3-airfill', { fill: C.airRed, opacity: 0.22, duration: 0.4 / spd }, 0)
+    // Pressure arrows appear with stagger
+    .to(parrs, { opacity: 1, duration: 0.18 / spd, stagger: 0.06 / spd })
+    // Diaphragm and pushrod extend right
+    .to(['#s3-diaphragm','#s3-diaph-mark'], { x: 32, duration: 0.5 / spd }, 0.4 / spd)
+    .to('#s3-pushrod-grp', { x: 32, duration: 0.5 / spd }, 0.4 / spd)
+    // Spring compresses
+    .to('#s3-spring', { scaleX: 0.62, transformOrigin: 'right center', duration: 0.5 / spd }, 0.4 / spd)
+    // Direction arrow
     .to(['#s3-main-arr','#s3-arr-lbl'], { opacity: 1, duration: 0.3 / spd }, 0.6 / spd)
     // Hold
     .to({}, { duration: 0.9 / spd })
-    // Release — reverse
-    .to(['#s3-diaphragm','#s3-pushrod-grp'], { x: 0, duration: 0.5 / spd })
+    // Release — reverse all
+    .to(['#s3-diaphragm','#s3-diaph-mark','#s3-pushrod-grp'], { x: 0, duration: 0.5 / spd })
     .to('#s3-spring', { scaleX: 1, transformOrigin: 'right center', duration: 0.5 / spd }, '<')
     .to('#s3-port', { stroke: C.airBlue, fill: C.grayDk, duration: 0.25 / spd }, '<')
-    .to('#s3-airfill', { fill: C.airBlue, opacity: 0.12, duration: 0.3 / spd }, '<')
-    .to(['#s3-parr1','#s3-parr2','#s3-parr3'], { opacity: 0, duration: 0.2 / spd }, '<')
+    .to('#s3-airfill', { fill: C.airBlue, opacity: 0.10, duration: 0.3 / spd }, '<')
+    .to(parrs, { opacity: 0, duration: 0.2 / spd }, '<')
     .to(['#s3-main-arr','#s3-arr-lbl'], { opacity: 0, duration: 0.2 / spd }, '<');
 }
 
@@ -1258,6 +1396,93 @@ function updateUI() {
   const prev = $('btn-prev'), next = $('btn-next');
   if (prev) prev.disabled = curScene === 0;
   if (next) next.disabled = curScene === TOTAL - 1;
+  // Dot nav
+  document.querySelectorAll('.dot-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === curScene);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BACKGROUND CANVAS — Air molecule particle system
+══════════════════════════════════════════════════════════════════════════ */
+function initParticles() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COUNT = 55;
+  const particles = Array.from({ length: COUNT }, () => ({
+    x:    Math.random() * window.innerWidth,
+    y:    Math.random() * window.innerHeight,
+    r:    Math.random() * 2 + 0.8,
+    vx:   (Math.random() - 0.5) * 0.3,
+    vy:   -(Math.random() * 0.35 + 0.1),
+    alpha: Math.random() * 0.35 + 0.05,
+    color: Math.random() > 0.5 ? '59,130,246' : '148,163,184',
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+      ctx.fill();
+      p.x += p.vx;
+      p.y += p.vy;
+      // Subtle horizontal drift
+      p.vx += (Math.random() - 0.5) * 0.02;
+      p.vx = Math.max(-0.4, Math.min(0.4, p.vx));
+      // Wrap
+      if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
+      if (p.x < -4) p.x = canvas.width + 4;
+      if (p.x > canvas.width + 4) p.x = -4;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3D TILT EFFECT for scene visuals
+══════════════════════════════════════════════════════════════════════════ */
+function initTiltEffect() {
+  document.querySelectorAll('.scene-visual').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width  - 0.5;
+      const y = (e.clientY - rect.top)  / rect.height - 0.5;
+      el.style.transform  = `perspective(700px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) scale(1.01)`;
+      el.style.transition = 'transform 0.08s ease';
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.transform  = '';
+      el.style.transition = 'transform 0.5s ease';
+    });
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TOUCH / SWIPE SUPPORT
+══════════════════════════════════════════════════════════════════════════ */
+function initSwipe() {
+  let startX = 0;
+  const app = document.getElementById('app');
+  if (!app) return;
+  app.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  app.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0 && curScene < TOTAL - 1) goTo(curScene + 1);
+    if (dx > 0 && curScene > 0)         goTo(curScene - 1);
+  }, { passive: true });
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1270,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('speed-sel').addEventListener('change', e => {
     spd = parseFloat(e.target.value);
-    goTo(curScene); // replay with new speed
+    goTo(curScene);
   });
 
   // Toggles
@@ -1292,6 +1517,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Init
+  // Build dot navigation
+  const dotNav = $('dot-nav');
+  if (dotNav) {
+    for (let i = 0; i < TOTAL; i++) {
+      const btn = document.createElement('button');
+      btn.className    = 'dot-btn';
+      btn.title        = i === 0 ? 'Overview' : `Step ${i}`;
+      btn.setAttribute('aria-label', btn.title);
+      btn.dataset.idx  = i;
+      btn.addEventListener('click', () => goTo(i));
+      dotNav.appendChild(btn);
+    }
+  }
+
+  // Extra effects
+  initParticles();
+  initTiltEffect();
+  initSwipe();
+
+  // Init first scene
   goTo(0);
 });
