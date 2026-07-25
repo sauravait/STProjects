@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <!-- ── Module header ──────────────────────────────────────────────── -->
   <header class="mod-header" role="banner">
@@ -286,6 +287,9 @@
       </select>
     </div>
   </nav>
+
+  <!-- ── Dot navigation ────────────────────────────────────────────────── -->
+  <div class="dot-nav" id="dot-nav" aria-label="Scene navigation"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
           integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
