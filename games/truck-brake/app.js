@@ -440,10 +440,9 @@ function renderS0(el) {
   <text x="${fwX}" y="${wCY + wR + 20}" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">BRAKE DRUM</text>
   <text x="${rw1X + 22}" y="${wCY + wR + 20}" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">DRUMS</text>
 
-  <line x1="${rw2X + 20}" y1="${frameY - 18}" x2="${rw2X + 50}" y2="${frameY - 38}"
+  <line x1="${rw1X}" y1="${frameY - 28}" x2="${rw1X - 6}" y2="150"
         stroke="${C.amber}" stroke-width="1" stroke-dasharray="3,2" data-label="1"/>
-  <text x="${rw2X + 52}" y="${frameY - 44}" font-size="8.5" fill="${C.amberL}" data-label="1">BRAKE</text>
-  <text x="${rw2X + 52}" y="${frameY - 32}" font-size="8.5" fill="${C.amberL}" data-label="1">CHAMBERS</text>
+  <text x="${rw1X - 6}" y="142" font-size="8.5" fill="${C.amberL}" text-anchor="middle" data-label="1">BRAKE CHAMBERS</text>
   `);
 }
 
