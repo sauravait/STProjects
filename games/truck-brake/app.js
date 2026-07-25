@@ -14,6 +14,107 @@
 'use strict';
 
 /* ══════════════════════════════════════════════════════════════════════════
+   AUDIO MANAGER  (opt-in — off by default until user enables Sound toggle)
+══════════════════════════════════════════════════════════════════════════ */
+class AudioManager {
+  constructor() {
+    this._ctx      = null;
+    this._compOscs = null;
+    this._compGain = null;
+    this.enabled   = false;
+  }
+
+  _ctx_get() {
+    if (!this._ctx) {
+      try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { return null; }
+    }
+    if (this._ctx.state === 'suspended') this._ctx.resume().catch(() => {});
+    return this._ctx;
+  }
+
+  /** Air rushing through brake lines */
+  playAirHiss(vol = 0.09) {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const dur = 0.75;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.45));
+    const src  = ctx.createBufferSource();
+    const bpf  = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+    bpf.type = 'bandpass'; bpf.frequency.value = 2000; bpf.Q.value = 0.4;
+    gain.gain.value = vol;
+    src.buffer = buf;
+    src.connect(bpf); bpf.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  }
+
+  /** Mechanical click — pedal / button press */
+  playClick() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const len = Math.floor(ctx.sampleRate * 0.05);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.007));
+    const src  = ctx.createBufferSource();
+    const gain = ctx.createGain(); gain.gain.value = 0.18;
+    src.buffer = buf; src.connect(gain); gain.connect(ctx.destination); src.start();
+  }
+
+  /** Low compressor hum while Scene 2 is active */
+  startCompHum() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    this.stopCompHum();
+    const o1  = ctx.createOscillator();
+    const o2  = ctx.createOscillator();
+    const g2  = ctx.createGain();
+    const gain = ctx.createGain();
+    o1.type = 'sawtooth'; o1.frequency.value = 88;
+    o2.type = 'sine';     o2.frequency.value = 176;
+    g2.gain.value = 0.28;
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.6);
+    o1.connect(gain); o2.connect(g2); g2.connect(gain); gain.connect(ctx.destination);
+    o1.start(); o2.start();
+    this._compOscs = [o1, o2]; this._compGain = gain;
+  }
+
+  stopCompHum() {
+    if (!this._compOscs) return;
+    try {
+      const ctx = this._ctx;
+      if (ctx && this._compGain)
+        this._compGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+      const h = this._compOscs;
+      setTimeout(() => h.forEach(o => { try { o.stop(); } catch (e) {} }), 400);
+    } catch (e) {}
+    this._compOscs = null; this._compGain = null;
+  }
+
+  /** Friction squeal for Scene 6 */
+  playBrakeSqueal() {
+    if (!this.enabled) return;
+    const ctx = this._ctx_get(); if (!ctx) return;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(820, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(640, ctx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.58);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.62);
+  }
+}
+const audio = new AudioManager();
+
+/* ══════════════════════════════════════════════════════════════════════════
    COLOUR PALETTE
 ══════════════════════════════════════════════════════════════════════════ */
 const C = {
@@ -529,138 +630,361 @@ function animateS1() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SCENE 2 — AIR PRESSURE FLOW (schematic pipes)
+   SCENE 2 — AIR PRESSURE FLOW  (rich mechanical schematic)
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS2(el) {
-  el.innerHTML = svgWrap(540, 320, `
-  <!-- Background -->
-  <rect width="540" height="320" fill="${C.truckDark}" rx="12"/>
-  <!-- Subtle grid pattern -->
-  ${Array.from({length:11},(_,i)=>`<line x1="${i*54}" y1="0" x2="${i*54}" y2="320" stroke="rgba(148,163,184,0.03)" stroke-width="1"/>`).join('')}
-  ${Array.from({length:7},(_,i)=>`<line x1="0" y1="${i*54}" x2="540" y2="${i*54}" stroke="rgba(148,163,184,0.03)" stroke-width="1"/>`).join('')}
+  const W = 560, H = 315;
 
-  <!-- COMPRESSOR box with gradient -->
-  <rect id="s2-comp" x="18" y="128" width="78" height="56" rx="10"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <!-- Compressor fan detail -->
-  <circle cx="57" cy="152" r="14" fill="rgba(0,0,0,0.3)" stroke="${C.airBlue}" stroke-width="1" opacity="0.5"/>
-  <text x="57" y="158" font-size="8" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR COMP.</text>
-  <text x="57" y="174" font-size="7" fill="${C.grayLt}" text-anchor="middle">100–120 PSI</text>
+  /* Fan-blade path for the compressor turbine (6 blades, rotated) */
+  const fanBlades = [0,60,120,180,240,300].map(a => {
+    const sx  = px(68,  5, a).toFixed(1),    sy  = py(138,  5, a).toFixed(1);
+    const lx1 = px(68, 24, a+15).toFixed(1), ly1 = py(138, 24, a+15).toFixed(1);
+    const lx2 = px(68, 24, a+40).toFixed(1), ly2 = py(138, 24, a+40).toFixed(1);
+    return `<path d="M${sx},${sy} L${lx1},${ly1} A24,24 0 0 1 ${lx2},${ly2} Z"
+                  fill="${C.airBlue}" opacity="0.62"/>`;
+  }).join('');
 
-  <!-- TANK 1 with cylindrical shape -->
-  <rect id="s2-tk1" x="116" y="118" width="78" height="74" rx="16"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <ellipse cx="194" cy="155" rx="12" ry="37" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5" opacity="0.7"/>
-  <text x="148" y="149" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR TANK 1</text>
-  <text x="148" y="164" font-size="7" fill="${C.grayLt}" text-anchor="middle">Primary</text>
+  el.innerHTML = svgWrap(W, H, `
+  <!-- ── background ─────────────────────────────────────────────── -->
+  <rect width="${W}" height="${H}" fill="${C.truckDark}" rx="12"/>
 
-  <!-- TANK 2 with cylindrical shape -->
-  <rect id="s2-tk2" x="116" y="205" width="78" height="74" rx="16"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <ellipse cx="194" cy="242" rx="12" ry="37" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5" opacity="0.7"/>
-  <text x="148" y="236" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">AIR TANK 2</text>
-  <text x="148" y="251" font-size="7" fill="${C.grayLt}" text-anchor="middle">Secondary</text>
+  <!-- ── PIPE ROUTES (drawn first, below components) ──────────────
+       Blue while resting; turned red when braking is animated.     -->
+  <!-- Comp → Tank 1 (diagonal up) -->
+  <line id="s2-p-c1" x1="106" y1="124" x2="132" y2="100"
+        stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.22"/>
+  <!-- Comp → Tank 2 (diagonal down) -->
+  <line id="s2-p-c2" x1="106" y1="152" x2="132" y2="176"
+        stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.22"/>
+  <!-- Tank 1 → Valve (L-bend) -->
+  <path id="s2-p-t1" d="M258,100 L278,100 L278,128 L306,128"
+        fill="none" stroke="${C.airBlue}" stroke-width="6"
+        stroke-linejoin="round" opacity="0.22"/>
+  <!-- Tank 2 → Valve (L-bend) -->
+  <path id="s2-p-t2" d="M258,176 L278,176 L278,128 L306,128"
+        fill="none" stroke="${C.airBlue}" stroke-width="6"
+        stroke-linejoin="round" opacity="0.22"/>
+  <!-- Valve → Front Chamber (L up) -->
+  <path id="s2-p-vf" d="M384,122 L408,122 L408,76 L456,76"
+        fill="none" stroke="${C.airBlue}" stroke-width="6"
+        stroke-linejoin="round" opacity="0.22"/>
+  <!-- Valve → Mid Chamber (direct) -->
+  <line id="s2-p-vm" x1="384" y1="138" x2="456" y2="152"
+        stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.22"/>
+  <!-- Valve → Rear Chamber (L down) -->
+  <path id="s2-p-vr" d="M384,154 L408,154 L408,228 L456,228"
+        fill="none" stroke="${C.airBlue}" stroke-width="6"
+        stroke-linejoin="round" opacity="0.22"/>
 
-  <!-- BRAKE VALVE -->
-  <rect id="s2-valve" x="228" y="132" width="74" height="48" rx="10"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <text x="265" y="153" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">FOOT</text>
-  <text x="265" y="167" font-size="9" fill="${C.airBlueL}" text-anchor="middle" font-weight="700">VALVE</text>
+  <!-- ── AIR COMPRESSOR ───────────────────────────────────────── -->
+  <!-- Outer casing ring -->
+  <circle cx="68" cy="138" r="36" fill="${C.grayDk}" stroke="${C.airBlue}"
+          stroke-width="2.5" filter="url(#shadow-sm)" id="s2-comp-ring"/>
+  <!-- Inner dark chamber -->
+  <circle cx="68" cy="138" r="28" fill="rgba(5,18,52,0.82)"/>
+  <!-- Rotating turbine fan -->
+  <g id="s2-comp-fan" style="transform-origin:68px 138px">${fanBlades}</g>
+  <!-- Hub ring -->
+  <circle cx="68" cy="138" r="11" fill="${C.truckDark}" stroke="${C.airBlue}" stroke-width="1.5"/>
+  <!-- Hub glow centre -->
+  <circle cx="68" cy="138" r="5" fill="${C.airBlueL}" filter="url(#glow-b)"/>
+  <!-- Output nozzle -->
+  <rect x="104" y="130" width="22" height="16" rx="5"
+        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+  <!-- Label -->
+  <text x="68" y="188" font-size="8.5" fill="${C.airBlueL}" text-anchor="middle"
+        font-weight="700" data-label="1">🔧 AIR COMPRESSOR</text>
+  <text x="68" y="199" font-size="7" fill="${C.grayMid}" text-anchor="middle"
+        data-label="1">Engine-driven · always running</text>
 
-  <!-- BRAKE CHAMBERS -->
-  <rect id="s2-bcFL" x="430" y="50" width="82" height="48" rx="10"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <text x="471" y="71" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">FRONT</text>
-  <text x="471" y="85" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <!-- ── AIR TANK 1  (upper horizontal cylinder) ──────────────── -->
+  <g id="s2-tk1-grp">
+    <!-- Barrel body -->
+    <rect x="132" y="82" width="126" height="40" fill="${C.grayDk}"
+          stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+    <!-- Left dome end-cap -->
+    <ellipse cx="132" cy="102" rx="12" ry="20" fill="${C.truckBody}"
+             stroke="${C.airBlue}" stroke-width="2"/>
+    <!-- Right dome end-cap -->
+    <ellipse cx="258" cy="102" rx="12" ry="20" fill="${C.truckBody}"
+             stroke="${C.airBlue}" stroke-width="2"/>
+    <!-- Weld seam lines -->
+    <line x1="162" y1="82" x2="162" y2="122" stroke="rgba(148,163,184,0.13)" stroke-width="2"/>
+    <line x1="228" y1="82" x2="228" y2="122" stroke="rgba(148,163,184,0.13)" stroke-width="2"/>
+    <!-- Pressure gauge face -->
+    <circle cx="196" cy="92" r="13" fill="rgba(0,0,0,0.55)" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <!-- Needle (x2/y2 animated to sweep clockwise) -->
+    <line id="s2-tk1-ndl" x1="196" y1="92" x2="196" y2="82"
+          stroke="${C.airBlueL}" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="196" y="108" font-size="5.5" fill="${C.grayLt}" text-anchor="middle">PSI</text>
+    <!-- Inlet port (from comp) -->
+    <rect x="120" y="96" width="12" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <!-- Outlet port (to valve) -->
+    <rect x="258" y="96" width="12" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <!-- Label -->
+    <text x="195" y="136" font-size="8" fill="${C.airBlueL}" text-anchor="middle"
+          data-label="1">🛢️ AIR TANK 1</text>
+  </g>
 
-  <rect id="s2-bcRL" x="430" y="124" width="82" height="48" rx="10"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <text x="471" y="145" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-L</text>
-  <text x="471" y="159" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <!-- ── AIR TANK 2  (lower horizontal cylinder) ──────────────── -->
+  <g id="s2-tk2-grp">
+    <rect x="132" y="156" width="126" height="40" fill="${C.grayDk}"
+          stroke="${C.airBlue}" stroke-width="2" filter="url(#shadow-sm)"/>
+    <ellipse cx="132" cy="176" rx="12" ry="20" fill="${C.truckBody}"
+             stroke="${C.airBlue}" stroke-width="2"/>
+    <ellipse cx="258" cy="176" rx="12" ry="20" fill="${C.truckBody}"
+             stroke="${C.airBlue}" stroke-width="2"/>
+    <line x1="162" y1="156" x2="162" y2="196" stroke="rgba(148,163,184,0.13)" stroke-width="2"/>
+    <line x1="228" y1="156" x2="228" y2="196" stroke="rgba(148,163,184,0.13)" stroke-width="2"/>
+    <circle cx="196" cy="166" r="13" fill="rgba(0,0,0,0.55)" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <line id="s2-tk2-ndl" x1="196" y1="166" x2="196" y2="156"
+          stroke="${C.airBlueL}" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="196" y="182" font-size="5.5" fill="${C.grayLt}" text-anchor="middle">PSI</text>
+    <rect x="120" y="170" width="12" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <rect x="258" y="170" width="12" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <text x="195" y="210" font-size="8" fill="${C.airBlueL}" text-anchor="middle"
+          data-label="1">🛢️ AIR TANK 2</text>
+  </g>
+  <!-- PSI annotation -->
+  <text x="195" y="223" font-size="7" fill="${C.grayMid}" text-anchor="middle"
+        data-label="1">100 – 120 PSI stored</text>
 
-  <rect id="s2-bcRR" x="430" y="198" width="82" height="48" rx="10"
-        fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2" filter="url(#shadow-sm)"/>
-  <text x="471" y="219" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">REAR-R</text>
-  <text x="471" y="233" font-size="8.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <!-- ── FOOT VALVE  (centre – T-shaped, pedal-actuated) ───────── -->
+  <g id="s2-valve-grp">
+    <!-- Pedal stem (pedal pushes this down to open valve) -->
+    <rect x="330" y="92" width="12" height="26" rx="4"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
+    <!-- Foot / pedal icon -->
+    <text x="336" y="88" font-size="15" text-anchor="middle">🦶</text>
+    <!-- Valve body -->
+    <rect x="306" y="118" width="78" height="40" rx="10"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="2"
+          filter="url(#shadow-sm)" id="s2-valve-body"/>
+    <!-- Inner mechanism pocket -->
+    <rect x="318" y="127" width="54" height="22" rx="6" fill="rgba(0,0,0,0.32)"/>
+    <!-- Ball valve indicator:  blue = closed / red = open (braking) -->
+    <circle id="s2-valve-ball" cx="336" cy="138" r="10"
+            fill="${C.airBlue}" stroke="${C.airBlueL}" stroke-width="1.5"
+            filter="url(#glow-b)"/>
+    <!-- Air inlet port (from tanks) -->
+    <rect x="288" y="132" width="18" height="12" rx="4"
+          fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="1.5"/>
+    <!-- Air outlet port (to chambers) -->
+    <rect x="384" y="132" width="18" height="12" rx="4"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5" id="s2-valve-out"/>
+    <!-- Label -->
+    <text x="345" y="169" font-size="8" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">🎛️ FOOT VALVE</text>
+    <text x="345" y="179" font-size="7" fill="${C.grayMid}" text-anchor="middle"
+          data-label="1">Opens when pedal pressed</text>
+  </g>
 
-  <!-- PIPE ROUTES (rounded joints, wider) -->
-  <line x1="96" y1="156" x2="116" y2="156" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
-  <path d="M96,156 L108,156 L108,242 L116,242" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
-  <line x1="194" y1="156" x2="228" y2="156" stroke="${C.airBlue}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
-  <path d="M302,156 L334,156 L334,74 L430,74" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
-  <path d="M302,156 L334,156 L334,148 L430,148" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
-  <path d="M302,156 L334,156 L334,222 L430,222" fill="none" stroke="${C.airBlue}" stroke-width="6" stroke-linejoin="round" opacity="0.25"/>
-  <path d="M194,242 L216,242 L216,180 L265,180" fill="none" stroke="${C.airBlue}" stroke-width="5" stroke-dasharray="7,5" opacity="0.2"/>
+  <!-- ── BRAKE CHAMBERS  (right column, circular with diaphragm) ── -->
+  <!-- FRONT -->
+  <g id="s2-bcF-grp">
+    <circle cx="490" cy="76" r="32" fill="${C.grayDk}" stroke="${C.amber}"
+            stroke-width="2" filter="url(#shadow-sm)" id="s2-bcF-ring"/>
+    <!-- Diaphragm line (divides air-side from spring-side) -->
+    <line x1="461" y1="76" x2="519" y2="76"
+          stroke="${C.grayMid}" stroke-width="3" stroke-linecap="round"/>
+    <!-- Air-side fill (grows redder when pressurised) -->
+    <clipPath id="s2-cf"><circle cx="490" cy="76" r="31"/></clipPath>
+    <rect id="s2-bcF-fill" x="461" y="45" width="29" height="62"
+          fill="${C.airBlue}" opacity="0.07" clip-path="url(#s2-cf)"/>
+    <!-- Pushrod (extends right when air pushes diaphragm) -->
+    <rect id="s2-bcF-rod" x="519" y="70" width="24" height="12" rx="4"
+          fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
+    <!-- Air inlet port -->
+    <rect x="452" y="70" width="9" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
+    <text x="490" y="121" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">⚙️ FRONT</text>
+    <text x="490" y="131" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">CHAMBER</text>
+  </g>
 
-  <!-- Animated particles: blue → blue → red → red → red -->
-  <circle id="p1a" cx="96"  cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
-  <circle id="p1b" cx="96"  cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
-  <circle id="p2a" cx="194" cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
-  <circle id="p2b" cx="194" cy="156" r="5.5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
-  <circle id="p3a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
-  <circle id="p3b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
-  <circle id="p4a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
-  <circle id="p4b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
-  <circle id="p5a" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
-  <circle id="p5b" cx="302" cy="156" r="5.5" fill="${C.airRedL}"  opacity="0" filter="url(#glow-r)"/>
+  <!-- REAR-L -->
+  <g id="s2-bcM-grp">
+    <circle cx="490" cy="152" r="32" fill="${C.grayDk}" stroke="${C.amber}"
+            stroke-width="2" filter="url(#shadow-sm)" id="s2-bcM-ring"/>
+    <line x1="461" y1="152" x2="519" y2="152"
+          stroke="${C.grayMid}" stroke-width="3" stroke-linecap="round"/>
+    <clipPath id="s2-cm"><circle cx="490" cy="152" r="31"/></clipPath>
+    <rect id="s2-bcM-fill" x="461" y="121" width="29" height="62"
+          fill="${C.airBlue}" opacity="0.07" clip-path="url(#s2-cm)"/>
+    <rect id="s2-bcM-rod" x="519" y="146" width="24" height="12" rx="4"
+          fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
+    <rect x="452" y="146" width="9" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
+    <text x="490" y="197" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">⚙️ REAR-L</text>
+    <text x="490" y="207" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">CHAMBER</text>
+  </g>
 
-  <!-- Labels -->
-  <text x="57" y="200" font-size="8" fill="${C.grayLt}" text-anchor="middle" data-label="1">ENGINE-DRIVEN</text>
-  <text x="265" y="196" font-size="7.5" fill="${C.grayLt}" text-anchor="middle" data-label="1">PEDAL OPERATED</text>
+  <!-- REAR-R -->
+  <g id="s2-bcR-grp">
+    <circle cx="490" cy="228" r="32" fill="${C.grayDk}" stroke="${C.amber}"
+            stroke-width="2" filter="url(#shadow-sm)" id="s2-bcR-ring"/>
+    <line x1="461" y1="228" x2="519" y2="228"
+          stroke="${C.grayMid}" stroke-width="3" stroke-linecap="round"/>
+    <clipPath id="s2-cr"><circle cx="490" cy="228" r="31"/></clipPath>
+    <rect id="s2-bcR-fill" x="461" y="197" width="29" height="62"
+          fill="${C.airBlue}" opacity="0.07" clip-path="url(#s2-cr)"/>
+    <rect id="s2-bcR-rod" x="519" y="222" width="24" height="12" rx="4"
+          fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
+    <rect x="452" y="222" width="9" height="12" rx="3"
+          fill="${C.grayDk}" stroke="${C.amber}" stroke-width="1.5"/>
+    <text x="490" y="273" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">⚙️ REAR-R</text>
+    <text x="490" y="283" font-size="7.5" fill="${C.amberL}" text-anchor="middle"
+          data-label="1">CHAMBER</text>
+  </g>
 
-  <!-- PSI display with glow -->
-  <rect x="180" y="272" width="188" height="38" rx="10"
-        fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
-  <text x="274" y="289" font-size="9.5" fill="${C.amberL}" text-anchor="middle" font-weight="700">Air Pressure</text>
-  <text id="s2-psi" x="274" y="304" font-size="13.5" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
+  <!-- ── ANIMATED PARTICLES ──────────────────────────────────────
+       Phase-A (blue): comp → tanks
+       Phase-B (blue): tanks → valve
+       Phase-C (red):  valve → each chamber                       -->
+  <!-- Phase-A -->
+  <circle id="s2-pa1" cx="106" cy="124" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pa2" cx="106" cy="124" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pa3" cx="106" cy="152" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pa4" cx="106" cy="152" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <!-- Phase-B -->
+  <circle id="s2-pb1" cx="258" cy="100" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pb2" cx="258" cy="100" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pb3" cx="258" cy="176" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s2-pb4" cx="258" cy="176" r="5" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <!-- Phase-C -->
+  <circle id="s2-pc1" cx="402" cy="122" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s2-pc2" cx="402" cy="122" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s2-pc3" cx="402" cy="138" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s2-pc4" cx="402" cy="138" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s2-pc5" cx="402" cy="154" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s2-pc6" cx="402" cy="154" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
+
+  <!-- ── PSI readout ─────────────────────────────────────────── -->
+  <rect x="172" y="285" width="216" height="26" rx="8"
+        fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5"/>
+  <text x="280" y="297" font-size="8" fill="${C.amberL}" text-anchor="middle" font-weight="700">💨 Tank Pressure</text>
+  <text id="s2-psi" x="280" y="308" font-size="14" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
   `);
 }
 
 function animateS2() {
   killTl();
+  const cleanups = [];
+  const visEl    = $('vis-2');
+
+  /* ── 1. Spin the compressor fan ──────────────────────────── */
+  const fanTw = gsap.to('#s2-comp-fan', {
+    rotation: 360, transformOrigin: 'center',
+    duration: 0.85 / spd, ease: 'none', repeat: -1
+  });
+  cleanups.push(() => fanTw.kill());
+
+  /* ── 2. Compressor hum audio ─────────────────────────────── */
+  audio.startCompHum();
+  cleanups.push(() => audio.stopCompHum());
+
+  /* ── 3. PSI counter (also updates sidebar gauge) ─────────── */
   let psi = 0;
-  // PSI counter animation
   const psiTick = setInterval(() => {
     if (!document.getElementById('s2-psi')) { clearInterval(psiTick); return; }
-    psi = Math.min(psi + 4 * spd, 110);
+    psi = Math.min(psi + 3.5 * spd, 110);
     const el = $('s2-psi');
     if (el) el.textContent = Math.round(psi) + ' PSI';
-    const fill = $('gauge-fill');
-    const val  = $('gauge-val');
-    if (fill) fill.style.width = (psi / 110 * 100) + '%';
+    const fill = $('gauge-fill'), val = $('gauge-val');
+    if (fill) fill.style.width  = (psi / 110 * 100) + '%';
     if (val)  val.textContent   = Math.round(psi) + ' PSI';
     if (psi >= 110) clearInterval(psiTick);
-  }, 40 / spd);
+  }, 45 / spd);
+  cleanups.push(() => clearInterval(psiTick));
 
-  tl = gsap.timeline({ defaults: { ease: 'none' } });
-
-  // Pipe colour cascade (comp glow → valve → chambers pressurised)
-  tl.to('#s2-comp',  { stroke: C.amberL, filter: 'url(#glow-a)', duration: 0.35 / spd })
-    .to('#s2-valve', { stroke: C.airRed, duration: 0.4 / spd }, 0.4 / spd)
-    .to(['#s2-bcFL','#s2-bcRL','#s2-bcRR'],
-        { stroke: C.airRed, fill: 'rgba(239,68,68,0.15)', duration: 0.5 / spd, stagger: 0.1/spd }, 0.8 / spd);
-
-  // Particle routes (start → end coords for each pipe segment)
-  const routes = [
-    { sel: '#p1a', sx: 96, sy: 156, ex: 116, ey: 156, delay: 0 },
-    { sel: '#p1b', sx: 96, sy: 156, ex: 116, ey: 156, delay: 0.38/spd },
-    { sel: '#p2a', sx: 194, sy: 156, ex: 228, ey: 156, delay: 0.3/spd },
-    { sel: '#p2b', sx: 194, sy: 156, ex: 228, ey: 156, delay: 0.68/spd },
-    { sel: '#p3a', sx: 302, sy: 156, ex: 430, ey: 74,  delay: 0.7/spd },
-    { sel: '#p3b', sx: 302, sy: 156, ex: 430, ey: 74,  delay: 1.0/spd },
-    { sel: '#p4a', sx: 302, sy: 156, ex: 430, ey: 148, delay: 0.75/spd },
-    { sel: '#p4b', sx: 302, sy: 156, ex: 430, ey: 148, delay: 1.05/spd },
-    { sel: '#p5a', sx: 302, sy: 156, ex: 430, ey: 222, delay: 0.8/spd },
-    { sel: '#p5b', sx: 302, sy: 156, ex: 430, ey: 222, delay: 1.1/spd },
-  ];
-  routes.forEach(r => {
-    tl.fromTo(r.sel,
-      { attr: { cx: r.sx, cy: r.sy }, opacity: 0 },
-      { attr: { cx: r.ex, cy: r.ey }, opacity: 1,
-        duration: 0.85/spd, ease: 'power1.in', repeat: -1, repeatDelay: 0.25/spd },
-      r.delay
-    );
+  /* ── 4. Gauge-needle sweeps (animate x2/y2 to 140° CW from top) */
+  //  needle1: pivot(196,92)  start tip(196,82) → end tip(202,100)
+  //  needle2: pivot(196,166) start tip(196,156)→ end tip(202,174)
+  gsap.to('#s2-tk1-ndl', {
+    attr: { x2: 202, y2: 100 },
+    duration: 2.6 / spd, ease: 'power1.inOut', delay: 0.3 / spd
   });
+  gsap.to('#s2-tk2-ndl', {
+    attr: { x2: 202, y2: 174 },
+    duration: 2.6 / spd, ease: 'power1.inOut', delay: 0.5 / spd
+  });
+
+  /* ── 5. Helper: animate a particle through an array of (x,y) waypoints
+          proportionally to segment distances.  Returns the timeline.   */
+  function flowPtl(id, wpts, loopDur, startDelay) {
+    let totalDist = 0;
+    for (let i = 1; i < wpts.length; i++)
+      totalDist += Math.hypot(wpts[i].x - wpts[i-1].x, wpts[i].y - wpts[i-1].y);
+    const moveDur = Math.max(loopDur - 0.18, 0.1);
+
+    const t = gsap.timeline({ repeat: -1, delay: startDelay, defaults: { ease: 'none' } });
+    t.set(id, { attr: { cx: wpts[0].x, cy: wpts[0].y }, opacity: 0 });
+    t.to(id, { opacity: 1, duration: 0.08 });
+    for (let i = 1; i < wpts.length; i++) {
+      const d = Math.hypot(wpts[i].x - wpts[i-1].x, wpts[i].y - wpts[i-1].y);
+      t.to(id, { attr: { cx: wpts[i].x, cy: wpts[i].y }, duration: moveDur * d / totalDist });
+    }
+    t.to(id, { opacity: 0, duration: 0.10 });
+    cleanups.push(() => t.kill());
+    return t;
+  }
+
+  /* ── 6. Phase-A  comp → tanks (blue) ────────────────────── */
+  const wA1 = [{x:106,y:124},{x:132,y:100}];
+  const wA2 = [{x:106,y:152},{x:132,y:176}];
+  flowPtl('#s2-pa1', wA1, 0.75/spd, 0.2/spd);
+  flowPtl('#s2-pa2', wA1, 0.75/spd, 0.57/spd);
+  flowPtl('#s2-pa3', wA2, 0.75/spd, 0.3/spd);
+  flowPtl('#s2-pa4', wA2, 0.75/spd, 0.67/spd);
+
+  /* ── 7. Phase-B  tanks → valve (blue, L-bend routes) ─────── */
+  const wB1 = [{x:258,y:100},{x:278,y:100},{x:278,y:128},{x:306,y:128}];
+  const wB2 = [{x:258,y:176},{x:278,y:176},{x:278,y:128},{x:306,y:128}];
+  flowPtl('#s2-pb1', wB1, 1.0/spd, 0.55/spd);
+  flowPtl('#s2-pb2', wB1, 1.0/spd, 1.05/spd);
+  flowPtl('#s2-pb3', wB2, 1.0/spd, 0.65/spd);
+  flowPtl('#s2-pb4', wB2, 1.0/spd, 1.15/spd);
+
+  /* ── 8. Pipe + valve colour shift → red (after tanks look full) */
+  tl = gsap.timeline({ delay: 1.4/spd });
+  tl.to(['#s2-p-vf','#s2-p-vm','#s2-p-vr'],
+      { attr: { stroke: C.airRed }, duration: 0.4/spd, ease: 'power1.out' })
+    .to('#s2-valve-ball',
+      { attr: { fill: C.airRed, stroke: C.airRedL }, filter: 'url(#glow-r)', duration: 0.3/spd }, '<')
+    .to(['#s2-bcF-fill','#s2-bcM-fill','#s2-bcR-fill'],
+      { attr: { fill: C.airRed }, opacity: 0.22, duration: 0.5/spd, stagger: 0.1/spd })
+    .to(['#s2-bcF-ring','#s2-bcM-ring','#s2-bcR-ring'],
+      { attr: { stroke: C.airRed }, duration: 0.4/spd, stagger: 0.1/spd }, '<')
+    /* pushrod extensions on each chamber */
+    .to(['#s2-bcF-rod','#s2-bcM-rod','#s2-bcR-rod'],
+      { x: 9, duration: 0.35/spd, stagger: 0.12/spd, ease: 'power2.out' }, '<+=0.35')
+    /* chamber ring pulse */
+    .to(['#s2-bcF-ring','#s2-bcM-ring','#s2-bcR-ring'],
+      { attr: { r: 34 }, duration: 0.35/spd, ease: 'sine.inOut',
+        yoyo: true, repeat: -1, stagger: 0.18/spd }, '<+=0.2');
+
+  /* ── 9. Phase-C  valve → chambers (red, L-bend routes) ───── */
+  audio.playAirHiss(0.09);
+  const wC_f = [{x:402,y:122},{x:408,y:122},{x:408,y:76},{x:456,y:76}];
+  const wC_m = [{x:402,y:138},{x:456,y:152}];
+  const wC_r = [{x:402,y:154},{x:408,y:154},{x:408,y:228},{x:456,y:228}];
+  flowPtl('#s2-pc1', wC_f, 1.1/spd, 1.6/spd);
+  flowPtl('#s2-pc2', wC_f, 1.1/spd, 2.1/spd);
+  flowPtl('#s2-pc3', wC_m, 0.65/spd, 1.65/spd);
+  flowPtl('#s2-pc4', wC_m, 0.65/spd, 2.15/spd);
+  flowPtl('#s2-pc5', wC_r, 1.3/spd,  1.7/spd);
+  flowPtl('#s2-pc6', wC_r, 1.3/spd,  2.2/spd);
+
+  /* ── cleanup hook (called by goTo when leaving scene) ────── */
+  if (visEl) visEl._brakeCleanup = () => cleanups.forEach(fn => fn());
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1217,6 +1541,7 @@ function animateS6() {
   });
 
   // Store cleanup
+  audio.playBrakeSqueal();
   const visEl = document.getElementById('vis-6');
   if (visEl) visEl._brakeCleanup = () => { cancelAnimationFrame(frame); rpm = 0; };
 }
@@ -1547,9 +1872,18 @@ function initSwipe() {
    EVENT LISTENERS
 ══════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  $('btn-prev').addEventListener('click', () => { if (curScene > 0) goTo(curScene - 1); });
-  $('btn-next').addEventListener('click', () => { if (curScene < TOTAL - 1) goTo(curScene + 1); });
-  $('btn-replay').addEventListener('click', () => goTo(curScene));
+  $('btn-prev').addEventListener('click', () => {
+    audio.playClick();
+    if (curScene > 0) goTo(curScene - 1);
+  });
+  $('btn-next').addEventListener('click', () => {
+    audio.playClick();
+    if (curScene < TOTAL - 1) goTo(curScene + 1);
+  });
+  $('btn-replay').addEventListener('click', () => {
+    audio.playClick();
+    goTo(curScene);
+  });
 
   $('speed-sel').addEventListener('change', e => {
     spd = parseFloat(e.target.value);
@@ -1562,6 +1896,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('tog-subtitles').addEventListener('change', e => {
     document.body.classList.toggle('hide-subtitles', !e.target.checked);
+  });
+  $('tog-sound').addEventListener('change', e => {
+    audio.enabled = e.target.checked;
+    // Resume AudioContext on first user interaction
+    if (audio.enabled && audio._ctx && audio._ctx.state === 'suspended') {
+      audio._ctx.resume().catch(() => {});
+    }
   });
 
   // Keyboard navigation
@@ -1584,7 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.title        = i === 0 ? 'Overview' : `Step ${i}`;
       btn.setAttribute('aria-label', btn.title);
       btn.dataset.idx  = i;
-      btn.addEventListener('click', () => goTo(i));
+      btn.addEventListener('click', () => { audio.playClick(); goTo(i); });
       dotNav.appendChild(btn);
     }
   }
