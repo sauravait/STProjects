@@ -800,86 +800,93 @@ function renderS4(el) {
   <text x="250" y="28" font-size="13" fill="${C.amber}" text-anchor="middle"
         font-weight="800" data-label="1">Slack Adjuster &amp; S-Cam Linkage</text>
 
-  <!-- BRAKE CHAMBER (left) -->
-  <rect x="20" y="150" width="100" height="62" rx="8"
-        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2"/>
-  <text x="70" y="177" font-size="9" fill="${C.grayLt}" text-anchor="middle" font-weight="700">BRAKE</text>
-  <text x="70" y="189" font-size="9" fill="${C.grayLt}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <!-- BRAKE CHAMBER (left) with gradient -->
+  <rect x="18" y="148" width="108" height="66" rx="10"
+        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2" filter="url(#shadow-sm)"/>
+  <!-- Chamber detail lines -->
+  <line x1="22" y1="170" x2="122" y2="170" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+  <text x="72" y="175" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">BRAKE</text>
+  <text x="72" y="188" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">CHAMBER</text>
 
-  <!-- PUSHROD (extends right from chamber) -->
+  <!-- PUSHROD with gradient -->
   <g id="s4-pushrod-grp">
-    <rect id="s4-pushrod" x="120" y="170" width="90" height="20" rx="5"
-          fill="${C.amber}" stroke="${C.amberL}" stroke-width="1.5"/>
-    <text x="165" y="184" font-size="8" fill="#1a0800" text-anchor="middle"
+    <rect id="s4-pushrod" x="120" y="168" width="96" height="22" rx="6"
+          fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
+    <text x="168" y="183" font-size="8" fill="#1a0800" text-anchor="middle"
           font-weight="700" data-label="1">PUSHROD</text>
-    <!-- Clevis -->
-    <rect x="206" y="165" width="14" height="30" rx="4"
-          fill="${C.grayLt}" stroke="${C.grayMid}" stroke-width="1.5"/>
-    <circle cx="213" cy="180" r="4.5" fill="${C.gray}" stroke="${C.grayMid}" stroke-width="1.5"/>
+    <!-- Clevis with detail -->
+    <rect x="212" y="162" width="16" height="34" rx="5"
+          fill="url(#grad-steel)" stroke="${C.grayLt}" stroke-width="1.5"/>
+    <circle cx="220" cy="179" r="5" fill="${C.gray}" stroke="${C.grayLt}" stroke-width="1.5"/>
+    <circle cx="220" cy="179" r="2" fill="${C.grayLt}"/>
   </g>
 
-  <!-- SLACK ADJUSTER ARM -->
+  <!-- SLACK ADJUSTER ARM with gradient -->
   <g id="s4-slack-grp" style="transform-origin:270px 240px">
     <!-- Arm body -->
-    <rect x="258" y="175" width="24" height="130" rx="8"
-          fill="${C.truckBody}" stroke="${C.grayLt}" stroke-width="2.5"/>
-    <!-- Pin at top (connects to pushrod) -->
-    <circle cx="270" cy="180" r="8" fill="${C.grayDk}" stroke="${C.grayLt}" stroke-width="2"/>
-    <circle cx="270" cy="180" r="3.5" fill="${C.grayLt}"/>
-    <!-- Hub (S-cam shaft connection) -->
-    <circle cx="270" cy="240" r="14" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="2"/>
-    <circle cx="270" cy="240" r="6" fill="${C.grayLt}"/>
+    <rect x="257" y="172" width="26" height="136" rx="9"
+          fill="url(#grad-steel)" stroke="${C.grayLt}" stroke-width="2.5" filter="url(#shadow-sm)"/>
+    <!-- Top highlight -->
+    <rect x="259" y="174" width="22" height="3" rx="1.5" fill="rgba(255,255,255,0.06)"/>
+    <!-- Pin at top -->
+    <circle cx="270" cy="178" r="9" fill="${C.grayDk}" stroke="${C.grayLt}" stroke-width="2"/>
+    <circle cx="270" cy="178" r="4" fill="${C.grayLt}"/>
+    <!-- Hub (S-cam shaft) -->
+    <circle cx="270" cy="240" r="16" fill="url(#grad-drum)" stroke="${C.grayLt}" stroke-width="2"/>
+    <circle cx="270" cy="240" r="7" fill="${C.grayLt}"/>
+    <circle cx="270" cy="240" r="3" fill="${C.grayDk}"/>
   </g>
 
-  <!-- CAM SHAFT -->
-  <rect x="256" y="234" width="170" height="12" rx="6"
-        fill="${C.grayMid}" stroke="${C.grayLt}" stroke-width="1.5"/>
+  <!-- CAM SHAFT with gradient -->
+  <rect x="254" y="233" width="174" height="14" rx="7"
+        fill="url(#grad-steel-h)" stroke="${C.grayLt}" stroke-width="1.5"/>
 
-  <!-- S-CAM (at far right of shaft) -->
+  <!-- S-CAM with better shape -->
   <g id="s4-cam-grp" style="transform-origin:390px 240px">
-    <!-- Cam body — S shape represented as two lobes -->
-    <ellipse cx="390" cy="224" rx="26" ry="14" fill="${C.grayLt}" opacity="0.9"/>
-    <ellipse cx="390" cy="256" rx="26" ry="14" fill="${C.grayLt}" opacity="0.9"/>
-    <rect x="384" y="225" width="12" height="30" fill="${C.drum}"/>
+    <!-- Two cam lobes -->
+    <ellipse cx="390" cy="222" rx="28" ry="15" fill="url(#grad-steel)" opacity="0.95"/>
+    <ellipse cx="390" cy="258" rx="28" ry="15" fill="url(#grad-steel)" opacity="0.95"/>
+    <rect x="383" y="222" width="14" height="36" fill="url(#grad-drum)"/>
     <!-- Shaft centre -->
-    <circle cx="390" cy="240" r="8" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="2"/>
-    <circle cx="390" cy="240" r="3" fill="${C.grayLt}"/>
+    <circle cx="390" cy="240" r="9" fill="url(#grad-drum)" stroke="${C.grayLt}" stroke-width="2"/>
+    <circle cx="390" cy="240" r="3.5" fill="${C.grayLt}"/>
     <!-- Rotation indicator arc -->
     <path id="s4-rot-arc"
-          d="${arc(390,240,34,200,340)}"
+          d="${arc(390,240,36,200,340)}"
           fill="none" stroke="${C.amber}" stroke-width="2.5"
-          stroke-dasharray="6,4" opacity="0"/>
-    <!-- Arrow on arc -->
-    <circle id="s4-rot-dot" cx="${px(390,34,340).toFixed(1)}" cy="${py(240,34,340).toFixed(1)}"
-            r="5" fill="${C.amber}" opacity="0"/>
+          stroke-dasharray="6,4" opacity="0" filter="url(#glow-a)"/>
+    <!-- Dot on arc -->
+    <circle id="s4-rot-dot" cx="${px(390,36,340).toFixed(1)}" cy="${py(240,36,340).toFixed(1)}"
+            r="6" fill="${C.amber}" opacity="0" filter="url(#glow-a)"/>
   </g>
 
-  <!-- DRUM HINT (partial circle, right edge) -->
-  <path d="${arc(440,240,75,140,220,1)}"
-        fill="none" stroke="${C.drum}" stroke-width="22" opacity="0.5"/>
-  <text x="492" y="244" font-size="8" fill="${C.grayLt}" text-anchor="end"
+  <!-- DRUM HINT (partial arc) -->
+  <path d="${arc(442,240,78,138,222,1)}"
+        fill="none" stroke="url(#grad-drum)" stroke-width="24" opacity="0.55"/>
+  <text x="495" y="244" font-size="8" fill="${C.grayLt}" text-anchor="end"
         data-label="1">DRUM</text>
 
-  <!-- SHOE HINTS -->
+  <!-- SHOE HINTS with glow capability -->
   <path id="s4-shoe-top"
-        d="${arc(440,240,52,148,210,1)}"
-        fill="none" stroke="${C.shoe}" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+        d="${arc(442,240,54,146,212,1)}"
+        fill="none" stroke="${C.shoe}" stroke-width="15" stroke-linecap="round" opacity="0.85"/>
   <path id="s4-shoe-bot"
-        d="${arc(440,240,52,150,212,0)}"
-        fill="none" stroke="${C.shoe}" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+        d="${arc(442,240,54,148,214,0)}"
+        fill="none" stroke="${C.shoe}" stroke-width="15" stroke-linecap="round" opacity="0.85"/>
 
   <!-- PUSHROD DIRECTION ARROW -->
-  <line id="s4-arr" x1="125" y1="200" x2="205" y2="200"
-        stroke="${C.amber}" stroke-width="2.5" marker-end="url(#arr-a)" opacity="0"/>
+  <line id="s4-arr" x1="124" y1="202" x2="210" y2="202"
+        stroke="${C.amber}" stroke-width="3" marker-end="url(#arr-a)" opacity="0"
+        filter="url(#glow-a)"/>
 
   <!-- Labels -->
-  <text x="270" y="325" font-size="9" fill="${C.grayLt}" text-anchor="middle"
+  <text x="270" y="326" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
         data-label="1">SLACK ADJUSTER</text>
-  <text x="390" y="325" font-size="9" fill="${C.grayLt}" text-anchor="middle"
+  <text x="390" y="326" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
         data-label="1">S-CAM</text>
-  <line x1="270" y1="305" x2="270" y2="318" stroke="${C.grayLt}" stroke-width="1"
+  <line x1="270" y1="306" x2="270" y2="319" stroke="${C.grayLt}" stroke-width="1"
         stroke-dasharray="3,2" data-label="1"/>
-  <line x1="390" y1="296" x2="390" y2="318" stroke="${C.grayLt}" stroke-width="1"
+  <line x1="390" y1="298" x2="390" y2="319" stroke="${C.grayLt}" stroke-width="1"
         stroke-dasharray="3,2" data-label="1"/>
   `);
 }
@@ -917,26 +924,25 @@ function animateS4() {
 function brakeAssemblySVG(drumCx, drumCy, drumR) {
   const innerR = drumR - 16;  // contact surface
   const shoeR  = drumR - 44;  // resting position (shoe centerline)
-  // Top shoe arc: from 210° to 330° (centred at 270° = top in SVG)
   const topShoe  = arc(drumCx, drumCy, shoeR, 210, 330, 1);
-  // Bottom shoe arc: from 30° to 150° (centred at 90° = bottom in SVG)
   const botShoe  = arc(drumCx, drumCy, shoeR, 30, 150, 1);
 
   return `
-  <!-- DRUM outer (gray steel ring) -->
+  <!-- DRUM outer (gradient steel ring) -->
   <circle cx="${drumCx}" cy="${drumCy}" r="${drumR}"
-          fill="${C.drumRing}" stroke="${C.grayMid}" stroke-width="2"/>
+          fill="url(#grad-drum)" stroke="${C.grayMid}" stroke-width="2.5"
+          filter="url(#shadow-sm)"/>
   <!-- DRUM inner contact surface -->
   <circle cx="${drumCx}" cy="${drumCy}" r="${innerR}"
           fill="${C.truckDark}" stroke="${C.drum}" stroke-width="2"/>
 
-  <!-- BRAKE SHOES (thick arc strokes) -->
+  <!-- BRAKE SHOES (gradient-tinted arcs) -->
   <path id="ba-shoe-top" d="${topShoe}"
-        fill="none" stroke="${C.shoe}" stroke-width="20" stroke-linecap="round"/>
+        fill="none" stroke="${C.shoe}" stroke-width="22" stroke-linecap="round"/>
   <path id="ba-shoe-bot" d="${botShoe}"
-        fill="none" stroke="${C.shoe}" stroke-width="20" stroke-linecap="round"/>
+        fill="none" stroke="${C.shoe}" stroke-width="22" stroke-linecap="round"/>
 
-  <!-- RETURN SPRINGS (connect the ends of the shoes) -->
+  <!-- RETURN SPRINGS (dashed lines with glow hint) -->
   <line id="ba-spring-l"
         x1="${px(drumCx, shoeR, 210).toFixed(1)}" y1="${py(drumCy, shoeR, 210).toFixed(1)}"
         x2="${px(drumCx, shoeR, 150).toFixed(1)}" y2="${py(drumCy, shoeR, 150).toFixed(1)}"
@@ -946,21 +952,21 @@ function brakeAssemblySVG(drumCx, drumCy, drumR) {
         x2="${px(drumCx, shoeR,  30).toFixed(1)}" y2="${py(drumCy, shoeR,  30).toFixed(1)}"
         stroke="${C.spring}" stroke-width="4" stroke-dasharray="5,3"/>
 
-  <!-- S-CAM (two lobes + centre) -->
+  <!-- S-CAM (gradient lobes + centre) -->
   <g id="ba-cam" style="transform-origin:${drumCx}px ${drumCy}px">
-    <ellipse cx="${drumCx - 4}" cy="${drumCy - 12}" rx="18" ry="10" fill="${C.grayLt}" opacity="0.9"/>
-    <ellipse cx="${drumCx + 4}" cy="${drumCy + 12}" rx="18" ry="10" fill="${C.grayLt}" opacity="0.9"/>
-    <rect x="${drumCx - 6}" y="${drumCy - 10}" width="12" height="20" fill="${C.drum}"/>
-    <circle cx="${drumCx}" cy="${drumCy}" r="9" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="2"/>
-    <circle cx="${drumCx}" cy="${drumCy}" r="3.5" fill="${C.grayLt}"/>
+    <ellipse cx="${drumCx - 4}" cy="${drumCy - 12}" rx="18" ry="10" fill="url(#grad-drum)" opacity="0.95"/>
+    <ellipse cx="${drumCx + 4}" cy="${drumCy + 12}" rx="18" ry="10" fill="url(#grad-drum)" opacity="0.95"/>
+    <rect x="${drumCx - 6}" y="${drumCy - 10}" width="12" height="20" fill="${C.truckDark}" opacity="0.7"/>
+    <circle cx="${drumCx}" cy="${drumCy}" r="10" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="1.5"/>
+    <circle cx="${drumCx}" cy="${drumCy}" r="4" fill="${C.grayLt}"/>
   </g>
 
-  <!-- CONTACT GLOW (hidden by default) -->
+  <!-- CONTACT GLOW (hidden by default, lights up on brake application) -->
   <path id="ba-glow-top" d="${arc(drumCx, drumCy, innerR - 4, 210, 330, 1)}"
-        fill="none" stroke="${C.airRed}" stroke-width="6" stroke-linecap="round"
+        fill="none" stroke="${C.orange}" stroke-width="8" stroke-linecap="round"
         opacity="0" filter="url(#glow-r)"/>
   <path id="ba-glow-bot" d="${arc(drumCx, drumCy, innerR - 4, 30, 150, 1)}"
-        fill="none" stroke="${C.airRed}" stroke-width="6" stroke-linecap="round"
+        fill="none" stroke="${C.orange}" stroke-width="8" stroke-linecap="round"
         opacity="0" filter="url(#glow-r)"/>
   `;
 }
@@ -1053,9 +1059,8 @@ function animateS5() {
    SCENE 6 — FRICTION SLOWS WHEEL
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS6(el) {
-  const cx = 190, cy = 195, r = 140;
+  const cx = 190, cy = 195, r = 136;
   const innerR = r - 16;
-  const shoeR  = r - 44;
   const hotR   = innerR - 4;
 
   el.innerHTML = svgWrap(500, 370, `
@@ -1064,269 +1069,322 @@ function renderS6(el) {
   <text x="250" y="28" font-size="13" fill="${C.amber}" text-anchor="middle"
         font-weight="800" data-label="1">Friction Slows the Wheel</text>
 
-  <!-- SPINNING DRUM (with rim/tire) — main group for rotation -->
+  <!-- Ambient heat glow behind wheel -->
+  <circle cx="${cx}" cy="${cy}" r="${r + 45}"
+          fill="url(#grad-spot-amber)" opacity="0" id="s6-ambient"/>
+
+  <!-- SPINNING DRUM GROUP -->
   <g id="s6-drum-outer" style="transform-origin:${cx}px ${cy}px">
-    <!-- Tire ring -->
-    <circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="${C.road}" stroke="${C.grayMid}" stroke-width="3"/>
-    <!-- Drum disc -->
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${C.drumRing}" stroke="${C.grayMid}" stroke-width="2.5"/>
-    <!-- Hub spokes for rotation visibility -->
+    <!-- Tire ring (black rubber) -->
+    <circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="url(#grad-tire)" stroke="${C.gray}" stroke-width="3"/>
+    <!-- Tire tread marks -->
+    ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a => {
+      const ox = px(cx, r + 28, a), oy = py(cy, r + 28, a);
+      const ix = px(cx, r + 14, a), iy = py(cy, r + 14, a);
+      return `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ix.toFixed(1)}" y2="${iy.toFixed(1)}" stroke="${C.grayDk}" stroke-width="6" stroke-linecap="round"/>`;
+    }).join('')}
+    <!-- Drum disc (steel) -->
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grad-drum)" stroke="${C.grayMid}" stroke-width="2.5"/>
+    <!-- 8 spokes for clear rotation visualization -->
     ${[0,45,90,135,180,225,270,315].map(a =>
-      `<line x1="${px(cx,18,a).toFixed(1)}" y1="${py(cy,18,a).toFixed(1)}"
-             x2="${px(cx,r-20,a).toFixed(1)}" y2="${py(cy,r-20,a).toFixed(1)}"
-             stroke="${C.grayMid}" stroke-width="3.5"/>`).join('')}
-    <circle cx="${cx}" cy="${cy}" r="18" fill="${C.grayLt}"/>
+      `<line x1="${px(cx,20,a).toFixed(1)}" y1="${py(cy,20,a).toFixed(1)}"
+             x2="${px(cx,r-18,a).toFixed(1)}" y2="${py(cy,r-18,a).toFixed(1)}"
+             stroke="${C.grayMid}" stroke-width="4" stroke-linecap="round"/>`).join('')}
     <!-- Hub bolts -->
     ${[0,60,120,180,240,300].map(a =>
-      `<circle cx="${px(cx,r*.55,a).toFixed(1)}" cy="${py(cy,r*.55,a).toFixed(1)}"
-               r="5" fill="${C.grayLt}"/>`).join('')}
+      `<circle cx="${px(cx,r*.54,a).toFixed(1)}" cy="${py(cy,r*.54,a).toFixed(1)}"
+               r="5.5" fill="${C.grayLt}" stroke="${C.grayDk}" stroke-width="1"/>`).join('')}
+    <!-- Centre hub -->
+    <circle cx="${cx}" cy="${cy}" r="20" fill="${C.grayLt}" stroke="${C.grayMid}" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="10" fill="${C.gray}"/>
   </g>
 
-  <!-- STATIC inner: shoes + cam (don't rotate with drum) -->
-  <!-- Drum inner surface -->
-  <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${C.truckDark}" stroke="${C.drum}" stroke-width="2"/>
+  <!-- STATIC: inner surface + shoes + cam -->
+  <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${C.truckDark}" stroke="${C.drum}" stroke-width="2.5"/>
 
-  <!-- BRAKE SHOES (applied — at contact) -->
+  <!-- BRAKE SHOES (hot, pressed) -->
   <path id="s6-shoe-top" d="${arc(cx, cy, innerR - 8, 210, 330, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
+        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
   <path id="s6-shoe-bot" d="${arc(cx, cy, innerR - 8, 30, 150, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
+        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
 
   <!-- HEAT GLOW at contact zones -->
   <path id="s6-heat-top" d="${arc(cx, cy, hotR, 215, 325, 1)}"
-        fill="none" stroke="${C.airRed}" stroke-width="8" stroke-linecap="round"
-        filter="url(#glow-r)" opacity="0.7"/>
+        fill="none" stroke="${C.orange}" stroke-width="10" stroke-linecap="round"
+        filter="url(#glow-r)" opacity="0.75"/>
   <path id="s6-heat-bot" d="${arc(cx, cy, hotR, 35, 145, 1)}"
-        fill="none" stroke="${C.airRed}" stroke-width="8" stroke-linecap="round"
-        filter="url(#glow-r)" opacity="0.7"/>
+        fill="none" stroke="${C.orange}" stroke-width="10" stroke-linecap="round"
+        filter="url(#glow-r)" opacity="0.75"/>
 
   <!-- S-CAM centre -->
-  <circle cx="${cx}" cy="${cy}" r="22" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="2"/>
-  <text cx="${cx}" cy="${cy}" font-size="8" fill="${C.grayLt}" text-anchor="middle" dy="3"
-        x="${cx}" y="${cy}">S-CAM</text>
+  <circle cx="${cx}" cy="${cy}" r="24" fill="url(#grad-drum)" stroke="${C.grayLt}" stroke-width="2"/>
+  <text x="${cx}" y="${cy + 4}" font-size="7.5" fill="${C.grayLt}" text-anchor="middle"
+        font-weight="700">S-CAM</text>
 
-  <!-- HEAT SPARKS (particles) -->
-  <circle id="s6-sp1" cx="${px(cx,innerR+4,270).toFixed(1)}" cy="${py(cy,innerR+4,270).toFixed(1)}"
-          r="4" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp2" cx="${px(cx,innerR+4,278).toFixed(1)}" cy="${py(cy,innerR+4,278).toFixed(1)}"
-          r="3" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp3" cx="${px(cx,innerR+4,90).toFixed(1)}" cy="${py(cy,innerR+4,90).toFixed(1)}"
-          r="4" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp4" cx="${px(cx,innerR+4,98).toFixed(1)}" cy="${py(cy,innerR+4,98).toFixed(1)}"
-          r="3" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
+  <!-- HEAT SPARKS (more of them for drama) -->
+  <circle id="s6-sp1" cx="${px(cx,innerR+6,270).toFixed(1)}" cy="${py(cy,innerR+6,270).toFixed(1)}"
+          r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s6-sp2" cx="${px(cx,innerR+8,280).toFixed(1)}" cy="${py(cy,innerR+8,280).toFixed(1)}"
+          r="3.5" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s6-sp3" cx="${px(cx,innerR+6,90).toFixed(1)}"  cy="${py(cy,innerR+6,90).toFixed(1)}"
+          r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s6-sp4" cx="${px(cx,innerR+8,100).toFixed(1)}" cy="${py(cy,innerR+8,100).toFixed(1)}"
+          r="3.5" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
+  <circle id="s6-sp5" cx="${px(cx,innerR+6,260).toFixed(1)}" cy="${py(cy,innerR+6,260).toFixed(1)}"
+          r="4" fill="${C.amberL}" opacity="0" filter="url(#glow-a)"/>
+  <circle id="s6-sp6" cx="${px(cx,innerR+6,100).toFixed(1)}" cy="${py(cy,innerR+6,100).toFixed(1)}"
+          r="4" fill="${C.amberL}" opacity="0" filter="url(#glow-a)"/>
 
-  <!-- SPEED INDICATOR -->
-  <rect x="360" y="60" width="120" height="80" rx="10"
-        fill="rgba(15,23,42,0.8)" stroke="${C.edge2}" stroke-width="1.5"/>
-  <text x="420" y="83" font-size="9" fill="${C.muted}" text-anchor="middle"
+  <!-- SPEED INDICATOR (glassmorphism style) -->
+  <rect x="362" y="52" width="122" height="84" rx="12"
+        fill="rgba(6,12,30,0.85)" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
+  <rect x="362" y="52" width="122" height="2" rx="1" fill="rgba(245,158,11,0.15)"/>
+  <text x="423" y="77" font-size="8.5" fill="${C.muted}" text-anchor="middle"
         font-weight="700" data-label="1">WHEEL SPEED</text>
-  <text id="s6-speed" x="420" y="115" font-size="24" fill="${C.amber}"
+  <text id="s6-speed" x="423" y="113" font-size="26" fill="${C.amberL}"
         text-anchor="middle" font-weight="800">100%</text>
-  <text x="420" y="130" font-size="9" fill="${C.grayLt}" text-anchor="middle"
-        data-label="1">→ decelerating</text>
+  <text x="423" y="128" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
+        data-label="1">↓ decelerating</text>
 
-  <!-- HEAT TEMPERATURE -->
-  <rect x="360" y="158" width="120" height="70" rx="10"
-        fill="rgba(15,23,42,0.8)" stroke="rgba(239,68,68,0.3)" stroke-width="1.5"/>
-  <text x="420" y="179" font-size="9" fill="${C.airRedL}" text-anchor="middle"
+  <!-- HEAT TEMPERATURE GAUGE -->
+  <rect x="362" y="152" width="122" height="74" rx="12"
+        fill="rgba(6,12,30,0.85)" stroke="rgba(239,68,68,0.25)" stroke-width="1.5"/>
+  <rect x="362" y="152" width="122" height="2" rx="1" fill="rgba(239,68,68,0.2)"/>
+  <text x="423" y="177" font-size="8.5" fill="${C.airRedL}" text-anchor="middle"
         font-weight="700" data-label="1">DRUM TEMP.</text>
-  <text id="s6-temp" x="420" y="210" font-size="18" fill="${C.airRed}"
+  <text id="s6-temp" x="423" y="212" font-size="20" fill="${C.airRed}"
         text-anchor="middle" font-weight="800">120°C</text>
 
   <!-- Labels -->
-  <text x="${cx}" y="${cy + r + 48}" font-size="9" fill="${C.grayMid}"
+  <text x="${cx}" y="${cy + r + 52}" font-size="9" fill="${C.muted}"
         text-anchor="middle" data-label="1">Kinetic Energy → Heat (friction)</text>
   `);
 }
 
 function animateS6() {
   killTl();
-  // Spin drum fast, then slow
   const drumEl = document.getElementById('s6-drum-outer');
-  let rotDeg   = 0;
-  let rpm      = 520;     // starting fast
-  let speed    = 100;     // display %
-  let temp     = 120;
+  let rotDeg = 0;
+  let rpm    = 520;
+  let speed  = 100;
+  let temp   = 120;
   let frame;
 
   function step() {
     if (!document.getElementById('s6-drum-outer')) return;
     rpm   = Math.max(rpm - 1.8 * spd, 0);
     speed = Math.round(rpm / 5.2);
-    temp  = Math.min(temp + 0.4 * spd, 320);
-    rotDeg += rpm / 60;
+    temp  = Math.min(temp + 0.4 * spd, 340);
+    rotDeg += rpm / 58;
     if (drumEl) drumEl.style.transform = `rotate(${rotDeg}deg)`;
-    const spEl = $('s6-speed'); if (spEl) spEl.textContent = speed + '%';
-    const tmpEl = $('s6-temp'); if (tmpEl) tmpEl.textContent = Math.round(temp) + '°C';
+    const spEl  = $('s6-speed'); if (spEl)  spEl.textContent  = speed + '%';
+    const tmpEl = $('s6-temp');  if (tmpEl) tmpEl.textContent = Math.round(temp) + '°C';
+    // Change temperature color as it heats up
+    if (tmpEl) tmpEl.setAttribute('fill', temp > 250 ? C.orange : C.airRed);
     if (rpm > 0) {
       frame = requestAnimationFrame(step);
     } else {
-      // Restart loop
       setTimeout(() => {
         if (!document.getElementById('s6-drum-outer')) return;
         rpm = 520; speed = 100; temp = 120;
         frame = requestAnimationFrame(step);
-      }, 1500);
+      }, 1400 / spd);
     }
   }
   frame = requestAnimationFrame(step);
 
-  // Heat glow pulsing
+  // Heat glow pulsing (more intense)
   tl = gsap.timeline({ defaults: { ease: 'sine.inOut' } });
   tl.to(['#s6-heat-top','#s6-heat-bot'], {
-    opacity: 0.25, duration: 0.4 / spd, yoyo: true, repeat: -1, stagger: 0.2 / spd
+    opacity: 0.3, duration: 0.45 / spd, yoyo: true, repeat: -1, stagger: 0.18 / spd
   });
-  // Spark particles
-  const sparks = ['#s6-sp1','#s6-sp2','#s6-sp3','#s6-sp4'];
+  // Ambient glow
+  tl.to('#s6-ambient', { opacity: 0.35, duration: 0.6 / spd, ease: 'sine.inOut', yoyo: true, repeat: -1 }, 0);
+
+  // Sparks — more frequent and dramatic
+  const sparks = ['#s6-sp1','#s6-sp2','#s6-sp3','#s6-sp4','#s6-sp5','#s6-sp6'];
   sparks.forEach((sel, i) => {
     gsap.to(sel, {
-      opacity: 1, duration: 0.15 / spd, yoyo: true, repeat: -1,
-      delay: i * 0.12 / spd, repeatDelay: 0.3 / spd
+      opacity: 1, r: (i % 2 === 0) ? 7 : 5, duration: 0.12 / spd,
+      yoyo: true, repeat: -1, delay: i * 0.09 / spd, repeatDelay: 0.22 / spd,
+      ease: 'power2.in'
+    });
+    // Random scatter
+    gsap.to(sel, {
+      x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.5) * 12,
+      duration: 0.12 / spd, yoyo: true, repeat: -1, delay: i * 0.09 / spd, ease: 'none'
     });
   });
 
-  // Cleanup on scene change
-  el._brakeCleanup = () => {
-    cancelAnimationFrame(frame);
-    rpm = 0;
-  };
+  // Store cleanup
+  const visEl = document.getElementById('vis-6');
+  if (visEl) visEl._brakeCleanup = () => { cancelAnimationFrame(frame); rpm = 0; };
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
    SCENE 7 — RELEASE & RETURN SPRINGS
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS7(el) {
-  const cx = 190, cy = 195, r = 120;
+  const cx = 190, cy = 200, r = 120;
   const innerR = r - 14;
-  const shoeR  = r - 38;
+  const shoeR  = innerR - 8;
+  const springEndR = r + 22;
 
-  el.innerHTML = svgWrap(500, 370, `
+  el.innerHTML = svgWrap(500, 380, `
   <!-- Background -->
-  <rect width="500" height="370" fill="${C.truckDark}" rx="12"/>
-  <text x="250" y="28" font-size="13" fill="${C.amber}" text-anchor="middle"
+  <rect width="500" height="380" fill="${C.truckDark}" rx="12"/>
+  <text x="250" y="28" font-size="13" fill="${C.spring}" text-anchor="middle"
         font-weight="800" data-label="1">Pedal Released — Springs Reset</text>
 
-  <!-- DRUM -->
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${C.drumRing}" stroke="${C.grayMid}" stroke-width="2"/>
+  <!-- Ambient cool-down glow behind drum -->
+  <circle cx="${cx}" cy="${cy}" r="${r + 40}" fill="url(#grad-spot-blue)" opacity="0.22"/>
+
+  <!-- DRUM body (gradient) -->
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grad-drum)" stroke="${C.grayMid}" stroke-width="2.5"/>
+  <!-- Drum inner surface -->
   <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${C.truckDark}" stroke="${C.drum}" stroke-width="2"/>
 
-  <!-- BRAKE SHOES (start applied, will retract) -->
-  <path id="s7-shoe-top" d="${arc(cx, cy, innerR - 8, 210, 330, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
-  <path id="s7-shoe-bot" d="${arc(cx, cy, innerR - 8, 30, 150, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
+  <!-- BRAKE SHOES (start applied → will retract) -->
+  <path id="s7-shoe-top" d="${arc(cx, cy, shoeR, 210, 330, 1)}"
+        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
+  <path id="s7-shoe-bot" d="${arc(cx, cy, shoeR, 30, 150, 1)}"
+        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
 
-  <!-- S-CAM -->
-  <g id="s7-cam" style="transform-origin:${cx}px ${cy}px">
-    <ellipse cx="${cx - 4}" cy="${cy - 10}" rx="16" ry="9" fill="${C.grayLt}" opacity="0.9"/>
-    <ellipse cx="${cx + 4}" cy="${cy + 10}" rx="16" ry="9" fill="${C.grayLt}" opacity="0.9"/>
-    <rect x="${cx - 5}" y="${cx - 8}" width="10" height="18" fill="${C.drum}"/>
-    <circle cx="${cx}" cy="${cy}" r="9" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="2"/>
-  </g>
+  <!-- RETURN SPRINGS (coil visualization) — left and right -->
+  <path id="s7-spring-l"
+        d="M ${px(cx,shoeR,150).toFixed(1)},${py(cy,shoeR,150).toFixed(1)}
+           Q ${px(cx,shoeR-14,168).toFixed(1)},${py(cy,shoeR-14,168).toFixed(1)}
+             ${px(cx,shoeR,185).toFixed(1)},${py(cy,shoeR,185).toFixed(1)}
+           Q ${px(cx,shoeR-14,202).toFixed(1)},${py(cy,shoeR-14,202).toFixed(1)}
+             ${px(cx,shoeR,220).toFixed(1)},${py(cy,shoeR,220).toFixed(1)}"
+        fill="none" stroke="${C.spring}" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <path id="s7-spring-r"
+        d="M ${px(cx,shoeR,30).toFixed(1)},${py(cy,shoeR,30).toFixed(1)}
+           Q ${px(cx,shoeR-14,12).toFixed(1)},${py(cy,shoeR-14,12).toFixed(1)}
+             ${px(cx,shoeR,354).toFixed(1)},${py(cy,shoeR,354).toFixed(1)}
+           Q ${px(cx,shoeR-14,336).toFixed(1)},${py(cy,shoeR-14,336).toFixed(1)}
+             ${px(cx,shoeR,318).toFixed(1)},${py(cy,shoeR,318).toFixed(1)}"
+        fill="none" stroke="${C.spring}" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
 
-  <!-- RETURN SPRING ARROWS (show springs pulling back) -->
+  <!-- SPRING ARROWS (pull inward direction) -->
   <line id="s7-sp-l" x1="${px(cx,shoeR,150).toFixed(1)}" y1="${py(cy,shoeR,150).toFixed(1)}"
-        x2="${px(cx,shoeR,210).toFixed(1)}" y2="${py(cy,shoeR,210).toFixed(1)}"
-        stroke="${C.spring}" stroke-width="5" stroke-dasharray="6,3"
-        marker-end="url(#arr-b)" opacity="0"/>
+        x2="${px(cx,shoeR,215).toFixed(1)}" y2="${py(cy,shoeR,215).toFixed(1)}"
+        stroke="${C.spring}" stroke-width="3" stroke-dasharray="5,3"
+        marker-end="url(#arr-b)" opacity="0" filter="url(#glow-b)"/>
   <line id="s7-sp-r" x1="${px(cx,shoeR,30).toFixed(1)}" y1="${py(cy,shoeR,30).toFixed(1)}"
         x2="${px(cx,shoeR,330).toFixed(1)}" y2="${py(cy,shoeR,330).toFixed(1)}"
-        stroke="${C.spring}" stroke-width="5" stroke-dasharray="6,3"
-        marker-end="url(#arr-b)" opacity="0"/>
+        stroke="${C.spring}" stroke-width="3" stroke-dasharray="5,3"
+        marker-end="url(#arr-b)" opacity="0" filter="url(#glow-b)"/>
 
-  <!-- BRAKE CHAMBER + PUSHROD (right side) -->
-  <rect x="355" y="170" width="100" height="52" rx="8"
-        fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="2"/>
-  <text x="405" y="193" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">BRAKE</text>
-  <text x="405" y="205" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">CHAMBER</text>
-  <rect id="s7-pushrod" x="328" y="188" width="30" height="16" rx="5"
-        fill="${C.amber}" stroke="${C.amberL}" stroke-width="1.5"/>
+  <!-- S-CAM group -->
+  <g id="s7-cam" style="transform-origin:${cx}px ${cy}px">
+    <ellipse cx="${cx - 4}" cy="${cy - 10}" rx="14" ry="8" fill="url(#grad-drum)" opacity="0.9"/>
+    <ellipse cx="${cx + 4}" cy="${cy + 10}" rx="14" ry="8" fill="url(#grad-drum)" opacity="0.9"/>
+    <circle cx="${cx}" cy="${cy}" r="10" fill="${C.drum}" stroke="${C.grayLt}" stroke-width="1.5"/>
+  </g>
+  <circle cx="${cx}" cy="${cy}" r="20" fill="${C.grayDk}" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <text x="${cx}" y="${cy + 4}" font-size="7" fill="${C.grayLt}" text-anchor="middle"
+        font-weight="700">S-CAM</text>
 
-  <!-- EXHAUST PORT (air exhausting) -->
-  <rect id="s7-exhaust" x="354" y="148" width="18" height="22" rx="4"
-        fill="${C.grayDk}" stroke="${C.airBlue}" stroke-width="2"/>
-  <!-- Exhaust air arrows going up -->
-  <line id="s7-ea1" x1="360" y1="145" x2="356" y2="125"
-        stroke="${C.airBlue}" stroke-width="2.5" marker-end="url(#arr-b)" opacity="0"/>
-  <line id="s7-ea2" x1="370" y1="145" x2="370" y2="122"
-        stroke="${C.airBlue}" stroke-width="2.5" marker-end="url(#arr-b)" opacity="0"/>
-  <text id="s7-ea-txt" x="363" y="115" font-size="8" fill="${C.airBlueL}"
-        text-anchor="middle" data-label="1" opacity="0">AIR EXHAUST</text>
+  <!-- BRAKE CHAMBER + PUSHROD -->
+  <rect x="355" y="170" width="100" height="56" rx="10"
+        fill="rgba(6,12,30,0.88)" stroke="${C.grayMid}" stroke-width="1.5"/>
+  <rect x="355" y="170" width="100" height="2" rx="1" fill="rgba(148,163,184,0.1)"/>
+  <text x="405" y="195" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">BRAKE</text>
+  <text x="405" y="208" font-size="8.5" fill="${C.grayLt}" text-anchor="middle" font-weight="700">CHAMBER</text>
+  <rect id="s7-pushrod" x="328" y="189" width="30" height="14" rx="5"
+        fill="url(#grad-amber-h)" stroke="${C.amberL}" stroke-width="1.5"/>
 
-  <!-- PEDAL indicator (top right) -->
-  <rect x="368" y="270" width="112" height="68" rx="10"
-        fill="rgba(15,23,42,0.8)" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
-  <text x="424" y="293" font-size="9" fill="${C.muted}" text-anchor="middle"
+  <!-- EXHAUST PORT -->
+  <rect id="s7-exhaust" x="354" y="146" width="18" height="24" rx="5"
+        fill="rgba(6,12,30,0.85)" stroke="rgba(59,130,246,0.35)" stroke-width="1.5"/>
+  <!-- Exhaust air stream (particles) -->
+  <circle id="s7-ea1" cx="361" cy="138" r="4" fill="${C.airBlue}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s7-ea2" cx="368" cy="128" r="3" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
+  <circle id="s7-ea3" cx="363" cy="116" r="2.5" fill="${C.airBlue}" opacity="0" filter="url(#glow-b)"/>
+  <text id="s7-ea-txt" x="363" y="108" font-size="7.5" fill="${C.airBlueL}"
+        text-anchor="middle" data-label="1" opacity="0">EXHAUST</text>
+
+  <!-- PEDAL indicator -->
+  <rect x="366" y="268" width="114" height="70" rx="12"
+        fill="rgba(6,12,30,0.85)" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
+  <rect x="366" y="268" width="114" height="2" rx="1" fill="rgba(245,158,11,0.12)"/>
+  <text x="423" y="293" font-size="8.5" fill="${C.muted}" text-anchor="middle"
         font-weight="700" data-label="1">BRAKE PEDAL</text>
-  <text id="s7-pedal-stat" x="424" y="318" font-size="14" fill="${C.amber}"
+  <text id="s7-pedal-stat" x="423" y="320" font-size="15" fill="${C.amber}"
         text-anchor="middle" font-weight="800">PRESSED</text>
 
   <!-- WHEEL FREE indicator -->
-  <rect id="s7-free-box" x="368" y="55" width="112" height="68" rx="10"
-        fill="rgba(15,23,42,0.8)" stroke="rgba(34,197,94,0.15)" stroke-width="1.5"/>
-  <text x="424" y="80" font-size="9" fill="${C.muted}" text-anchor="middle"
+  <rect id="s7-free-box" x="366" y="44" width="114" height="70" rx="12"
+        fill="rgba(6,12,30,0.85)" stroke="rgba(34,197,94,0.15)" stroke-width="1.5"/>
+  <rect x="366" y="44" width="114" height="2" rx="1" fill="rgba(148,163,184,0.06)"/>
+  <text x="423" y="70" font-size="8.5" fill="${C.muted}" text-anchor="middle"
         font-weight="700" data-label="1">WHEEL STATUS</text>
-  <text id="s7-wheel-stat" x="424" y="108" font-size="13" fill="${C.grayLt}"
+  <text id="s7-wheel-stat" x="423" y="100" font-size="14" fill="${C.grayLt}"
         text-anchor="middle" font-weight="800">BRAKING</text>
 
   <!-- Labels -->
-  <text x="${cx}" y="${cy + r + 24}" font-size="9" fill="${C.grayMid}"
+  <text x="${cx}" y="${cy + r + 28}" font-size="9" fill="${C.muted}"
         text-anchor="middle" data-label="1">DRUM</text>
-  <text x="${cx - r - 8}" y="${cy + 4}" font-size="8.5" fill="${C.spring}"
+  <text x="${cx - r - 12}" y="${cy + 4}" font-size="8.5" fill="${C.spring}"
         text-anchor="end" data-label="1">RETURN</text>
-  <text x="${cx - r - 8}" y="${cy + 16}" font-size="8.5" fill="${C.spring}"
+  <text x="${cx - r - 12}" y="${cy + 17}" font-size="8.5" fill="${C.spring}"
         text-anchor="end" data-label="1">SPRINGS</text>
   `);
 }
 
 function animateS7() {
   killTl();
-  tl = gsap.timeline({ repeat: -1, repeatDelay: 0.5 / spd, defaults: { ease: 'power2.inOut' } });
+  const shoeR = 106 - 8; // innerR - 8
+  tl = gsap.timeline({ repeat: -1, repeatDelay: 0.4 / spd, defaults: { ease: 'power2.inOut' } });
 
-  // Start: brakes applied → release sequence
-  // Air exhausts
-  tl.to(['#s7-ea1','#s7-ea2','#s7-ea-txt'], { opacity: 1, duration: 0.3 / spd })
-    .to('#s7-exhaust', { stroke: C.airBlue, fill: 'rgba(59,130,246,0.18)', duration: 0.25 / spd }, '<')
-    // Cam returns
-    .to('#s7-cam', { rotation: -30, transformOrigin: `${190}px ${195}px`, duration: 0.5 / spd }, 0.2 / spd)
-    // Pushrod retracts
-    .to('#s7-pushrod', { x: 28, duration: 0.5 / spd }, 0.2 / spd)
-    // Return springs appear, pull shoes back
-    .to(['#s7-sp-l','#s7-sp-r'], { opacity: 1, duration: 0.25 / spd }, 0.4 / spd)
-    .to(['#s7-shoe-top'], {
-      attr: { stroke: C.shoe, 'd': arc(190, 195, 78, 210, 330, 1) },
-      duration: 0.45 / spd
+  // Phase 1: Exhaust air appears, cam rotates back, pushrod retracts, springs pull shoes
+  tl.to(['#s7-ea1','#s7-ea2','#s7-ea3','#s7-ea-txt'], {
+      opacity: 1, duration: 0.3 / spd, stagger: 0.06 / spd
+    })
+    .to('#s7-exhaust', { stroke: C.airBlue, fill: 'rgba(59,130,246,0.22)', duration: 0.25 / spd }, '<')
+    .to('#s7-cam', { rotation: -28, transformOrigin: `190px 200px`, duration: 0.55 / spd }, 0.15 / spd)
+    .to('#s7-pushrod', { x: 26, duration: 0.55 / spd }, 0.15 / spd)
+    .to(['#s7-sp-l','#s7-sp-r'], { opacity: 1, duration: 0.25 / spd, filter: 'url(#glow-b)' }, 0.35 / spd)
+    // Shoes retract (snap back with springs)
+    .to('#s7-shoe-top', {
+      attr: { stroke: C.shoe, 'd': arc(190, 200, shoeR - 12, 210, 330, 1) },
+      duration: 0.5 / spd
     }, 0.5 / spd)
-    .to(['#s7-shoe-bot'], {
-      attr: { stroke: C.shoe, 'd': arc(190, 195, 78, 30, 150, 1) },
-      duration: 0.45 / spd
+    .to('#s7-shoe-bot', {
+      attr: { stroke: C.shoe, 'd': arc(190, 200, shoeR - 12, 30, 150, 1) },
+      duration: 0.5 / spd
     }, 0.5 / spd)
     // Update status text
     .call(() => {
       const ps = $('s7-pedal-stat'); if (ps) { ps.textContent = 'RELEASED'; ps.setAttribute('fill', C.green); }
       const ws = $('s7-wheel-stat'); if (ws) { ws.textContent = 'FREE'; ws.setAttribute('fill', C.spring); }
       const fb = $('s7-free-box');   if (fb) { fb.setAttribute('stroke', 'rgba(34,197,94,0.4)'); }
-    }, [], 0.7 / spd)
+    }, [], 0.65 / spd)
+    // Exhaust bubbles animate upward
+    .to('#s7-ea1', { y: -20, opacity: 0, duration: 0.6 / spd, ease: 'power1.out' }, 0.3 / spd)
+    .to('#s7-ea2', { y: -24, opacity: 0, duration: 0.6 / spd, ease: 'power1.out', delay: 0.1 / spd }, 0.3 / spd)
+    .to('#s7-ea3', { y: -22, opacity: 0, duration: 0.6 / spd, ease: 'power1.out', delay: 0.18 / spd }, 0.3 / spd)
     // Hold released state
-    .to({}, { duration: 1.0 / spd })
-    // Reset (back to braking start for loop)
-    .to(['#s7-shoe-top'], {
-      attr: { stroke: C.shoeHot, 'd': arc(190, 195, 92, 210, 330, 1) },
-      duration: 0.4 / spd
+    .to({}, { duration: 1.1 / spd })
+    // Phase 2: Reset for loop
+    .to('#s7-shoe-top', {
+      attr: { stroke: C.shoeHot, 'd': arc(190, 200, shoeR, 210, 330, 1) },
+      duration: 0.38 / spd
     })
-    .to(['#s7-shoe-bot'], {
-      attr: { stroke: C.shoeHot, 'd': arc(190, 195, 92, 30, 150, 1) },
-      duration: 0.4 / spd
+    .to('#s7-shoe-bot', {
+      attr: { stroke: C.shoeHot, 'd': arc(190, 200, shoeR, 30, 150, 1) },
+      duration: 0.38 / spd
     }, '<')
-    .to('#s7-cam', { rotation: 0, duration: 0.4 / spd }, '<')
-    .to('#s7-pushrod', { x: 0, duration: 0.4 / spd }, '<')
-    .to(['#s7-ea1','#s7-ea2','#s7-ea-txt'], { opacity: 0, duration: 0.25 / spd }, '<')
-    .to(['#s7-sp-l','#s7-sp-r'], { opacity: 0, duration: 0.25 / spd }, '<')
+    .to('#s7-cam',     { rotation: 0, duration: 0.38 / spd }, '<')
+    .to('#s7-pushrod', { x: 0,        duration: 0.38 / spd }, '<')
+    .to(['#s7-sp-l','#s7-sp-r','#s7-ea-txt'], { opacity: 0, duration: 0.22 / spd }, '<')
+    .set(['#s7-ea1','#s7-ea2','#s7-ea3'], { y: 0, opacity: 0 })
     .call(() => {
       const ps = $('s7-pedal-stat'); if (ps) { ps.textContent = 'PRESSED'; ps.setAttribute('fill', C.amber); }
       const ws = $('s7-wheel-stat'); if (ws) { ws.textContent = 'BRAKING'; ws.setAttribute('fill', C.grayLt); }
       const fb = $('s7-free-box');   if (fb) { fb.setAttribute('stroke', 'rgba(34,197,94,0.15)'); }
-    }, [], 2.8 / spd);
+    });
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
