@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive animated explainer showing how a truck air brake system works — step-by-step with labelled SVG diagrams and color-coded pressure animation."/>
+  <title>Truck Air Brake System – Animated Explainer</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── Module header ──────────────────────────────────────────────── -->
+  <header class="mod-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">← Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">🚛 STProjects · Engineering Module</span>
+      <h1 class="mod-title">Truck Air Brake System</h1>
+    </div>
+    <div class="progress-wrap" aria-label="Module progress">
+      <div class="progress-bar" id="progress-bar" role="progressbar"
+           aria-valuenow="1" aria-valuemin="1" aria-valuemax="8"></div>
+    </div>
+    <span class="scene-counter" id="scene-counter" aria-live="polite">1 / 8</span>
+  </header>
+
+  <!-- ── Toggles panel ──────────────────────────────────────────────── -->
+  <div class="toggles-panel" id="toggles-panel" aria-label="Display options">
+    <label class="tog-label" title="Show or hide part labels">
+      <input type="checkbox" id="tog-labels" checked aria-label="Show labels"> Labels
+    </label>
+    <label class="tog-label" title="Show or hide subtitles">
+      <input type="checkbox" id="tog-subtitles" checked aria-label="Show subtitles"> Subtitles
+    </label>
+  </div>
+
+  <!-- ── Scene container ────────────────────────────────────────────── -->
+  <main id="app" class="app-shell" aria-live="polite">
+
+    <!-- Scene 0 · Overview ───────────────────────────────────────── -->
+    <section class="scene active" id="scene-0" data-scene="0" aria-labelledby="s0-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Overview</p>
+          <h2 class="scene-title" id="s0-title">Truck Air Brake System</h2>
+          <p class="scene-desc">
+            Heavy trucks use <strong>compressed air</strong> instead of hydraulic fluid to
+            apply brakes. Air brakes are reliable, self-apply on air loss, and powerful
+            enough to stop a fully loaded 80,000 lb vehicle.
+          </p>
+          <div class="key-points reveal-up" style="animation-delay:0.3s">
+            <h3>Key Components</h3>
+            <ul>
+              <li><span class="dot-blue"></span> <strong>Air Compressor</strong> — pressurises air from the engine</li>
+              <li><span class="dot-blue"></span> <strong>Air Tanks</strong> — store compressed air (100–120 PSI)</li>
+              <li><span class="dot-amber"></span> <strong>Brake Chambers</strong> — convert air pressure to movement</li>
+              <li><span class="dot-amber"></span> <strong>Slack Adjuster &amp; S-Cam</strong> — mechanical linkage</li>
+              <li><span class="dot-red"></span> <strong>Brake Shoes &amp; Drum</strong> — create friction to stop</li>
+            </ul>
+          </div>
+          <div class="legend-row">
+            <span class="legend-chip chip-blue">Blue = Resting Air</span>
+            <span class="legend-chip chip-red">Red = Active Pressure</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-0"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-0">
+        Air brakes use compressed air to push shoes against a rotating drum — stopping the truck safely.
+      </div>
+    </section>
+
+    <!-- Scene 1 · Step 1 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-1" data-scene="1" aria-labelledby="s1-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 1 of 7</p>
+          <h2 class="scene-title" id="s1-title">Driver Presses Brake Pedal</h2>
+          <p class="scene-desc">
+            Depressing the brake pedal opens the <strong>foot valve (treadle valve)</strong>
+            inside the cab. This valve controls how much compressed air flows from the
+            reservoir tanks toward the brake chambers at each wheel.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p>Partial pedal pressure = partial braking. The foot valve is proportional —
+               more pedal travel releases more air pressure for stronger braking.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip">Pedal: Pressed ↓</span>
+            <span class="status-chip chip-active">Foot Valve: Open</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-1"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-1">
+        The foot valve opens — allowing pressurised air to flow toward the brake chambers.
+      </div>
+    </section>
+
+    <!-- Scene 2 · Step 2 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-2" data-scene="2" aria-labelledby="s2-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 2 of 7</p>
+          <h2 class="scene-title" id="s2-title">Air Pressure Travels Through Brake Lines</h2>
+          <p class="scene-desc">
+            Compressed air stored at <strong>100–120 PSI</strong> in the reservoir tanks
+            rushes through rigid steel and flexible rubber brake lines to every
+            brake chamber simultaneously.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p>Air travels at nearly the speed of sound through the lines — brake response
+               is almost instantaneous even on an 18-wheeler with many axles.</p>
+          </div>
+          <div class="pressure-gauge-wrap reveal-up" style="animation-delay:0.45s">
+            <div class="gauge-label">Reservoir Pressure</div>
+            <div class="gauge-bar"><div class="gauge-fill" id="gauge-fill"></div></div>
+            <div class="gauge-val" id="gauge-val">0 PSI</div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-2"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-2">
+        Air flows — notice the colour change from blue (resting) to red (active pressure).
+      </div>
+    </section>
+
+    <!-- Scene 3 · Step 3 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-3" data-scene="3" aria-labelledby="s3-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 3 of 7</p>
+          <h2 class="scene-title" id="s3-title">Brake Chamber Pushrod Extends</h2>
+          <p class="scene-desc">
+            Pressurised air enters the brake chamber and pushes against a flexible
+            <strong>rubber diaphragm</strong>. The diaphragm presses on a metal plate,
+            extending the <strong>pushrod</strong> outward with considerable force.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p>A typical brake chamber at 90 PSI exerts about 2,250 lbs of force on the
+               pushrod — that mechanical force travels down the linkage to the brakes.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip chip-active">Diaphragm: Pressurised</span>
+            <span class="status-chip chip-active">Pushrod: Extending →</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-3"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-3">
+        Air pressure → diaphragm flex → pushrod extends outward from the chamber.
+      </div>
+    </section>
+
+    <!-- Scene 4 · Step 4 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-4" data-scene="4" aria-labelledby="s4-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 4 of 7</p>
+          <h2 class="scene-title" id="s4-title">Slack Adjuster Rotates the S-Cam</h2>
+          <p class="scene-desc">
+            The pushrod connects via a clevis pin to the <strong>slack adjuster</strong> — a
+            short arm on the end of the S-cam shaft. Linear pushrod movement becomes
+            <em>rotational</em> S-cam movement.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p>The slack adjuster also compensates for brake shoe wear — it can be
+               manually or automatically adjusted to maintain correct pushrod stroke length.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip chip-active">Slack Adjuster: Rotating ↻</span>
+            <span class="status-chip chip-active">S-Cam Shaft: Rotating ↻</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-4"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-4">
+        Linear pushrod motion is converted to S-cam rotation through the slack adjuster arm.
+      </div>
+    </section>
+
+    <!-- Scene 5 · Step 5 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-5" data-scene="5" aria-labelledby="s5-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 5 of 7</p>
+          <h2 class="scene-title" id="s5-title">Brake Shoes Press Against Drum</h2>
+          <p class="scene-desc">
+            The rotating S-cam pushes two <strong>brake shoes</strong> outward. Each shoe
+            is lined with high-friction material. The shoes press against the inner surface
+            of the spinning <strong>brake drum</strong>, which is bolted to the wheel hub.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p>The S-cam design ensures both shoes press with equal force simultaneously,
+               providing balanced braking and even wear on the drum surface.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip chip-red">Shoes: Pressed Outward</span>
+            <span class="status-chip chip-red">Drum Contact: Active</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-5"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-5">
+        S-cam rotation forces brake shoes outward — linings contact the spinning drum.
+      </div>
+    </section>
+
+    <!-- Scene 6 · Step 6 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-6" data-scene="6" aria-labelledby="s6-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 6 of 7</p>
+          <h2 class="scene-title" id="s6-title">Friction Slows Wheel Rotation</h2>
+          <p class="scene-desc">
+            The friction between brake lining and drum converts the wheel's
+            <strong>kinetic energy into heat</strong>. The drum temperature can exceed
+            300°C during hard braking. The wheel decelerates and the truck slows.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">⚠️</span>
+            <p><strong>Brake fade warning:</strong> Repeated hard braking without cooling
+               can overheat the drums, reducing friction and braking effectiveness.
+               Truck drivers use engine braking on long downhill grades.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip chip-red">Friction: High Heat</span>
+            <span class="status-chip chip-amber">Wheel: Decelerating</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-6"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-6">
+        Shoe-drum friction converts kinetic energy to heat — the wheel gradually stops.
+      </div>
+    </section>
+
+    <!-- Scene 7 · Step 7 ─────────────────────────────────────────── -->
+    <section class="scene" id="scene-7" data-scene="7" aria-labelledby="s7-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 7 of 7</p>
+          <h2 class="scene-title" id="s7-title">Release — Return Springs Reset</h2>
+          <p class="scene-desc">
+            When the driver releases the brake pedal, the foot valve closes and the
+            air exhausts to atmosphere. <strong>Return springs</strong> inside the drum
+            pull the brake shoes back away from the drum, and the pushrod retracts.
+          </p>
+          <div class="step-fact reveal-up" style="animation-delay:0.25s">
+            <span class="fact-icon">💡</span>
+            <p><strong>Fail-safe design:</strong> Spring brakes (parking brakes) work in
+               reverse — strong coil springs apply the brakes automatically if air
+               pressure is lost. Air pressure holds the spring brakes <em>off</em>.</p>
+          </div>
+          <div class="step-chips reveal-up" style="animation-delay:0.45s">
+            <span class="status-chip">Pedal: Released ↑</span>
+            <span class="status-chip">Shoes: Retracted</span>
+            <span class="status-chip chip-active">Wheel: Free to Rotate</span>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-7"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-7">
+        Pedal release → air exhausts → springs pull shoes back → brakes fully released.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Controls bar ───────────────────────────────────────────────── -->
+  <nav class="controls-bar" aria-label="Module controls">
+    <button id="btn-prev" class="ctrl-btn" aria-label="Previous scene" disabled>‹ Prev</button>
+    <button id="btn-replay" class="ctrl-btn" aria-label="Replay animation">↺ Replay</button>
+    <button id="btn-next" class="ctrl-btn ctrl-primary" aria-label="Next scene">Next ›</button>
+    <div class="speed-wrap">
+      <span class="speed-label">Speed</span>
+      <select id="speed-sel" aria-label="Animation speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+    </div>
+  </nav>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+          integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
+          crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>

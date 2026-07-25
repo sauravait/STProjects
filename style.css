@@ -15,6 +15,8 @@
   --chess-b: #a78bfa;
   --tx-a: #22c55e;
   --tx-b: #38bdf8;
+  --brake-a: #f59e0b;
+  --brake-b: #fb923c;
 }
 
 * { box-sizing: border-box; }
@@ -178,6 +180,7 @@ body {
 
 .game-card:nth-child(2) { animation-delay: 0.12s; }
 .game-card:nth-child(3) { animation-delay: 0.22s; }
+.game-card:nth-child(4) { animation-delay: 0.32s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -223,6 +226,7 @@ body {
 .card-archer .card-glow  { background: var(--archer-a); }
 .card-chess  .card-glow  { background: var(--chess-a); }
 .card-transformer .card-glow { background: var(--tx-a); }
+.card-brake       .card-glow { background: var(--brake-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -273,6 +277,7 @@ body {
 .tag-two    { background: rgba(167, 139, 250, 0.1);  color: var(--chess-b);  border: 1px solid rgba(167, 139, 250, 0.2); }
 .tag-science { background: rgba(34, 197, 94, 0.12);  color: var(--tx-a);     border: 1px solid rgba(34, 197, 94, 0.25); }
 .tag-edu     { background: rgba(56, 189, 248, 0.1);  color: var(--tx-b);     border: 1px solid rgba(56, 189, 248, 0.2); }
+.tag-engineering { background: rgba(245, 158, 11, 0.12); color: var(--brake-a); border: 1px solid rgba(245, 158, 11, 0.25); }
 
 .card-body h2 {
   margin: 0;
@@ -359,6 +364,18 @@ body {
 .card-transformer .launch-btn {
   background: linear-gradient(135deg, var(--tx-a), var(--tx-b));
   color: #001a08;
+}
+
+.card-brake .launch-btn {
+  background: linear-gradient(135deg, var(--brake-a), var(--brake-b));
+  color: #1a0800;
+}
+
+/* Brake card accent */
+.card-brake:hover, .card-brake:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(245, 158, 11, 0.18),
+    0 0 0 1px rgba(245, 158, 11, 0.3);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
