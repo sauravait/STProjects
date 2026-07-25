@@ -33,6 +33,12 @@ html, body {
   overflow-x: hidden;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 /* ─── Background canvas ─────────────────────────────────────────────────── */
 #bg-canvas {
   position: fixed;
@@ -155,7 +161,8 @@ html, body {
 /* ─── App shell ─────────────────────────────────────────────────────────── */
 .app-shell {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   min-height: calc(100vh - var(--hdr-h) - 44px - var(--ctrl-h) - var(--dot-h));
 }
