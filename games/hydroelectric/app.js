@@ -111,7 +111,13 @@ function renderS2(el) {
     const x = 140 + i * 16;
     const y = i % 2 ? 146 : 184;
     const dur = (1.2 + (i % 5) * 0.1).toFixed(2);
-    return `<circle cx="${x}" cy="${y}" r="3" fill="#bae6fd"><animate attributeName="cx" from="${x}" to="530" dur="${dur}s" repeatCount="indefinite"/></circle>`;
+    const wobble = ((i % 3) - 1) * 7;
+    const pulseDur = (Number(dur) * 0.55).toFixed(2);
+    return `<circle cx="${x}" cy="${y}" r="${(2.6 + (i % 3) * 0.4).toFixed(1)}" fill="#bae6fd" opacity="0.9">
+      <animate attributeName="cx" from="${x}" to="530" dur="${dur}s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="${y};${y + wobble};${y}" dur="${pulseDur}s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.55;1;0.75" dur="${pulseDur}s" repeatCount="indefinite"/>
+    </circle>`;
   }).join('');
   el.innerHTML = svgWrap(620, 340, `
     <rect width="620" height="340" fill="#07152e"/>
@@ -135,6 +141,7 @@ function renderS3(el) {
     <rect width="620" height="340" fill="#061226"/>
     <path d="M0 152 C80 146,140 188,208 174 C266 162,314 180,362 170" stroke="#38bdf8" stroke-width="42" fill="none" opacity="0.8" stroke-dasharray="30 22">
       <animate attributeName="stroke-dashoffset" from="0" to="-90" dur="0.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.72;0.92;0.72" dur="1s" repeatCount="indefinite"/>
     </path>
     <circle cx="420" cy="172" r="76" fill="#111827" stroke="#22d3ee" stroke-width="4"/>
     <g transform="translate(420 172)">
@@ -143,7 +150,8 @@ function renderS3(el) {
       <circle r="12" fill="#e2e8f0"/>
     </g>
     <rect x="490" y="166" width="88" height="12" rx="6" fill="#94a3b8">
-      <animate attributeName="x" values="490;498;490" dur="0.2s" repeatCount="indefinite"/>
+      <animate attributeName="x" values="490;493;496;493;490" dur="0.45s" repeatCount="indefinite"/>
+      <animate attributeName="y" values="166;164;166;168;166" dur="0.45s" repeatCount="indefinite"/>
     </rect>
     <text x="378" y="270" fill="#a5f3fc" font-size="13" data-label="1">Runner Blades</text>
     <text x="520" y="160" fill="#cbd5e1" font-size="12" data-label="1">Drive Shaft</text>
@@ -172,7 +180,14 @@ function renderS4(el) {
 }
 
 function renderS5(el) {
-  const pulses = [230, 260, 290].map((x, i) => `<circle cx="${x}" cy="167" r="5" fill="#22d3ee"><animate attributeName="cx" from="${x}" to="530" dur="${1.3 + i * 0.2}s" repeatCount="indefinite"/></circle>`).join('');
+  const pulses = [230, 260, 290].map((x, i) => {
+    const dur = (1.3 + i * 0.2).toFixed(2);
+    return `<circle cx="${x}" cy="167" r="5" fill="#22d3ee">
+      <animate attributeName="cx" from="${x}" to="530" dur="${dur}s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="167;${163 + i};167;${170 - i};167" dur="${(Number(dur) * 0.7).toFixed(2)}s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="4.2;5.6;4.2" dur="${(Number(dur) * 0.6).toFixed(2)}s" repeatCount="indefinite"/>
+    </circle>`;
+  }).join('');
   const city = [
     { x: 540, y: 170, w: 26, h: 70 },
     { x: 572, y: 154, w: 36, h: 86 },
