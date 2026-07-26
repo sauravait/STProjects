@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive hydroelectric generation module with fully animated scenes from reservoir flow to grid delivery."/>
+  <title>Hydroelectric Generation – Animated Module</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="mod-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">← Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">💧 STProjects · Energy Module</span>
+      <h1 class="mod-title">Hydroelectric Generation</h1>
+    </div>
+    <div class="progress-wrap" aria-label="Module progress">
+      <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="7"></div>
+    </div>
+    <span class="scene-counter" id="scene-counter" aria-live="polite">1 / 7</span>
+  </header>
+
+  <div class="toggles-panel" aria-label="Display options">
+    <label class="tog-label"><input type="checkbox" id="tog-labels" checked> Labels</label>
+    <label class="tog-label"><input type="checkbox" id="tog-subtitles" checked> Subtitles</label>
+    <label class="tog-label"><input type="checkbox" id="tog-sound"> 🔊 Sound</label>
+  </div>
+
+  <main id="app" class="app-shell" aria-live="polite">
+    <section class="scene active" id="scene-0" data-scene="0" aria-labelledby="s0-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Overview</p>
+          <h2 class="scene-title" id="s0-title">From Water to Electricity</h2>
+          <p class="scene-desc">Hydroelectric plants convert the potential energy of stored water into clean electrical energy through turbines and generators.</p>
+          <ul class="bullet-list">
+            <li>Reservoir stores gravitational energy</li>
+            <li>Penstock converts height into pressure + velocity</li>
+            <li>Turbine and generator convert motion into power</li>
+          </ul>
+        </div>
+        <div class="scene-visual" id="vis-0"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-0">Water head drives the full generation chain continuously.</div>
+    </section>
+
+    <section class="scene" id="scene-1" data-scene="1" aria-labelledby="s1-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 1</p>
+          <h2 class="scene-title" id="s1-title">Reservoir and Intake Gate</h2>
+          <p class="scene-desc">The control gate opens to release controlled water flow from the reservoir into the intake tunnel.</p>
+          <div class="fact-chip">Gate opening controls turbine input power.</div>
+        </div>
+        <div class="scene-visual" id="vis-1"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-1">Gate motion modulates the flow entering the plant.</div>
+    </section>
+
+    <section class="scene" id="scene-2" data-scene="2" aria-labelledby="s2-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 2</p>
+          <h2 class="scene-title" id="s2-title">High-Pressure Penstock Flow</h2>
+          <p class="scene-desc">Water accelerates down the penstock. The greater the head, the greater the pressure and kinetic energy at turbine entry.</p>
+          <div class="fact-chip">Power scales with flow × head.</div>
+        </div>
+        <div class="scene-visual" id="vis-2"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-2">Pressure pulses move through the penstock toward the runner.</div>
+    </section>
+
+    <section class="scene" id="scene-3" data-scene="3" aria-labelledby="s3-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 3</p>
+          <h2 class="scene-title" id="s3-title">Turbine Runner Rotation</h2>
+          <p class="scene-desc">Jet momentum strikes the blades and produces continuous shaft torque.</p>
+          <div class="fact-chip">Hydraulic energy → mechanical energy.</div>
+        </div>
+        <div class="scene-visual" id="vis-3"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-3">Blade force keeps the shaft spinning under load.</div>
+    </section>
+
+    <section class="scene" id="scene-4" data-scene="4" aria-labelledby="s4-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 4</p>
+          <h2 class="scene-title" id="s4-title">Generator Electromagnetic Conversion</h2>
+          <p class="scene-desc">The spinning rotor sweeps magnetic flux across stator coils to generate alternating voltage.</p>
+          <div class="fact-chip">Mechanical energy → electrical energy.</div>
+        </div>
+        <div class="scene-visual" id="vis-4"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-4">A rotating magnetic field creates AC output in the stator windings.</div>
+    </section>
+
+    <section class="scene" id="scene-5" data-scene="5" aria-labelledby="s5-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Step 5</p>
+          <h2 class="scene-title" id="s5-title">Step-Up and Grid Transmission</h2>
+          <p class="scene-desc">A transformer increases voltage for efficient long-distance transfer to load centers.</p>
+          <div class="fact-chip">Higher voltage means lower line current losses.</div>
+        </div>
+        <div class="scene-visual" id="vis-5"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-5">Power pulses travel from plant to transmission towers and city loads.</div>
+    </section>
+
+    <section class="scene" id="scene-6" data-scene="6" aria-labelledby="s6-title">
+      <div class="scene-body two-col">
+        <div class="scene-text">
+          <p class="scene-eyebrow">Control</p>
+          <h2 class="scene-title" id="s6-title">Live Flow-to-Power Control</h2>
+          <p class="scene-desc">Adjust gate opening to see real-time impact on water flow, turbine speed, and generated output.</p>
+          <label class="slider-wrap">Gate Opening
+            <input id="flow-slider" type="range" min="30" max="100" value="70" />
+          </label>
+          <div class="stats-grid">
+            <div>Flow: <strong id="m-flow">70%</strong></div>
+            <div>RPM: <strong id="m-rpm">315</strong></div>
+            <div>Output: <strong id="m-mw">126 MW</strong></div>
+          </div>
+        </div>
+        <div class="scene-visual" id="vis-6"></div>
+      </div>
+      <div class="scene-subtitle" id="sub-6">Control loops keep flow, speed, and output synchronized.</div>
+    </section>
+  </main>
+
+  <nav class="controls-bar" aria-label="Module controls">
+    <button id="btn-prev" class="ctrl-btn" disabled>‹ Prev</button>
+    <button id="btn-replay" class="ctrl-btn">↺ Replay</button>
+    <button id="btn-next" class="ctrl-btn ctrl-primary">Next ›</button>
+    <div class="speed-wrap">
+      <span class="speed-label">Speed</span>
+      <select id="speed-sel" aria-label="Animation speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+    </div>
+  </nav>
+
+  <div class="dot-nav" id="dot-nav" aria-label="Scene navigation"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
