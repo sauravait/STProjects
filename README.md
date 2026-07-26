@@ -5,11 +5,17 @@ A small browser-based game collection built with **HTML, CSS, and vanilla JavaSc
 ## Available Games
 - **Archer's Path** — 2D side-scrolling archery action game.
 - **Chess** — local two-player chess game with standard move rules.
+- **Electrical Transformer** — animated educational transformer learning module.
+- **Truck Air Brake System** — animated engineering explainer module.
+- **Hydroelectric Generation** — fully animated hydro power generation module.
 
 ## Project Structure
 - `/home/runner/work/STProjects/STProjects/index.html` — main launcher page for all games.
 - `/home/runner/work/STProjects/STProjects/games/archers-path/` — Archer's Path assets.
 - `/home/runner/work/STProjects/STProjects/games/chess/` — Chess assets.
+- `/home/runner/work/STProjects/STProjects/games/transformer/` — Transformer module assets.
+- `/home/runner/work/STProjects/STProjects/games/truck-brake/` — Truck brake module assets.
+- `/home/runner/work/STProjects/STProjects/games/hydroelectric/` — Hydroelectric module assets.
 
 ## How to Run
 1. Clone/download the repository.

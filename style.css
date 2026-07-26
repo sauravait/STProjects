@@ -17,6 +17,8 @@
   --tx-b: #38bdf8;
   --brake-a: #f59e0b;
   --brake-b: #fb923c;
+  --hydro-a: #06b6d4;
+  --hydro-b: #3b82f6;
 }
 
 * { box-sizing: border-box; }
@@ -181,6 +183,7 @@ body {
 .game-card:nth-child(2) { animation-delay: 0.12s; }
 .game-card:nth-child(3) { animation-delay: 0.22s; }
 .game-card:nth-child(4) { animation-delay: 0.32s; }
+.game-card:nth-child(5) { animation-delay: 0.42s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -227,6 +230,7 @@ body {
 .card-chess  .card-glow  { background: var(--chess-a); }
 .card-transformer .card-glow { background: var(--tx-a); }
 .card-brake       .card-glow { background: var(--brake-a); }
+.card-hydro       .card-glow { background: var(--hydro-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -278,6 +282,7 @@ body {
 .tag-science { background: rgba(34, 197, 94, 0.12);  color: var(--tx-a);     border: 1px solid rgba(34, 197, 94, 0.25); }
 .tag-edu     { background: rgba(56, 189, 248, 0.1);  color: var(--tx-b);     border: 1px solid rgba(56, 189, 248, 0.2); }
 .tag-engineering { background: rgba(245, 158, 11, 0.12); color: var(--brake-a); border: 1px solid rgba(245, 158, 11, 0.25); }
+.tag-energy { background: rgba(6, 182, 212, 0.14); color: var(--hydro-a); border: 1px solid rgba(6, 182, 212, 0.3); }
 
 .card-body h2 {
   margin: 0;
@@ -371,11 +376,23 @@ body {
   color: #1a0800;
 }
 
+.card-hydro .launch-btn {
+  background: linear-gradient(135deg, var(--hydro-a), var(--hydro-b));
+  color: #001623;
+}
+
 /* Brake card accent */
 .card-brake:hover, .card-brake:focus-visible {
   box-shadow:
     0 20px 60px rgba(245, 158, 11, 0.18),
     0 0 0 1px rgba(245, 158, 11, 0.3);
+}
+
+/* Hydro card accent */
+.card-hydro:hover, .card-hydro:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(6, 182, 212, 0.2),
+    0 0 0 1px rgba(6, 182, 212, 0.3);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
