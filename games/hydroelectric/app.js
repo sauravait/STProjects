@@ -22,19 +22,94 @@ class AudioManager {
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(); osc.stop(ctx.currentTime + dur + 0.01);
   }
+  // Soft triad "chime" used on scene changes for a polished feel.
+  chime(root = 330) {
+    if (!this.enabled) return;
+    [0, 4, 7].forEach((semi, i) => {
+      const f = root * Math.pow(2, semi / 12);
+      setTimeout(() => this.pulse(f, 0.5, 0.035), i * 70);
+    });
+  }
 }
 
 const audio = new AudioManager();
 const TOTAL = 7;
 let curScene = 0;
 let speed = 1;
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const $ = (id) => document.getElementById(id);
-const svgWrap = (w, h, body) => `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-height:360px" role="img" aria-hidden="true">${body}</svg>`;
+const VBW = 640;
+const VBH = 400;
+const svgWrap = (body, defs = '') => `<svg viewBox="0 0 ${VBW} ${VBH}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block" role="img" aria-hidden="true"><defs>${SHARED_DEFS}${defs}</defs>${body}</svg>`;
+
+// Shared gradients / filters reused across scenes.
+const SHARED_DEFS = `
+  <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#7dd3fc"/><stop offset="0.5" stop-color="#38bdf8"/><stop offset="1" stop-color="#1d4ed8"/>
+  </linearGradient>
+  <linearGradient id="waterFlow" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#2563eb"/>
+  </linearGradient>
+  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0c355c"/><stop offset="1" stop-color="#061024"/>
+  </linearGradient>
+  <linearGradient id="metalGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#cbd5e1"/><stop offset="0.5" stop-color="#94a3b8"/><stop offset="1" stop-color="#475569"/>
+  </linearGradient>
+  <linearGradient id="copperGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#b45309"/>
+  </linearGradient>
+  <radialGradient id="glowAqua" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#67e8f9" stop-opacity="0.9"/><stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowGreen" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#4ade80" stop-opacity="0.9"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.75">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3"/>
+  </filter>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glowStrong" x="-120%" y="-120%" width="340%" height="340%">
+    <feGaussianBlur stdDeviation="7" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#020617" flood-opacity="0.55"/>
+  </filter>`;
+
+// Standard atmospheric backdrop shared by every scene (depth + vignette).
+const VIGNETTE = `<rect width="640" height="400" fill="url(#vignette)" pointer-events="none"/>`;
+
+// Spinning wrapper: outer group translates to the pivot, inner group rotates
+// around its own origin so translate is never overwritten by animateTransform.
+function spin(cx, cy, dur, inner, groupId, animId) {
+  return `<g transform="translate(${cx} ${cy})">
+    <g${groupId ? ` id="${groupId}"` : ''}>
+      <animateTransform${animId ? ` id="${animId}"` : ''} attributeName="transform" type="rotate" from="0" to="360" dur="${dur}s" repeatCount="indefinite"/>
+      ${inner}
+    </g>
+  </g>`;
+}
+
+// Curved Francis-style runner blades centered on origin.
+function runnerBlades(r, n, cA, cB) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = (i * 360) / n;
+    return `<path d="M0 0 Q ${r * 0.5} ${-r * 0.18} ${r} ${-r * 0.04} Q ${r * 0.58} ${r * 0.14} ${r * 0.18} ${r * 0.3} Z" fill="${i % 2 ? cA : cB}" transform="rotate(${a})"/>`;
+  }).join('');
+}
 
 function applySpeed(root) {
   if (!root) return;
-  root.querySelectorAll('animate, animateTransform').forEach((node) => {
+  root.querySelectorAll('animate, animateTransform, animateMotion').forEach((node) => {
+    if (reduceMotion) { node.setAttribute('repeatCount', '1'); node.setAttribute('dur', '0.001s'); return; }
     const current = node.getAttribute('dur');
     if (!node.dataset.baseDur && current && /s$/.test(current)) node.dataset.baseDur = current;
     const base = node.dataset.baseDur;
@@ -46,192 +121,360 @@ function applySpeed(root) {
 }
 
 function renderS0(el) {
-  el.innerHTML = svgWrap(620, 340, `
-    <defs>
-      <linearGradient id="sky0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2d4f"/><stop offset="1" stop-color="#071126"/></linearGradient>
-      <linearGradient id="water0" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/></linearGradient>
-    </defs>
-    <rect width="620" height="340" fill="url(#sky0)"/>
-    <path d="M0 150 L210 110 L210 340 L0 340 Z" fill="#1e3a8a" opacity="0.45"/>
-    <rect x="200" y="85" width="18" height="160" fill="#475569"/>
-    <rect x="212" y="130" width="160" height="32" fill="url(#water0)" opacity="0.9">
-      <animate attributeName="y" values="130;135;130" dur="1.2s" repeatCount="indefinite"/>
-    </rect>
-    <circle cx="420" cy="180" r="52" fill="#0b1224" stroke="#38bdf8" stroke-width="4"/>
-    <g transform="translate(420 180)">
-      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2.2s" repeatCount="indefinite"/>
-      <path d="M0 0 L56 -9 L22 12 Z" fill="#67e8f9"/>
-      <path d="M0 0 L-56 9 L-22 -12 Z" fill="#67e8f9"/>
-      <path d="M0 0 L9 56 L-12 22 Z" fill="#38bdf8"/>
-      <path d="M0 0 L-9 -56 L12 -22 Z" fill="#38bdf8"/>
-      <circle r="8" fill="#e2e8f0"/>
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="url(#skyGrad)"/>
+    <path d="M0 150 L120 78 L230 150 L360 66 L520 150 L640 96 L640 400 L0 400 Z" fill="#0e223c" opacity="0.55"/>
+
+    <!-- Reservoir tank -->
+    <rect x="26" y="96" width="150" height="236" rx="12" fill="#0b1e38" stroke="#1e3a8a" stroke-width="2"/>
+    <clipPath id="resClip0"><rect x="30" y="118" width="142" height="210" rx="9"/></clipPath>
+    <g clip-path="url(#resClip0)">
+      <rect x="30" y="118" width="142" height="220" fill="url(#waterGrad)"/>
+      <path d="M30 130 Q 66 118 102 130 T 172 130 L172 338 L30 338 Z" fill="#7dd3fc" opacity="0.35">
+        <animate attributeName="d" dur="3.4s" repeatCount="indefinite"
+          values="M30 130 Q 66 118 102 130 T 172 130 L172 338 L30 338 Z;
+                  M30 128 Q 66 140 102 128 T 172 128 L172 338 L30 338 Z;
+                  M30 130 Q 66 118 102 130 T 172 130 L172 338 L30 338 Z"/>
+      </path>
     </g>
-    <rect x="468" y="160" width="72" height="40" rx="8" fill="#1e293b" stroke="#22c55e"/>
-    <circle cx="505" cy="180" r="8" fill="#22c55e">
-      <animate attributeName="r" values="8;11;8" dur="0.6s" repeatCount="indefinite"/>
-      <animate attributeName="fill" values="#22c55e;#4ade80;#22c55e" dur="0.6s" repeatCount="indefinite"/>
-    </circle>
-    <path d="M550 180 C560 165,570 195,580 180 C590 165,600 195,610 180" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="10 8">
-      <animate attributeName="stroke-dashoffset" from="0" to="-36" dur="0.8s" repeatCount="indefinite"/>
+
+    <!-- Dam wall -->
+    <path d="M170 96 L196 96 L206 336 L170 336 Z" fill="url(#metalGrad)" stroke="#334155"/>
+
+    <!-- Penstock pipe (metal casing + animated water) -->
+    <path d="M188 236 L300 312 L332 312" fill="none" stroke="url(#metalGrad)" stroke-width="30" stroke-linecap="round"/>
+    <path d="M188 236 L300 312 L332 312" fill="none" stroke="url(#waterFlow)" stroke-width="17" stroke-linecap="round" stroke-dasharray="20 16">
+      <animate attributeName="stroke-dashoffset" from="0" to="-72" dur="0.9s" repeatCount="indefinite"/>
     </path>
-    <text x="36" y="52" fill="#a5f3fc" font-size="14" data-label="1">Reservoir</text>
-    <text x="252" y="122" fill="#a5f3fc" font-size="13" data-label="1">Penstock Flow</text>
-    <text x="385" y="260" fill="#a5f3fc" font-size="13" data-label="1">Turbine</text>
-    <text x="472" y="226" fill="#86efac" font-size="13" data-label="1">Generator</text>
+
+    <!-- Powerhouse -->
+    <rect x="314" y="250" width="200" height="120" rx="14" fill="#0c1c34" stroke="#22d3ee" stroke-width="1.5" opacity="0.95"/>
+
+    <!-- Turbine -->
+    <circle cx="372" cy="312" r="40" fill="url(#glowAqua)"/>
+    <circle cx="372" cy="312" r="34" fill="#0b1224" stroke="#38bdf8" stroke-width="4" filter="url(#glow)"/>
+    ${spin(372, 312, 2, runnerBlades(30, 8, '#67e8f9', '#38bdf8') + '<circle r="7" fill="#e2e8f0"/>')}
+
+    <!-- Shaft to generator -->
+    <rect x="406" y="306" width="30" height="12" rx="6" fill="url(#metalGrad)"/>
+
+    <!-- Generator -->
+    <rect x="434" y="278" width="66" height="68" rx="10" fill="#12233c" stroke="#22c55e" stroke-width="2" filter="url(#drop)"/>
+    <circle cx="467" cy="312" r="16" fill="url(#glowGreen)"/>
+    <circle cx="467" cy="312" r="9" fill="#22c55e" filter="url(#glow)">
+      <animate attributeName="r" values="8;11;8" dur="0.7s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#22c55e;#4ade80;#22c55e" dur="0.7s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Transmission line + pulses to grid -->
+    <line x1="500" y1="312" x2="600" y2="200" stroke="#22c55e" stroke-width="3" opacity="0.5"/>
+    <line x1="500" y1="312" x2="600" y2="200" stroke="#4ade80" stroke-width="3" stroke-dasharray="6 12" filter="url(#glow)">
+      <animate attributeName="stroke-dashoffset" from="0" to="-54" dur="0.7s" repeatCount="indefinite"/>
+    </line>
+    <path d="M580 210 L600 150 L620 210" fill="none" stroke="#94a3b8" stroke-width="3"/>
+    <line x1="576" y1="176" x2="624" y2="176" stroke="#94a3b8" stroke-width="2.5"/>
+    <line x1="583" y1="192" x2="617" y2="192" stroke="#94a3b8" stroke-width="2.5"/>
+
+    ${VIGNETTE}
+    <text x="34" y="86" fill="#a5f3fc" font-size="14" font-weight="700" data-label="1">Reservoir</text>
+    <text x="214" y="248" fill="#a5f3fc" font-size="12.5" data-label="1">Penstock</text>
+    <text x="330" y="366" fill="#a5f3fc" font-size="12.5" data-label="1">Turbine</text>
+    <text x="452" y="366" fill="#86efac" font-size="12.5" data-label="1">Generator</text>
+    <text x="566" y="140" fill="#bbf7d0" font-size="12.5" data-label="1">To Grid</text>
   `);
 }
 
 function renderS1(el) {
-  const bubbles = Array.from({ length: 18 }, (_, i) => {
-    const x = 320 + i * 16;
-    const y = 178 + (i % 4) * 8;
-    return `<circle cx="${x}" cy="${y}" r="2.4" fill="#e0f2fe"><animate attributeName="cy" values="${y};${y - 30};${y}" dur="${0.9 + (i % 4) * 0.2}s" repeatCount="indefinite"/></circle>`;
+  const bubbles = Array.from({ length: 16 }, (_, i) => {
+    const x = 330 + i * 18;
+    const y = 250 + (i % 4) * 9;
+    const dur = (0.9 + (i % 4) * 0.25).toFixed(2);
+    return `<circle cx="${x}" cy="${y}" r="2.4" fill="#e0f2fe" opacity="0.85"><animate attributeName="cy" values="${y};${y - 22};${y}" dur="${dur}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0.9;0.4" dur="${dur}s" repeatCount="indefinite"/></circle>`;
   }).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#081a35"/>
-    <path d="M0 40 L0 340 L260 340 L260 140 Q240 95 190 70 Z" fill="#1e3a8a" opacity="0.48"/>
-    <rect x="252" y="90" width="22" height="190" fill="#64748b"/>
-    <rect x="275" y="102" width="24" height="120" fill="#94a3b8">
-      <animate attributeName="y" values="72;102;72" dur="2s" repeatCount="indefinite"/>
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#07182f"/>
+    <path d="M0 70 L0 400 L300 400 L300 168 Q 252 96 150 74 Z" fill="#122a49" opacity="0.6"/>
+
+    <!-- Reservoir water -->
+    <clipPath id="resClip1"><rect x="0" y="120" width="300" height="260"/></clipPath>
+    <g clip-path="url(#resClip1)">
+      <rect x="0" y="120" width="300" height="260" fill="url(#waterGrad)"/>
+      <path d="M0 134 Q 60 120 120 134 T 300 134 L300 380 L0 380 Z" fill="#7dd3fc" opacity="0.3">
+        <animate attributeName="d" dur="3s" repeatCount="indefinite"
+          values="M0 134 Q 60 120 120 134 T 300 134 L300 380 L0 380 Z;
+                  M0 132 Q 60 146 120 132 T 300 132 L300 380 L0 380 Z;
+                  M0 134 Q 60 120 120 134 T 300 134 L300 380 L0 380 Z"/>
+      </path>
+    </g>
+
+    <!-- Dam wall + moving gate -->
+    <rect x="292" y="96" width="30" height="248" fill="url(#metalGrad)" stroke="#334155"/>
+    <rect x="298" y="120" width="18" height="150" rx="3" fill="#cbd5e1" stroke="#94a3b8">
+      <animate attributeName="y" values="120;80;120" dur="3.4s" repeatCount="indefinite"/>
+      <animate attributeName="height" values="150;110;150" dur="3.4s" repeatCount="indefinite"/>
     </rect>
-    <path d="M300 162 C350 150,410 180,470 170 C520 160,560 186,620 174 L620 230 L300 230 Z" fill="#38bdf8" opacity="0.86">
-      <animate attributeName="d" dur="1s" repeatCount="indefinite"
-        values="M300 162 C350 150,410 180,470 170 C520 160,560 186,620 174 L620 230 L300 230 Z;
-                M300 166 C350 157,410 173,470 177 C520 167,560 180,620 178 L620 230 L300 230 Z;
-                M300 162 C350 150,410 180,470 170 C520 160,560 186,620 174 L620 230 L300 230 Z"/>
+    <line x1="307" y1="72" x2="307" y2="120" stroke="#64748b" stroke-width="4">
+      <animate attributeName="y2" values="120;80;120" dur="3.4s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Intake tunnel -->
+    <rect x="300" y="238" width="340" height="92" fill="#0a1a30" stroke="#1e3a5f"/>
+    <path d="M300 260 C 370 250 440 276 512 266 C 560 260 600 280 640 272 L640 322 L300 322 Z" fill="url(#waterFlow)" opacity="0.88">
+      <animate attributeName="d" dur="1.1s" repeatCount="indefinite"
+        values="M300 260 C 370 250 440 276 512 266 C 560 260 600 280 640 272 L640 322 L300 322 Z;
+                M300 264 C 370 256 440 270 512 274 C 560 264 600 274 640 276 L640 322 L300 322 Z;
+                M300 260 C 370 250 440 276 512 266 C 560 260 600 280 640 272 L640 322 L300 322 Z"/>
     </path>
     ${bubbles}
-    <text x="30" y="64" fill="#a5f3fc" font-size="14" data-label="1">Stored Head Water</text>
-    <text x="272" y="86" fill="#f1f5f9" font-size="12" data-label="1">Intake Gate</text>
+
+    ${VIGNETTE}
+    <text x="40" y="108" fill="#a5f3fc" font-size="14" font-weight="700" data-label="1">Stored Head Water</text>
+    <text x="300" y="66" fill="#f1f5f9" font-size="12.5" data-label="1">Intake Gate</text>
+    <text x="486" y="316" fill="#a5f3fc" font-size="12.5" data-label="1">To Penstock →</text>
   `);
 }
 
 function renderS2(el) {
-  const drops = Array.from({ length: 24 }, (_, i) => {
-    const x = 140 + i * 16;
-    const y = i % 2 ? 146 : 184;
-    const dur = (1.2 + (i % 5) * 0.1).toFixed(2);
-    const wobble = ((i % 3) - 1) * 7;
-    const pulseDur = (Number(dur) * 0.55).toFixed(2);
-    return `<circle cx="${x}" cy="${y}" r="${(2.6 + (i % 3) * 0.4).toFixed(1)}" fill="#bae6fd" opacity="0.9">
-      <animate attributeName="cx" from="${x}" to="530" dur="${dur}s" repeatCount="indefinite"/>
-      <animate attributeName="cy" values="${y};${y + wobble};${y}" dur="${pulseDur}s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.55;1;0.75" dur="${pulseDur}s" repeatCount="indefinite"/>
+  // Particles accelerate down the sloped penstock: linear path from (70,96) -> (470,300).
+  const drops = Array.from({ length: 22 }, (_, i) => {
+    const t0 = i / 22;
+    const dur = (1.5 + (i % 4) * 0.15).toFixed(2);
+    const off = ((i % 3) - 1) * 10;
+    const r = (2.4 + (i % 3) * 0.6).toFixed(1);
+    // begin offset spreads particles along the pipe
+    const begin = (-t0 * Number(dur)).toFixed(2);
+    return `<circle r="${r}" fill="#bae6fd" opacity="0.9">
+      <animateMotion path="M70 96 L470 300" dur="${dur}s" begin="${begin}s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.4 0 1 1"/>
+      <animate attributeName="opacity" values="0.4;1;0.5" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0 ${off};0 ${-off};0 ${off}" dur="0.6s" repeatCount="indefinite" additive="sum"/>
     </circle>`;
   }).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#07152e"/>
-    <rect x="74" y="112" width="470" height="110" rx="54" fill="#1e293b" stroke="#38bdf8" stroke-width="4"/>
-    <rect x="84" y="122" width="450" height="90" rx="45" fill="#0f172a"/>
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#07152e"/>
+
+    <!-- Penstock casing (sloped) -->
+    <path d="M60 78 L484 296" fill="none" stroke="url(#metalGrad)" stroke-width="52" stroke-linecap="round"/>
+    <path d="M60 78 L484 296" fill="none" stroke="#0f1e36" stroke-width="40" stroke-linecap="round"/>
+    <path d="M60 78 L484 296" fill="none" stroke="url(#waterFlow)" stroke-width="30" stroke-linecap="round" opacity="0.35"/>
     ${drops}
-    <circle cx="560" cy="70" r="38" fill="#0f172a" stroke="#22d3ee" stroke-width="3">
-      <animate attributeName="stroke" values="#22d3ee;#67e8f9;#22d3ee" dur="0.8s" repeatCount="indefinite"/>
-    </circle>
-    <line x1="560" y1="70" x2="586" y2="70" stroke="#22d3ee" stroke-width="4" stroke-linecap="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 560 70;22 560 70;0 560 70" dur="0.8s" repeatCount="indefinite"/>
+    <!-- casing rib bands -->
+    ${Array.from({ length: 5 }, (_, i) => {
+      const t = 0.15 + i * 0.17;
+      const x = 60 + (484 - 60) * t;
+      const y = 78 + (296 - 78) * t;
+      return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="27" fill="none" stroke="#64748b" stroke-width="2" opacity="0.5"/>`;
+    }).join('')}
+
+    <!-- Turbine entry nozzle -->
+    <path d="M470 276 L520 300 L520 336 L470 320 Z" fill="#1e293b" stroke="#22d3ee" stroke-width="2"/>
+    <circle cx="524" cy="318" r="8" fill="url(#glowAqua)"/>
+
+    <!-- Pressure gauge -->
+    <circle cx="556" cy="92" r="44" fill="#0f172a" stroke="#22d3ee" stroke-width="3"/>
+    <circle cx="556" cy="92" r="44" fill="url(#glowAqua)" opacity="0.25"/>
+    ${Array.from({ length: 7 }, (_, i) => {
+      const a = (-120 + i * 40) * Math.PI / 180;
+      const x1 = 556 + Math.cos(a) * 34, y1 = 92 + Math.sin(a) * 34;
+      const x2 = 556 + Math.cos(a) * 40, y2 = 92 + Math.sin(a) * 40;
+      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#67e8f9" stroke-width="2"/>`;
+    }).join('')}
+    <line x1="556" y1="92" x2="556" y2="58" stroke="#f87171" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)">
+      <animateTransform attributeName="transform" type="rotate" values="-70 556 92; 70 556 92; -70 556 92" dur="2.4s" repeatCount="indefinite"/>
     </line>
-    <text x="560" y="75" fill="#67e8f9" font-size="11" text-anchor="middle" data-label="1">PSI</text>
-    <text x="214" y="246" fill="#a5f3fc" font-size="13" data-label="1">Pressurized Penstock</text>
+    <circle cx="556" cy="92" r="5" fill="#e2e8f0"/>
+    <text x="556" y="126" fill="#67e8f9" font-size="11" font-weight="700" text-anchor="middle" data-label="1">HEAD PSI</text>
+
+    ${VIGNETTE}
+    <text x="150" y="196" fill="#a5f3fc" font-size="13" font-weight="700" transform="rotate(27 150 196)" data-label="1">Pressurized Penstock</text>
+    <text x="470" y="356" fill="#a5f3fc" font-size="12" data-label="1">Turbine Entry</text>
   `);
 }
 
 function renderS3(el) {
-  const blades = Array.from({ length: 8 }, (_, i) => `<path d="M0 0 L64 10 L16 18 Z" fill="${i % 2 ? '#67e8f9' : '#22d3ee'}" transform="rotate(${i * 45})"/>`).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#061226"/>
-    <path d="M0 152 C80 146,140 188,208 174 C266 162,314 180,362 170" stroke="#38bdf8" stroke-width="42" fill="none" opacity="0.8" stroke-dasharray="30 22">
-      <animate attributeName="stroke-dashoffset" from="0" to="-90" dur="0.8s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.72;0.92;0.72" dur="1s" repeatCount="indefinite"/>
-    </path>
-    <circle cx="420" cy="172" r="76" fill="#111827" stroke="#22d3ee" stroke-width="4"/>
-    <g transform="translate(420 172)">
-      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="1.1s" repeatCount="indefinite"/>
-      ${blades}
-      <circle r="12" fill="#e2e8f0"/>
-    </g>
-    <rect x="490" y="166" width="88" height="12" rx="6" fill="#94a3b8">
-      <animate attributeName="x" values="490;493;496;493;490" dur="0.45s" repeatCount="indefinite"/>
-      <animate attributeName="y" values="166;164;166;168;166" dur="0.45s" repeatCount="indefinite"/>
+  // Water jet particles striking the runner.
+  const jet = Array.from({ length: 14 }, (_, i) => {
+    const dur = (0.7 + (i % 3) * 0.1).toFixed(2);
+    const begin = (-(i / 14) * Number(dur)).toFixed(2);
+    const y = 200 + ((i % 5) - 2) * 6;
+    return `<circle r="${(3 - (i % 2)).toFixed(1)}" fill="#bae6fd">
+      <animate attributeName="cx" from="60" to="252" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="${y};${200};200" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.9;1;0.2" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>
+    </circle>`;
+  }).join('');
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#061226"/>
+
+    <!-- Feed pipe + jet nozzle -->
+    <rect x="0" y="184" width="66" height="32" rx="6" fill="url(#metalGrad)"/>
+    <path d="M66 184 L92 196 L92 204 L66 216 Z" fill="#1e293b" stroke="#22d3ee"/>
+    ${jet}
+
+    <!-- Runner glow + housing -->
+    <circle cx="330" cy="200" r="108" fill="url(#glowAqua)" opacity="0.5"/>
+    <circle cx="330" cy="200" r="92" fill="#0d1830" stroke="#1e3a5f" stroke-width="10" filter="url(#drop)"/>
+    <circle cx="330" cy="200" r="80" fill="#111c33" stroke="#22d3ee" stroke-width="3" filter="url(#glow)"/>
+
+    <!-- Spinning runner (correct pivot) -->
+    ${spin(330, 200, 1, runnerBlades(72, 12, '#67e8f9', '#22d3ee') + '<circle r="16" fill="#e2e8f0"/><circle r="8" fill="#94a3b8"/>')}
+
+    <!-- Drive shaft to generator with subtle vibration -->
+    <rect x="422" y="192" width="150" height="16" rx="8" fill="url(#metalGrad)">
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -1.5;0 1.5;0 0" dur="0.4s" repeatCount="indefinite"/>
     </rect>
-    <text x="378" y="270" fill="#a5f3fc" font-size="13" data-label="1">Runner Blades</text>
-    <text x="520" y="160" fill="#cbd5e1" font-size="12" data-label="1">Drive Shaft</text>
+    <circle cx="560" cy="200" r="20" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    ${spin(560, 200, 1, '<line x1="0" y1="0" x2="0" y2="-16" stroke="#94a3b8" stroke-width="3"/><line x1="0" y1="0" x2="14" y2="8" stroke="#94a3b8" stroke-width="3"/>')}
+
+    ${VIGNETTE}
+    <text x="12" y="176" fill="#a5f3fc" font-size="12" data-label="1">Water Jet</text>
+    <text x="288" y="316" fill="#a5f3fc" font-size="13" font-weight="700" data-label="1">Runner Blades</text>
+    <text x="472" y="180" fill="#cbd5e1" font-size="12" data-label="1">Drive Shaft →</text>
   `);
 }
 
 function renderS4(el) {
-  const wave = Array.from({ length: 44 }, (_, i) => `${i ? 'L' : 'M'}${350 + i * 6} ${172 + Math.sin(i / 3) * 26}`).join(' ');
-  const coils = Array.from({ length: 6 }, (_, i) => `<rect x="${110 + i * 30}" y="120" width="18" height="108" rx="9" fill="none" stroke="#22c55e" stroke-width="3"><animate attributeName="stroke" values="#22c55e;#86efac;#22c55e" dur="${0.7 + i * 0.1}s" repeatCount="indefinite"/></rect>`).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#07152c"/>
-    <rect x="82" y="94" width="228" height="160" rx="16" fill="#0f172a" stroke="#22c55e" stroke-width="3"/>
-    <g transform="translate(196 174)">
-      <animateTransform attributeName="transform" type="rotate" from="0 196 174" to="360 196 174" dur="1.25s" repeatCount="indefinite"/>
-      <circle cx="196" cy="174" r="52" fill="#1e293b" stroke="#22d3ee" stroke-width="4" transform="translate(-196 -174)"/>
-      <rect x="190" y="126" width="12" height="96" rx="6" fill="#67e8f9"/>
-      <rect x="148" y="168" width="96" height="12" rx="6" fill="#67e8f9"/>
-    </g>
+  const cx = 210, cy = 200;
+  // Stator coils arranged around the rotor.
+  const coils = Array.from({ length: 12 }, (_, i) => {
+    const a = (i * 30) * Math.PI / 180;
+    const x = cx + Math.cos(a) * 108;
+    const y = cy + Math.sin(a) * 108;
+    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${i * 30})">
+      <rect x="-9" y="-16" width="18" height="32" rx="6" fill="none" stroke="url(#copperGrad)" stroke-width="4"/>
+      <rect x="-9" y="-16" width="18" height="32" rx="6" fill="none" stroke="#4ade80" stroke-width="2">
+        <animate attributeName="stroke-opacity" values="0.15;1;0.15" dur="1.4s" begin="${(i * 0.1).toFixed(2)}s" repeatCount="indefinite"/>
+      </rect>
+    </g>`;
+  }).join('');
+  // AC output waveform (moving).
+  const wave = Array.from({ length: 60 }, (_, i) => `${i ? 'L' : 'M'}${380 + i * 4} ${200 - Math.sin(i / 4) * 46}`).join(' ');
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#07152c"/>
+
+    <!-- Stator housing -->
+    <circle cx="${cx}" cy="${cy}" r="140" fill="url(#glowGreen)" opacity="0.25"/>
+    <circle cx="${cx}" cy="${cy}" r="128" fill="#0c1c30" stroke="#166534" stroke-width="3" filter="url(#drop)"/>
     ${coils}
-    <path d="${wave}" fill="none" stroke="#4ade80" stroke-width="3" stroke-dasharray="16 10">
-      <animate attributeName="stroke-dashoffset" from="0" to="-70" dur="0.85s" repeatCount="indefinite"/>
+    <circle cx="${cx}" cy="${cy}" r="86" fill="#0a1424" stroke="#22c55e" stroke-width="2"/>
+
+    <!-- Rotating flux field lines -->
+    ${spin(cx, cy, 1.4, Array.from({ length: 4 }, (_, i) => `<ellipse rx="78" ry="30" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.4" transform="rotate(${i * 45})"/>`).join(''))}
+
+    <!-- Rotor: spinning bar magnet with N/S poles -->
+    ${spin(cx, cy, 1.4, `
+      <rect x="-24" y="-72" width="48" height="72" rx="10" fill="#ef4444" filter="url(#glow)"/>
+      <rect x="-24" y="0" width="48" height="72" rx="10" fill="#3b82f6" filter="url(#glow)"/>
+      <text x="0" y="-40" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">N</text>
+      <text x="0" y="52" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">S</text>
+      <circle r="12" fill="#e2e8f0"/>
+    `)}
+
+    <!-- Brushes / output tap -->
+    <line x1="${cx + 86}" y1="${cy}" x2="368" y2="${cy}" stroke="#94a3b8" stroke-width="4"/>
+
+    <!-- AC waveform panel -->
+    <rect x="368" y="120" width="256" height="160" rx="12" fill="#08182e" stroke="#166534" stroke-width="1.5" filter="url(#drop)"/>
+    <line x1="380" y1="200" x2="620" y2="200" stroke="#1e3a2f" stroke-width="1.5"/>
+    <path d="${wave}" fill="none" stroke="#4ade80" stroke-width="3" stroke-dasharray="14 10" filter="url(#glow)">
+      <animate attributeName="stroke-dashoffset" from="0" to="-72" dur="0.9s" repeatCount="indefinite"/>
     </path>
-    <text x="148" y="274" fill="#bbf7d0" font-size="12" data-label="1">Rotor + Stator</text>
-    <text x="396" y="248" fill="#86efac" font-size="12" data-label="1">AC Waveform</text>
+    <circle r="5" fill="#bbf7d0" filter="url(#glow)">
+      <animateMotion path="${wave}" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+
+    ${VIGNETTE}
+    <text x="${cx}" y="360" fill="#bbf7d0" font-size="13" font-weight="700" text-anchor="middle" data-label="1">Rotor + Stator</text>
+    <text x="496" y="304" fill="#86efac" font-size="12.5" text-anchor="middle" data-label="1">AC Output</text>
   `);
 }
 
 function renderS5(el) {
-  const pulses = [230, 260, 290].map((x, i) => {
-    const dur = (1.3 + i * 0.2).toFixed(2);
-    return `<circle cx="${x}" cy="167" r="5" fill="#22d3ee">
-      <animate attributeName="cx" from="${x}" to="530" dur="${dur}s" repeatCount="indefinite"/>
-      <animate attributeName="cy" values="167;${163 + i};167;${170 - i};167" dur="${(Number(dur) * 0.7).toFixed(2)}s" repeatCount="indefinite"/>
-      <animate attributeName="r" values="4.2;5.6;4.2" dur="${(Number(dur) * 0.6).toFixed(2)}s" repeatCount="indefinite"/>
+  // Traveling energy pulses along the transmission wires.
+  const wireY = [150, 178, 206];
+  const pulses = wireY.map((y, i) => {
+    const dur = (1.6 + i * 0.2).toFixed(2);
+    return `<circle r="5.5" fill="#67e8f9" filter="url(#glow)">
+      <animate attributeName="cx" from="250" to="600" dur="${dur}s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="${y};${y};${y}" dur="${dur}s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="${dur}s" repeatCount="indefinite"/>
     </circle>`;
   }).join('');
+  const tower = (x) => `
+    <path d="M${x - 34} 300 L${x} 128 L${x + 34} 300" fill="none" stroke="#cbd5e1" stroke-width="4"/>
+    <path d="M${x - 22} 232 L${x + 22} 232" stroke="#cbd5e1" stroke-width="3"/>
+    <path d="M${x - 28} 268 L${x + 28} 268" stroke="#cbd5e1" stroke-width="3"/>
+    <path d="M${x - 12} 172 L${x + 12} 172" stroke="#cbd5e1" stroke-width="3"/>
+    <circle cx="${x}" cy="150" r="3" fill="#94a3b8"/>`;
   const city = [
-    { x: 540, y: 170, w: 26, h: 70 },
-    { x: 572, y: 154, w: 36, h: 86 },
-    { x: 518, y: 186, w: 18, h: 54 }
-  ].map((b, i) => `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="#334155"><animate attributeName="fill" values="#334155;#0ea5e9;#334155" dur="${0.8 + i * 0.2}s" repeatCount="indefinite"/></rect>`).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#06132a"/>
-    <rect x="64" y="122" width="150" height="90" rx="12" fill="#1e293b" stroke="#22d3ee" stroke-width="3"/>
-    <rect x="96" y="140" width="28" height="54" fill="none" stroke="#67e8f9" stroke-width="3"/>
-    <rect x="152" y="132" width="36" height="70" fill="none" stroke="#22d3ee" stroke-width="3"/>
-    <line x1="214" y1="167" x2="336" y2="167" stroke="#22d3ee" stroke-width="5"/>
-    <g>
-      <path d="M362 240 L386 100 L410 240" stroke="#cbd5e1" stroke-width="4" fill="none"><animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="1s" repeatCount="indefinite"/></path>
-      <path d="M452 240 L476 96 L500 240" stroke="#cbd5e1" stroke-width="4" fill="none"><animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="1.1s" repeatCount="indefinite"/></path>
+    { x: 556, y: 220, w: 26, h: 100 }, { x: 588, y: 190, w: 34, h: 130 },
+    { x: 526, y: 246, w: 22, h: 74 }
+  ].map((b, i) => {
+    const windows = Array.from({ length: Math.floor(b.h / 20) }, (_, r) =>
+      `<rect x="${b.x + 5}" y="${b.y + 8 + r * 18}" width="6" height="8" fill="#0ea5e9"><animate attributeName="opacity" values="0.3;1;0.3" dur="${(1 + (i + r) % 3 * 0.4).toFixed(1)}s" repeatCount="indefinite"/></rect>`
+    ).join('');
+    return `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="3" fill="#1e293b" stroke="#334155"/>${windows}`;
+  }).join('');
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#06132a"/>
+
+    <!-- Step-up transformer -->
+    <rect x="40" y="150" width="170" height="110" rx="14" fill="#12233c" stroke="#22d3ee" stroke-width="2.5" filter="url(#drop)"/>
+    <g stroke="url(#copperGrad)" stroke-width="3" fill="none">
+      <rect x="78" y="176" width="30" height="60" rx="4"/>
+      <rect x="140" y="168" width="38" height="76" rx="4"/>
     </g>
-    <line x1="330" y1="126" x2="532" y2="126" stroke="#38bdf8" stroke-width="4"/>
-    <line x1="330" y1="150" x2="532" y2="150" stroke="#38bdf8" stroke-width="4"/>
-    <line x1="330" y1="174" x2="532" y2="174" stroke="#38bdf8" stroke-width="4"/>
-    ${city}
+    <circle cx="123" cy="206" r="10" fill="url(#glowAqua)"/>
+    <!-- Incoming line -->
+    <line x1="0" y1="206" x2="40" y2="206" stroke="#22c55e" stroke-width="4"/>
+    <!-- Bushings up to lines -->
+    <line x1="210" y1="178" x2="250" y2="178" stroke="#38bdf8" stroke-width="4"/>
+
+    <!-- Transmission wires -->
+    ${wireY.map((y) => `<line x1="250" y1="${y}" x2="600" y2="${y}" stroke="#1e3a5f" stroke-width="4"/>`).join('')}
+    ${tower(340)} ${tower(460)}
     ${pulses}
-    <text x="76" y="112" fill="#a5f3fc" font-size="12" data-label="1">Step-Up Transformer</text>
-    <text x="432" y="86" fill="#a5f3fc" font-size="12" data-label="1">Transmission</text>
-    <text x="540" y="254" fill="#a5f3fc" font-size="12" data-label="1">City Load</text>
+    ${city}
+
+    ${VIGNETTE}
+    <text x="52" y="140" fill="#a5f3fc" font-size="12.5" font-weight="700" data-label="1">Step-Up Transformer</text>
+    <text x="372" y="118" fill="#a5f3fc" font-size="12.5" data-label="1">Transmission Grid</text>
+    <text x="548" y="340" fill="#a5f3fc" font-size="12.5" data-label="1">City Load</text>
   `);
 }
 
 function renderS6(el) {
-  const blades = Array.from({ length: 6 }, (_, i) => `<path d="M0 0 L52 8 L14 14 Z" fill="${i % 2 ? '#67e8f9' : '#22d3ee'}" transform="rotate(${i * 60})"/>`).join('');
-  el.innerHTML = svgWrap(620, 340, `
-    <rect width="620" height="340" fill="#07142b"/>
-    <rect x="70" y="130" width="220" height="20" rx="10" fill="#0f172a" stroke="#22d3ee"/>
-    <rect id="s6-flowbar" x="72" y="132" width="152" height="16" rx="8" fill="#22d3ee"/>
-    <circle cx="398" cy="172" r="62" fill="#111827" stroke="#22d3ee" stroke-width="4"/>
-    <g id="s6-fan" transform="translate(398 172)">
-      <animateTransform id="s6-spin" attributeName="transform" type="rotate" from="0" to="360" dur="1.3s" repeatCount="indefinite"/>
-      ${blades}
-    </g>
-    <rect x="486" y="132" width="82" height="80" rx="8" fill="#1e293b" stroke="#22c55e"/>
-    <circle id="s6-led" cx="526" cy="172" r="9" fill="#22c55e">
-      <animate attributeName="r" values="9;12;9" dur="0.6s" repeatCount="indefinite"/>
+  el.innerHTML = svgWrap(`
+    <rect width="640" height="400" fill="#07142b"/>
+
+    <!-- Gate flow meter -->
+    <text x="60" y="120" fill="#a5f3fc" font-size="13" font-weight="700" data-label="1">Gate Flow</text>
+    <rect x="58" y="134" width="220" height="26" rx="13" fill="#0c1c34" stroke="#22d3ee" stroke-width="1.5"/>
+    <rect id="s6-flowbar" x="61" y="137" width="150" height="20" rx="10" fill="url(#waterFlow)" filter="url(#glow)"/>
+
+    <!-- Flow arrow into turbine -->
+    <path d="M278 147 L318 147" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8 8">
+      <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="0.6s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Turbine -->
+    <circle cx="356" cy="200" r="80" fill="url(#glowAqua)" opacity="0.4"/>
+    <circle cx="356" cy="200" r="66" fill="#101c33" stroke="#22d3ee" stroke-width="4" filter="url(#glow)"/>
+    ${spin(356, 200, 1.3, runnerBlades(58, 8, '#67e8f9', '#22d3ee') + '<circle r="12" fill="#e2e8f0"/>', 's6-fan', 's6-spin')}
+    <text x="356" y="308" fill="#a5f3fc" font-size="13" font-weight="700" text-anchor="middle" data-label="1">Turbine Speed</text>
+
+    <!-- Shaft to output -->
+    <rect x="422" y="194" width="40" height="12" rx="6" fill="url(#metalGrad)"/>
+
+    <!-- MW output gauge -->
+    <rect x="462" y="132" width="140" height="140" rx="16" fill="#12233c" stroke="#22c55e" stroke-width="2" filter="url(#drop)"/>
+    <circle cx="532" cy="196" r="34" fill="url(#glowGreen)"/>
+    <circle id="s6-led" cx="532" cy="196" r="18" fill="#22c55e" filter="url(#glow)">
+      <animate attributeName="r" values="16;21;16" dur="0.7s" repeatCount="indefinite"/>
     </circle>
-    <text x="78" y="118" fill="#a5f3fc" font-size="12" data-label="1">Gate Flow</text>
-    <text x="356" y="262" fill="#a5f3fc" font-size="12" data-label="1">Turbine Speed</text>
-    <text x="488" y="224" fill="#86efac" font-size="12" data-label="1">MW Output</text>
+    <text x="532" y="254" fill="#86efac" font-size="13" font-weight="700" text-anchor="middle" data-label="1">MW Output</text>
+
+    ${VIGNETTE}
+    <text x="58" y="360" fill="#94a3b8" font-size="12" data-label="1">Move the Gate Opening slider — flow, RPM and power respond live.</text>
   `);
 }
 
@@ -258,7 +501,7 @@ function goTo(idx) {
     RENDERERS[curScene](vis);
     applySpeed(vis);
   }
-  if (audio.enabled) audio.pulse(320 + curScene * 40);
+  if (audio.enabled) audio.chime(294 + curScene * 33);
   updateUI();
   updateMetrics();
 }
@@ -271,7 +514,8 @@ function initBg() {
   const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
   resize();
   window.addEventListener('resize', resize);
-  for (let i = 0; i < 65; i++) {
+  const count = reduceMotion ? 28 : 65;
+  for (let i = 0; i < count; i++) {
     points.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 0.5, vy: -(Math.random() * 0.35 + 0.08), vx: (Math.random() - 0.5) * 0.2, a: Math.random() * 0.35 + 0.05 });
   }
   const draw = () => {
@@ -281,12 +525,13 @@ function initBg() {
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(34,211,238,${p.a})`;
       ctx.fill();
+      if (reduceMotion) continue;
       p.x += p.vx; p.y += p.vy;
       if (p.y < -5) { p.y = canvas.height + 5; p.x = Math.random() * canvas.width; }
       if (p.x < -5) p.x = canvas.width + 5;
       if (p.x > canvas.width + 5) p.x = -5;
     }
-    requestAnimationFrame(draw);
+    if (!reduceMotion) requestAnimationFrame(draw);
   };
   draw();
 }
@@ -347,6 +592,21 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => goTo(i));
     dotNav.appendChild(btn);
   }
+
+  // Touch-swipe navigation on the scene area.
+  const shell = $('app');
+  let touchX = 0, touchY = 0;
+  shell.addEventListener('touchstart', (e) => {
+    touchX = e.changedTouches[0].clientX; touchY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  shell.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    const dy = e.changedTouches[0].clientY - touchY;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0 && curScene < TOTAL - 1) goTo(curScene + 1);
+      if (dx > 0 && curScene > 0) goTo(curScene - 1);
+    }
+  }, { passive: true });
 
   initBg();
   goTo(0);

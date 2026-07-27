@@ -758,3 +758,20 @@ body {
   .ctrl-btn { padding: 0 12px; font-size: 0.85rem; }
   .dot-nav { gap: 6px; }
 }
+
+/* ─── Reduced motion (accessibility) ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .scene, .reveal-up, .key-points, .status-chip { animation: none !important; }
+  .scene-visual { transform: none !important; transition: none !important; }
+  .scene-visual:hover { box-shadow: 0 0 0 1px rgba(56,189,248,0.04),
+              0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03); }
+  .ctrl-btn:hover:not(:disabled) { transform: none; }
+  .key-points li:hover { transform: none; }
+  .dot-pulse, [class*="dot-"] { animation: none !important; }
+}

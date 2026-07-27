@@ -151,6 +151,7 @@ let curScene = 0;
 const TOTAL  = 8;
 let tl  = null;   // active GSAP timeline
 let spd = 1;      // animation speed multiplier
+const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 /* ══════════════════════════════════════════════════════════════════════════
    HELPERS
@@ -186,11 +187,21 @@ function wheel(cx, cy, r, id) {
   </g>`;
 }
 
-/** Common SVG wrapper with shared defs. */
+/** Common SVG wrapper with shared defs. Adds a small padding margin around the
+ *  viewBox so scene titles/captions near the edges are never clipped. */
 function svgWrap(w, h, content) {
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"
-    style="width:100%;height:100%;max-height:360px" role="img" aria-hidden="true">
+  const pad = 14;
+  return `<svg viewBox="${-pad} ${-pad} ${w + pad * 2} ${h + pad * 2}" xmlns="http://www.w3.org/2000/svg"
+    preserveAspectRatio="xMidYMid meet"
+    style="width:100%;height:100%;max-height:440px;display:block" role="img" aria-hidden="true">
   <defs>
+    <!-- Air-flow particle glow -->
+    <radialGradient id="dot-blue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#dbeafe"/><stop offset="60%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dot-red" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fee2e2"/><stop offset="60%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c" stop-opacity="0"/>
+    </radialGradient>
     <!-- Arrow markers -->
     <marker id="arr-a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0,8 3,0 6" fill="${C.amber}"/></marker>
@@ -298,8 +309,59 @@ function svgWrap(w, h, content) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SCENE 0 — SYSTEM OVERVIEW (full truck side view)
+   AIR-FLOW PARTICLES  (reusable "working model" pressure animation)
+   Emits glowing dots that travel along a hidden guide <path>, giving a clear
+   sense of air moving through the pipes — blue = resting, red = active.
 ══════════════════════════════════════════════════════════════════════════ */
+const _flows = [];   // active flow RAF controllers (cleared on scene change)
+
+/** Build the SVG markup: a hidden guide path + a group of dots. */
+function flowMarkup(id, d, count = 5, color = 'blue') {
+  const dots = new Array(count).fill(0)
+    .map((_, i) => `<circle class="flow-dot ${id}-dot" r="4.5" fill="url(#dot-${color})"/>`).join('');
+  return `<path id="${id}-path" d="${d}" fill="none" stroke="none"/>
+          <g class="${id}-dots">${dots}</g>`;
+}
+
+/** Animate the dots of a flow travelling from path start → end, looping. */
+function startFlow(id, dur = 2.2) {
+  const path = document.getElementById(`${id}-path`);
+  if (!path) return;
+  const dots = Array.from(document.querySelectorAll(`.${id}-dot`));
+  if (!dots.length) return;
+  const total = path.getTotalLength();
+  if (!total) return;
+  // Reduced motion: distribute dots statically along the pipe, no looping.
+  if (reduceMotion) {
+    dots.forEach((dot, i) => {
+      const pt = path.getPointAtLength(((i + 0.5) / dots.length) * total);
+      dot.setAttribute('cx', pt.x.toFixed(1));
+      dot.setAttribute('cy', pt.y.toFixed(1));
+    });
+    return;
+  }
+  const state = { running: true };
+  dots.forEach((dot, i) => {
+    const tracker = { p: i / dots.length };
+    const tw = gsap.to(tracker, {
+      p: tracker.p + 1, duration: dur / spd, ease: 'none', repeat: -1,
+      onUpdate: () => {
+        const pt = path.getPointAtLength((tracker.p % 1) * total);
+        dot.setAttribute('cx', pt.x.toFixed(1));
+        dot.setAttribute('cy', pt.y.toFixed(1));
+      },
+    });
+    state[`tw${i}`] = tw;
+  });
+  _flows.push({ id, dots, kill: () => dots.forEach((_, i) => state[`tw${i}`]?.kill()) });
+}
+
+function killFlows() {
+  _flows.forEach(f => f.kill && f.kill());
+  _flows.length = 0;
+}
+
+
 function renderS0(el) {
   const W = 580, H = 290;
   const groundY = 258, frameY = 200, fH = 22;
@@ -867,10 +929,10 @@ function renderS2(el) {
   <circle id="s2-pc6" cx="402" cy="154" r="5" fill="${C.airRedL}" opacity="0" filter="url(#glow-r)"/>
 
   <!-- ── PSI readout ─────────────────────────────────────────── -->
-  <rect x="172" y="285" width="216" height="26" rx="8"
+  <rect x="172" y="283" width="216" height="36" rx="8"
         fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5"/>
   <text x="280" y="297" font-size="8" fill="${C.amberL}" text-anchor="middle" font-weight="700">💨 Tank Pressure</text>
-  <text id="s2-psi" x="280" y="308" font-size="14" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
+  <text id="s2-psi" x="280" y="313" font-size="13" fill="${C.amber}" text-anchor="middle" font-weight="800">0 PSI</text>
   `);
 }
 
@@ -1382,164 +1444,135 @@ function animateS5() {
    SCENE 6 — FRICTION SLOWS WHEEL
 ══════════════════════════════════════════════════════════════════════════ */
 function renderS6(el) {
-  const cx = 190, cy = 195, r = 136;
+  const cx = 175, cy = 205, r = 120;
   const innerR = r - 16;
-  const hotR   = innerR - 4;
 
-  el.innerHTML = svgWrap(500, 370, `
-  <!-- Background -->
-  <rect width="500" height="370" fill="${C.truckDark}" rx="12"/>
-  <text x="250" y="28" font-size="13" fill="${C.amber}" text-anchor="middle"
-        font-weight="800" data-label="1">Friction Slows the Wheel</text>
+  // Speedometer dial on the right
+  const sx = 400, sy = 175, sr = 78;
+  const gaugeTicks = [];
+  for (let a = 150; a <= 390; a += 24) {
+    const x1 = px(sx, sr, a), y1 = py(sy, sr, a);
+    const x2 = px(sx, sr - 10, a), y2 = py(sy, sr - 10, a);
+    gaugeTicks.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${C.grayLt}" stroke-width="2"/>`);
+  }
 
-  <!-- Ambient heat glow behind wheel -->
-  <circle cx="${cx}" cy="${cy}" r="${r + 45}"
-          fill="url(#grad-spot-amber)" opacity="0" id="s6-ambient"/>
+  el.innerHTML = svgWrap(500, 380, `
+  <rect width="500" height="380" fill="${C.truckDark}" rx="12"/>
+  <text x="250" y="30" font-size="15" fill="${C.amberL}" text-anchor="middle"
+        font-weight="800" data-label="1">🛑 Rubbing Stops the Wheel</text>
 
-  <!-- SPINNING DRUM GROUP -->
-  <g id="s6-drum-outer" style="transform-origin:${cx}px ${cy}px">
-    <!-- Tire ring (black rubber) -->
-    <circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="url(#grad-tire)" stroke="${C.gray}" stroke-width="3"/>
-    <!-- Tire tread marks -->
-    ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a => {
-      const ox = px(cx, r + 28, a), oy = py(cy, r + 28, a);
-      const ix = px(cx, r + 14, a), iy = py(cy, r + 14, a);
-      return `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ix.toFixed(1)}" y2="${iy.toFixed(1)}" stroke="${C.grayDk}" stroke-width="6" stroke-linecap="round"/>`;
+  <!-- Motion swoosh lines around wheel (fade as it slows) -->
+  <g id="s6-motion" opacity="0.9">
+    ${[35,145,215,325].map(a => {
+      const x1 = px(cx, r + 20, a), y1 = py(cy, r + 20, a);
+      const x2 = px(cx, r + 42, a), y2 = py(cy, r + 42, a);
+      return `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} Q ${px(cx,r+40,a-10).toFixed(1)},${py(cy,r+40,a-10).toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" stroke="${C.airBlueL}" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>`;
     }).join('')}
-    <!-- Drum disc (steel) -->
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grad-drum)" stroke="${C.grayMid}" stroke-width="2.5"/>
-    <!-- 8 spokes for clear rotation visualization -->
-    ${[0,45,90,135,180,225,270,315].map(a =>
-      `<line x1="${px(cx,20,a).toFixed(1)}" y1="${py(cy,20,a).toFixed(1)}"
-             x2="${px(cx,r-18,a).toFixed(1)}" y2="${py(cy,r-18,a).toFixed(1)}"
-             stroke="${C.grayMid}" stroke-width="4" stroke-linecap="round"/>`).join('')}
-    <!-- Hub bolts -->
-    ${[0,60,120,180,240,300].map(a =>
-      `<circle cx="${px(cx,r*.54,a).toFixed(1)}" cy="${py(cy,r*.54,a).toFixed(1)}"
-               r="5.5" fill="${C.grayLt}" stroke="${C.grayDk}" stroke-width="1"/>`).join('')}
-    <!-- Centre hub -->
-    <circle cx="${cx}" cy="${cy}" r="20" fill="${C.grayLt}" stroke="${C.grayMid}" stroke-width="1.5"/>
-    <circle cx="${cx}" cy="${cy}" r="10" fill="${C.gray}"/>
   </g>
 
-  <!-- STATIC: inner surface + shoes + cam -->
-  <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${C.truckDark}" stroke="${C.drum}" stroke-width="2.5"/>
+  <!-- Ambient heat glow -->
+  <circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="url(#grad-spot-amber)" opacity="0" id="s6-ambient"/>
 
-  <!-- BRAKE SHOES (hot, pressed) -->
-  <path id="s6-shoe-top" d="${arc(cx, cy, innerR - 8, 210, 330, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
-  <path id="s6-shoe-bot" d="${arc(cx, cy, innerR - 8, 30, 150, 1)}"
-        fill="none" stroke="${C.shoeHot}" stroke-width="20" stroke-linecap="round"/>
+  <!-- SPINNING WHEEL -->
+  <g id="s6-drum-outer" style="transform-origin:${cx}px ${cy}px">
+    <circle cx="${cx}" cy="${cy}" r="${r + 22}" fill="url(#grad-tire)" stroke="${C.gray}" stroke-width="3"/>
+    ${[0,45,90,135,180,225,270,315].map(a => {
+      const ox = px(cx, r + 20, a), oy = py(cy, r + 20, a);
+      const ix = px(cx, r + 6, a), iy = py(cy, r + 6, a);
+      return `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ix.toFixed(1)}" y2="${iy.toFixed(1)}" stroke="${C.grayDk}" stroke-width="7" stroke-linecap="round"/>`;
+    }).join('')}
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grad-drum)" stroke="${C.grayMid}" stroke-width="3"/>
+    <!-- Bright marker spoke so kids clearly see it spin -->
+    <rect x="${cx - 5}" y="${cy - r + 8}" width="10" height="${r - 26}" rx="5" fill="${C.amber}"/>
+    ${[60,120,180,240,300].map(a =>
+      `<line x1="${px(cx,18,a).toFixed(1)}" y1="${py(cy,18,a).toFixed(1)}"
+             x2="${px(cx,r-16,a).toFixed(1)}" y2="${py(cy,r-16,a).toFixed(1)}"
+             stroke="${C.grayMid}" stroke-width="4" stroke-linecap="round"/>`).join('')}
+    <circle cx="${cx}" cy="${cy}" r="18" fill="${C.grayLt}" stroke="${C.grayMid}" stroke-width="1.5"/>
+  </g>
 
-  <!-- HEAT GLOW at contact zones -->
-  <path id="s6-heat-top" d="${arc(cx, cy, hotR, 215, 325, 1)}"
-        fill="none" stroke="${C.orange}" stroke-width="10" stroke-linecap="round"
-        filter="url(#glow-r)" opacity="0.75"/>
-  <path id="s6-heat-bot" d="${arc(cx, cy, hotR, 35, 145, 1)}"
-        fill="none" stroke="${C.orange}" stroke-width="10" stroke-linecap="round"
-        filter="url(#glow-r)" opacity="0.75"/>
+  <!-- Inner drum surface -->
+  <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="${C.drum}" stroke-width="2.5"/>
 
-  <!-- S-CAM centre -->
-  <circle cx="${cx}" cy="${cy}" r="24" fill="url(#grad-drum)" stroke="${C.grayLt}" stroke-width="2"/>
-  <text x="${cx}" y="${cy + 4}" font-size="7.5" fill="${C.grayLt}" text-anchor="middle"
-        font-weight="700">S-CAM</text>
+  <!-- BRAKE PADS squeezing the wheel (top & bottom) -->
+  <path id="s6-shoe-top" d="${arc(cx, cy, innerR - 6, 205, 335, 1)}"
+        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
+  <path id="s6-shoe-bot" d="${arc(cx, cy, innerR - 6, 25, 155, 1)}"
+        fill="none" stroke="${C.shoeHot}" stroke-width="18" stroke-linecap="round"/>
 
-  <!-- HEAT SPARKS (more of them for drama) -->
-  <circle id="s6-sp1" cx="${px(cx,innerR+6,270).toFixed(1)}" cy="${py(cy,innerR+6,270).toFixed(1)}"
-          r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp2" cx="${px(cx,innerR+8,280).toFixed(1)}" cy="${py(cy,innerR+8,280).toFixed(1)}"
-          r="3.5" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp3" cx="${px(cx,innerR+6,90).toFixed(1)}"  cy="${py(cy,innerR+6,90).toFixed(1)}"
-          r="5" fill="${C.airRed}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp4" cx="${px(cx,innerR+8,100).toFixed(1)}" cy="${py(cy,innerR+8,100).toFixed(1)}"
-          r="3.5" fill="${C.orange}" opacity="0" filter="url(#glow-r)"/>
-  <circle id="s6-sp5" cx="${px(cx,innerR+6,260).toFixed(1)}" cy="${py(cy,innerR+6,260).toFixed(1)}"
-          r="4" fill="${C.amberL}" opacity="0" filter="url(#glow-a)"/>
-  <circle id="s6-sp6" cx="${px(cx,innerR+6,100).toFixed(1)}" cy="${py(cy,innerR+6,100).toFixed(1)}"
-          r="4" fill="${C.amberL}" opacity="0" filter="url(#glow-a)"/>
+  <!-- Big SQUEEZE arrows -->
+  <text x="${cx}" y="${cy - r - 6}" font-size="20" text-anchor="middle" id="s6-arr-top">⬇</text>
+  <text x="${cx}" y="${cy + r + 24}" font-size="20" text-anchor="middle" id="s6-arr-bot">⬆</text>
 
-  <!-- SPEED INDICATOR (glassmorphism style) -->
-  <rect x="362" y="52" width="122" height="84" rx="12"
-        fill="rgba(6,12,30,0.85)" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
-  <rect x="362" y="52" width="122" height="2" rx="1" fill="rgba(245,158,11,0.15)"/>
-  <text x="423" y="77" font-size="8.5" fill="${C.muted}" text-anchor="middle"
-        font-weight="700" data-label="1">WHEEL SPEED</text>
-  <text id="s6-speed" x="423" y="113" font-size="26" fill="${C.amberL}"
-        text-anchor="middle" font-weight="800">100%</text>
-  <text x="423" y="128" font-size="8.5" fill="${C.grayLt}" text-anchor="middle"
-        data-label="1">↓ decelerating</text>
+  <!-- Friction sparks -->
+  ${[250,270,290,70,90,110].map((a,i) =>
+    `<circle id="s6-sp${i+1}" cx="${px(cx,innerR+2,a).toFixed(1)}" cy="${py(cy,innerR+2,a).toFixed(1)}"
+             r="${i%2?3.5:5}" fill="${i%3===0?C.amberL:C.orange}" opacity="0" filter="url(#glow-r)"/>`).join('')}
 
-  <!-- HEAT TEMPERATURE GAUGE -->
-  <rect x="362" y="152" width="122" height="74" rx="12"
-        fill="rgba(6,12,30,0.85)" stroke="rgba(239,68,68,0.25)" stroke-width="1.5"/>
-  <rect x="362" y="152" width="122" height="2" rx="1" fill="rgba(239,68,68,0.2)"/>
-  <text x="423" y="177" font-size="8.5" fill="${C.airRedL}" text-anchor="middle"
-        font-weight="700" data-label="1">DRUM TEMP.</text>
-  <text id="s6-temp" x="423" y="212" font-size="20" fill="${C.airRed}"
-        text-anchor="middle" font-weight="800">120°C</text>
+  <!-- ── Big friendly SPEEDOMETER ── -->
+  <circle cx="${sx}" cy="${sy}" r="${sr + 8}" fill="rgba(6,12,30,0.9)" stroke="${C.edge2}" stroke-width="1.5"/>
+  <path d="${arc(sx, sy, sr, 150, 230, 1)}" fill="none" stroke="${C.green}" stroke-width="7" stroke-linecap="round"/>
+  <path d="${arc(sx, sy, sr, 230, 310, 1)}" fill="none" stroke="${C.amber}" stroke-width="7" stroke-linecap="round"/>
+  <path d="${arc(sx, sy, sr, 310, 390, 1)}" fill="none" stroke="${C.airRed}" stroke-width="7" stroke-linecap="round"/>
+  ${gaugeTicks.join('')}
+  <text x="${px(sx,sr-24,155).toFixed(1)}" y="${py(sy,sr-24,155).toFixed(1)}" font-size="9" fill="${C.green}" text-anchor="middle" font-weight="700">FAST</text>
+  <text x="${sx}" y="${sy - sr + 22}" font-size="9" fill="${C.amberL}" text-anchor="middle" font-weight="700">SLOW</text>
+  <text x="${px(sx,sr-22,385).toFixed(1)}" y="${py(sy,sr-22,385).toFixed(1)}" font-size="9" fill="${C.airRedL}" text-anchor="middle" font-weight="700">STOP</text>
+  <!-- Needle -->
+  <line id="s6-needle" x1="${sx}" y1="${sy}" x2="${px(sx,sr-6,150).toFixed(1)}" y2="${py(sy,sr-6,150).toFixed(1)}"
+        stroke="${C.white}" stroke-width="3.5" stroke-linecap="round" style="transform-origin:${sx}px ${sy}px"/>
+  <circle cx="${sx}" cy="${sy}" r="7" fill="${C.grayLt}" stroke="${C.grayDk}" stroke-width="1.5"/>
+  <text x="${sx}" y="${sy + sr + 30}" font-size="11" fill="${C.muted}" text-anchor="middle" data-label="1">Wheel speed</text>
 
-  <!-- Labels -->
-  <text x="${cx}" y="${cy + r + 52}" font-size="9" fill="${C.muted}"
-        text-anchor="middle" data-label="1">Kinetic Energy → Heat (friction)</text>
+  <!-- Plain-language caption -->
+  <rect x="30" y="342" width="440" height="30" rx="10" fill="rgba(245,158,11,0.1)" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
+  <text x="250" y="362" font-size="11.5" fill="${C.amberL}" text-anchor="middle" font-weight="700" data-label="1">Pads rub the wheel → rubbing makes heat → the wheel slows and STOPS!</text>
   `);
 }
 
 function animateS6() {
   killTl();
   const drumEl = document.getElementById('s6-drum-outer');
+  const needle = document.getElementById('s6-needle');
+  const motion = document.getElementById('s6-motion');
   let rotDeg = 0;
   let rpm    = 520;
-  let speed  = 100;
-  let temp   = 120;
   let frame;
 
   function step() {
     if (!document.getElementById('s6-drum-outer')) return;
-    rpm   = Math.max(rpm - 1.8 * spd, 0);
-    speed = Math.round(rpm / 5.2);
-    temp  = Math.min(temp + 0.4 * spd, 340);
+    rpm = Math.max(rpm - 1.9 * spd, 0);
     rotDeg += rpm / 58;
     if (drumEl) drumEl.style.transform = `rotate(${rotDeg}deg)`;
-    const spEl  = $('s6-speed'); if (spEl)  spEl.textContent  = speed + '%';
-    const tmpEl = $('s6-temp');  if (tmpEl) tmpEl.textContent = Math.round(temp) + '°C';
-    // Change temperature color as it heats up
-    if (tmpEl) tmpEl.setAttribute('fill', temp > 250 ? C.orange : C.airRed);
+    // Needle sweeps 150°(fast) → 390°(stop) as rpm falls 520→0
+    const frac = 1 - rpm / 520;              // 0 fast → 1 stop
+    const ang = 150 + frac * 240;
+    if (needle) needle.style.transform = `rotate(${ang - 150}deg)`;
+    if (motion) motion.style.opacity = (rpm / 520 * 0.9).toFixed(2);
     if (rpm > 0) {
       frame = requestAnimationFrame(step);
     } else {
       setTimeout(() => {
         if (!document.getElementById('s6-drum-outer')) return;
-        rpm = 520; speed = 100; temp = 120;
+        rpm = 520;
         frame = requestAnimationFrame(step);
-      }, 1400 / spd);
+      }, 1500 / spd);
     }
   }
   frame = requestAnimationFrame(step);
 
-  // Heat glow pulsing (more intense)
   tl = gsap.timeline({ defaults: { ease: 'sine.inOut' } });
-  tl.to(['#s6-heat-top','#s6-heat-bot'], {
-    opacity: 0.3, duration: 0.45 / spd, yoyo: true, repeat: -1, stagger: 0.18 / spd
-  });
-  // Ambient glow
-  tl.to('#s6-ambient', { opacity: 0.35, duration: 0.6 / spd, ease: 'sine.inOut', yoyo: true, repeat: -1 }, 0);
-
-  // Sparks — more frequent and dramatic
-  const sparks = ['#s6-sp1','#s6-sp2','#s6-sp3','#s6-sp4','#s6-sp5','#s6-sp6'];
-  sparks.forEach((sel, i) => {
-    gsap.to(sel, {
-      opacity: 1, r: (i % 2 === 0) ? 7 : 5, duration: 0.12 / spd,
-      yoyo: true, repeat: -1, delay: i * 0.09 / spd, repeatDelay: 0.22 / spd,
-      ease: 'power2.in'
-    });
-    // Random scatter
-    gsap.to(sel, {
-      x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.5) * 12,
-      duration: 0.12 / spd, yoyo: true, repeat: -1, delay: i * 0.09 / spd, ease: 'none'
-    });
+  // Squeeze arrows pulse
+  tl.to(['#s6-arr-top','#s6-arr-bot'], { attr: { 'font-size': 24 }, opacity: 0.6, duration: 0.4 / spd, yoyo: true, repeat: -1 }, 0);
+  // Ambient heat + hot pads
+  tl.to('#s6-ambient', { opacity: 0.4, duration: 0.6 / spd, yoyo: true, repeat: -1 }, 0);
+  tl.to(['#s6-shoe-top','#s6-shoe-bot'], { attr: { stroke: C.orange }, duration: 0.5 / spd, yoyo: true, repeat: -1 }, 0);
+  // Sparks
+  ['#s6-sp1','#s6-sp2','#s6-sp3','#s6-sp4','#s6-sp5','#s6-sp6'].forEach((sel, i) => {
+    gsap.to(sel, { opacity: 1, duration: 0.12 / spd, yoyo: true, repeat: -1, delay: i * 0.1 / spd, repeatDelay: 0.2 / spd, ease: 'power2.in' });
+    gsap.to(sel, { x: (Math.random() - 0.5) * 14, y: (Math.random() - 0.5) * 14, duration: 0.12 / spd, yoyo: true, repeat: -1, delay: i * 0.1 / spd });
   });
 
-  // Store cleanup
   audio.playBrakeSqueal();
   const visEl = document.getElementById('vis-6');
   if (visEl) visEl._brakeCleanup = () => { cancelAnimationFrame(frame); rpm = 0; };
@@ -1626,8 +1659,8 @@ function renderS7(el) {
   <circle id="s7-ea1" cx="361" cy="138" r="4" fill="${C.airBlue}" opacity="0" filter="url(#glow-b)"/>
   <circle id="s7-ea2" cx="368" cy="128" r="3" fill="${C.airBlueL}" opacity="0" filter="url(#glow-b)"/>
   <circle id="s7-ea3" cx="363" cy="116" r="2.5" fill="${C.airBlue}" opacity="0" filter="url(#glow-b)"/>
-  <text id="s7-ea-txt" x="363" y="108" font-size="7.5" fill="${C.airBlueL}"
-        text-anchor="middle" data-label="1" opacity="0">EXHAUST</text>
+  <text id="s7-ea-txt" x="349" y="118" font-size="7.5" fill="${C.airBlueL}"
+        text-anchor="end" data-label="1" opacity="0">EXHAUST</text>
 
   <!-- PEDAL indicator -->
   <rect x="366" y="268" width="114" height="70" rx="12"
@@ -1730,6 +1763,7 @@ const SCENES = [
 ══════════════════════════════════════════════════════════════════════════ */
 function killTl() {
   if (tl) { tl.kill(); tl = null; }
+  killFlows();
 }
 
 function goTo(idx) {
@@ -1817,6 +1851,7 @@ function initParticles() {
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
       ctx.fill();
+      if (reduceMotion) return;
       p.x += p.vx;
       p.y += p.vy;
       // Subtle horizontal drift
@@ -1827,7 +1862,7 @@ function initParticles() {
       if (p.x < -4) p.x = canvas.width + 4;
       if (p.x > canvas.width + 4) p.x = -4;
     });
-    requestAnimationFrame(draw);
+    if (!reduceMotion) requestAnimationFrame(draw);
   }
   draw();
 }
@@ -1836,6 +1871,7 @@ function initParticles() {
    3D TILT EFFECT for scene visuals
 ══════════════════════════════════════════════════════════════════════════ */
 function initTiltEffect() {
+  if (reduceMotion) return;
   document.querySelectorAll('.scene-visual').forEach(el => {
     el.addEventListener('mousemove', e => {
       const rect = el.getBoundingClientRect();
