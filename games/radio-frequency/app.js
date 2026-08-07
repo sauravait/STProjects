@@ -561,7 +561,7 @@ const QUESTIONS = [
     ans: 1,
   },
   {
-    q: 'Which propagation mode allows AM radio signals to travel beyond the horizon following Earth's curvature?',
+    q: 'Which propagation mode allows AM radio signals to travel beyond the horizon following Earth\'s curvature?',
     opts: ['Line-of-Sight', 'Sky Wave', 'Ground Wave', 'Satellite Relay'],
     ans: 2,
   },
