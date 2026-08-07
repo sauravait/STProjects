@@ -19,6 +19,8 @@
   --brake-b: #fb923c;
   --hydro-a: #06b6d4;
   --hydro-b: #3b82f6;
+  --rf-a: #ec4899;
+  --rf-b: #8b5cf6;
 }
 
 * { box-sizing: border-box; }
@@ -184,6 +186,7 @@ body {
 .game-card:nth-child(3) { animation-delay: 0.22s; }
 .game-card:nth-child(4) { animation-delay: 0.32s; }
 .game-card:nth-child(5) { animation-delay: 0.42s; }
+.game-card:nth-child(6) { animation-delay: 0.52s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -231,6 +234,7 @@ body {
 .card-transformer .card-glow { background: var(--tx-a); }
 .card-brake       .card-glow { background: var(--brake-a); }
 .card-hydro       .card-glow { background: var(--hydro-a); }
+.card-rf          .card-glow { background: var(--rf-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -381,6 +385,11 @@ body {
   color: #001623;
 }
 
+.card-rf .launch-btn {
+  background: linear-gradient(135deg, var(--rf-a), var(--rf-b));
+  color: #12001a;
+}
+
 /* Brake card accent */
 .card-brake:hover, .card-brake:focus-visible {
   box-shadow:
@@ -393,6 +402,13 @@ body {
   box-shadow:
     0 20px 60px rgba(6, 182, 212, 0.2),
     0 0 0 1px rgba(6, 182, 212, 0.3);
+}
+
+/* RF card accent */
+.card-rf:hover, .card-rf:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(236, 72, 153, 0.2),
+    0 0 0 1px rgba(236, 72, 153, 0.3);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
