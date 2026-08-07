@@ -113,7 +113,6 @@ function goTo(n) {
 
   // update buttons
   btnPrev.disabled = currentScene === 1;
-  btnNext.textContent = currentScene === TOTAL_SCENES ? 'Finish' : '';
   btnNext.innerHTML  = currentScene === TOTAL_SCENES
     ? '<span>Finish</span>'
     : `<span>Next</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -280,7 +279,7 @@ function initWaveCanvas() {
 
   const update = () => {
     freqVal.textContent  = freqCtrl.value;
-    ampVal.textContent   = (ampCtrl.value / 5).toFixed(1);
+    ampVal.textContent   = (ampCtrl.value / 10).toFixed(1);
     phaseVal.textContent = phaseCtrl.value + '°';
   };
   freqCtrl.addEventListener('input', update);
@@ -435,7 +434,6 @@ function initPropCanvas() {
     ctx.stroke();
 
     // Ionosphere arc
-    const ionoY = H * 0.3;
     ctx.beginPath();
     ctx.ellipse(W / 2, earthY + H * 0.5, W * 1.12, H * 0.62, 0, Math.PI, 0, true);
     ctx.strokeStyle = 'rgba(167,139,250,.35)';
@@ -451,21 +449,18 @@ function initPropCanvas() {
     // ── Ground wave ──────────────────────────────────────────── */
     const gwLen = W * 0.38;
     const gwPts = 60;
-    ctx.strokeStyle = 'rgba(255,107,107,.7)';
     ctx.lineWidth = 2 * dpr;
     ctx.beginPath();
     for (let i = 0; i <= gwPts; i++) {
-      const frac = i / gwPts;
-      const prog = (propT * 0.4 + frac) % 1;
+      const frac  = i / gwPts;
+      const alpha = Math.max(0, 1 - Math.abs(frac - (propT * 0.4 % 1)) * 3.5);
       const x = txX + Math.cos(-Math.PI * frac * 0.6) * gwLen * frac;
       const y = earthY - Math.sin(Math.PI * 0.05 * frac * 6) * 14 * dpr * Math.min(frac * 4, 1);
-      const alpha = Math.max(0, 1 - Math.abs(frac - (propT * 0.4 % 1)) * 3.5);
-      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+      ctx.strokeStyle = `rgba(255,107,107,${0.3 + alpha * 0.6})`;
+      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y); }
     }
-    ctx.stroke();
 
     // ── Sky wave ─────────────────────────────────────────────── */
-    const skyMid = W * 0.5;
     const skyArc = H * 0.48;
     const t2 = (propT * 0.35) % 1;
     for (let d = 0; d < 3; d++) {
