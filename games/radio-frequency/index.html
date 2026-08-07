@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive educational module explaining how radio frequency works — EM spectrum, wave properties, modulation, antennas, propagation, and a graded quiz."/>
+  <title>Radio Frequency – How It Works</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── Canvas background (animated RF waves) ─────────────────────── -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ── Header ────────────────────────────────────────────────────── -->
+  <header class="rf-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M11 14L6 9l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Hub
+    </a>
+    <div class="header-center">
+      <span class="mod-eyebrow">📡 STProjects · Physics Module</span>
+      <h1 class="mod-title">Radio Frequency</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track" aria-label="Module progress">
+        <div class="progress-fill" id="progress-fill" role="progressbar"
+             aria-valuenow="1" aria-valuemin="1" aria-valuemax="7"
+             style="width:14.28%"></div>
+      </div>
+      <span class="scene-label" id="scene-label" aria-live="polite">1 / 7</span>
+    </div>
+  </header>
+
+  <!-- ── Main stage ────────────────────────────────────────────────── -->
+  <main class="rf-stage" id="rf-stage" role="main">
+
+    <!-- ═══════════════════  SCENE 1 – INTRO  ══════════════════════ -->
+    <section class="scene" id="scene-1" data-scene="1" aria-label="Introduction">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="pulse-ring s1-ring r1"></div>
+          <div class="pulse-ring s1-ring r2"></div>
+          <div class="pulse-ring s1-ring r3"></div>
+          <div class="pulse-ring s1-ring r4"></div>
+          <div class="tower-wrap">
+            <svg class="tower-svg" viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- base -->
+              <rect x="50" y="160" width="20" height="40" rx="3" fill="#334155"/>
+              <!-- legs -->
+              <line x1="60" y1="160" x2="20" y2="200" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+              <line x1="60" y1="160" x2="100" y2="200" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+              <!-- mast -->
+              <rect x="57" y="40" width="6" height="120" rx="2" fill="#64748b"/>
+              <!-- crossbars -->
+              <line x1="35" y1="80" x2="85" y2="80" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="42" y1="110" x2="78" y2="110" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+              <line x1="48" y1="135" x2="72" y2="135" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+              <!-- antenna tip -->
+              <circle cx="60" cy="38" r="5" fill="#06b6d4" filter="url(#glow-cyan)"/>
+              <line x1="60" y1="10" x2="60" y2="38" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- signal dot -->
+              <circle cx="60" cy="10" r="3" fill="#f0abfc" class="signal-blink"/>
+              <defs>
+                <filter id="glow-cyan" x="-80%" y="-80%" width="260%" height="260%">
+                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 7</span>
+          <h2>What Is Radio Frequency?</h2>
+          <p>Radio frequency (RF) refers to electromagnetic waves oscillating between <strong>3 kHz and 300 GHz</strong>. Unlike visible light, these waves are invisible — yet they carry the music on your radio, the call on your phone, and the data on your Wi‑Fi.</p>
+          <div class="fact-grid">
+            <div class="fact-card">
+              <span class="fact-icon">📻</span>
+              <span class="fact-label">AM Radio</span>
+              <span class="fact-val">530–1700 kHz</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">📡</span>
+              <span class="fact-label">FM Radio</span>
+              <span class="fact-val">87.5–108 MHz</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">📶</span>
+              <span class="fact-label">Wi‑Fi 2.4 GHz</span>
+              <span class="fact-val">2.4–2.5 GHz</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">🛰️</span>
+              <span class="fact-label">5G mmWave</span>
+              <span class="fact-val">24–100 GHz</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 2 – EM SPECTRUM  ════════════════════════ -->
+    <section class="scene hidden" id="scene-2" data-scene="2" aria-label="Electromagnetic Spectrum">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="spectrum-wrap">
+            <div class="spectrum-bar">
+              <div class="spec-seg" style="--c:#ff6b6b" data-label="Radio" data-freq="3 kHz–300 GHz"></div>
+              <div class="spec-seg" style="--c:#ffa94d" data-label="Microwave" data-freq="300 MHz–300 GHz"></div>
+              <div class="spec-seg" style="--c:#ffe066" data-label="Infrared" data-freq="300 GHz–400 THz"></div>
+              <div class="spec-seg" style="--c:#69db7c" data-label="Visible" data-freq="400–700 THz"></div>
+              <div class="spec-seg" style="--c:#74c0fc" data-label="UV" data-freq="700 THz–30 PHz"></div>
+              <div class="spec-seg" style="--c:#da77f2" data-label="X‑ray" data-freq="30 PHz–30 EHz"></div>
+              <div class="spec-seg" style="--c:#f783ac" data-label="Gamma" data-freq=">30 EHz"></div>
+            </div>
+            <div class="spec-labels">
+              <span>Radio</span><span>Micro</span><span>IR</span><span>Vis</span><span>UV</span><span>X‑ray</span><span>γ</span>
+            </div>
+            <div class="spec-tooltip" id="spec-tooltip"></div>
+            <div class="rf-highlight"></div>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 7</span>
+          <h2>The EM Spectrum</h2>
+          <p>All electromagnetic radiation — from radio waves to gamma rays — travels at the <strong>speed of light (c ≈ 3×10⁸ m/s)</strong>. The key difference is frequency.</p>
+          <p>Radio waves occupy the <em>lowest-frequency</em> end of the spectrum. Lower frequency means <strong>longer wavelength</strong> and less energy per photon — which lets them travel vast distances with minimal absorption.</p>
+          <div class="formula-pill">λ = c / f</div>
+          <p class="formula-note">λ = wavelength (m) &nbsp;·&nbsp; c = speed of light &nbsp;·&nbsp; f = frequency (Hz)</p>
+          <p>Hover over each band to see its frequency range.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 3 – WAVE PROPERTIES  ════════════════════ -->
+    <section class="scene hidden" id="scene-3" data-scene="3" aria-label="Wave Properties">
+      <div class="scene-inner layout-wave">
+        <div class="scene-text full-text">
+          <span class="scene-tag">Scene 3 of 7</span>
+          <h2>Wave Properties</h2>
+          <p>Every RF signal is a sinusoidal wave described by three parameters:</p>
+        </div>
+        <div class="wave-controls">
+          <div class="ctrl-group">
+            <label for="ctrl-freq">Frequency <span id="freq-val">5</span> Hz</label>
+            <input type="range" id="ctrl-freq" min="1" max="15" value="5" aria-label="Frequency">
+          </div>
+          <div class="ctrl-group">
+            <label for="ctrl-amp">Amplitude <span id="amp-val">1.0</span></label>
+            <input type="range" id="ctrl-amp" min="1" max="10" value="5" step="1" aria-label="Amplitude">
+          </div>
+          <div class="ctrl-group">
+            <label for="ctrl-phase">Phase <span id="phase-val">0°</span></label>
+            <input type="range" id="ctrl-phase" min="0" max="360" value="0" aria-label="Phase shift">
+          </div>
+        </div>
+        <canvas id="wave-canvas" class="wave-canvas" aria-label="Interactive wave visualizer"></canvas>
+        <div class="wave-legend">
+          <div class="wl-item"><span class="wl-dot" style="background:#06b6d4"></span>Amplitude peak</div>
+          <div class="wl-item"><span class="wl-dot" style="background:#a78bfa"></span>Wavelength</div>
+          <div class="wl-item"><span class="wl-dot" style="background:#fb923c"></span>Phase shift</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 4 – MODULATION  ════════════════════════ -->
+    <section class="scene hidden" id="scene-4" data-scene="4" aria-label="Modulation">
+      <div class="scene-inner">
+        <div class="scene-visual mod-visual">
+          <canvas id="mod-canvas" class="mod-canvas" aria-label="Modulation waveform"></canvas>
+          <div class="mod-tabs" role="tablist" aria-label="Modulation type">
+            <button class="mod-tab active" data-mod="AM" role="tab" aria-selected="true">AM</button>
+            <button class="mod-tab" data-mod="FM" role="tab" aria-selected="false">FM</button>
+            <button class="mod-tab" data-mod="PM" role="tab" aria-selected="false">PM</button>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 4 of 7</span>
+          <h2>Modulation – Encoding Information</h2>
+          <p>A raw RF <em>carrier wave</em> carries no information on its own. Modulation imprints your voice, music, or data onto it by varying one of its parameters.</p>
+          <div class="mod-cards" id="mod-cards">
+            <div class="mod-info active" data-mod="AM">
+              <h3>Amplitude Modulation (AM)</h3>
+              <p>The <strong>amplitude</strong> of the carrier changes in proportion to the message signal. Simple to implement but more prone to noise.</p>
+            </div>
+            <div class="mod-info" data-mod="FM">
+              <h3>Frequency Modulation (FM)</h3>
+              <p>The <strong>frequency</strong> of the carrier deviates around a centre frequency. Immune to amplitude noise — hence better audio quality.</p>
+            </div>
+            <div class="mod-info" data-mod="PM">
+              <h3>Phase Modulation (PM)</h3>
+              <p>The <strong>phase</strong> of the carrier is shifted. Foundational to digital communications (BPSK, QPSK used in Wi‑Fi and 4G/5G).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 5 – ANTENNA  ═══════════════════════════ -->
+    <section class="scene hidden" id="scene-5" data-scene="5" aria-label="Antenna">
+      <div class="scene-inner">
+        <div class="scene-visual antenna-visual">
+          <svg id="antenna-svg" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- ground plane -->
+            <rect x="30" y="220" width="220" height="8" rx="4" fill="#1e293b"/>
+            <line x1="50" y1="228" x2="50" y2="238" stroke="#334155" stroke-width="2"/>
+            <line x1="80" y1="228" x2="80" y2="242" stroke="#334155" stroke-width="2"/>
+            <line x1="140" y1="228" x2="140" y2="245" stroke="#334155" stroke-width="2"/>
+            <line x1="200" y1="228" x2="200" y2="242" stroke="#334155" stroke-width="2"/>
+            <line x1="230" y1="228" x2="230" y2="238" stroke="#334155" stroke-width="2"/>
+            <!-- dipole arms -->
+            <rect x="137" y="100" width="6" height="120" rx="3" fill="#64748b"/>
+            <rect x="137" y="60" width="6" height="40" rx="3" fill="#64748b"/>
+            <!-- feed point glow -->
+            <circle cx="140" cy="110" r="7" fill="#06b6d4" opacity="0.9" filter="url(#g2)"/>
+            <!-- radiation rings (animated in CSS) -->
+            <ellipse class="ant-ring ar1" cx="140" cy="140" rx="30" ry="12" stroke="#06b6d4" stroke-width="1.5" fill="none" opacity="0"/>
+            <ellipse class="ant-ring ar2" cx="140" cy="140" rx="55" ry="22" stroke="#06b6d4" stroke-width="1" fill="none" opacity="0"/>
+            <ellipse class="ant-ring ar3" cx="140" cy="140" rx="80" ry="32" stroke="#06b6d4" stroke-width="0.8" fill="none" opacity="0"/>
+            <ellipse class="ant-ring ar4" cx="140" cy="140" rx="105" ry="42" stroke="#06b6d4" stroke-width="0.6" fill="none" opacity="0"/>
+            <defs>
+              <filter id="g2" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+          </svg>
+          <div class="ant-labels">
+            <div class="ant-label" style="top:32%;left:58%">Feed point</div>
+            <div class="ant-label" style="top:55%;left:72%">Radiation pattern</div>
+            <div class="ant-label" style="top:80%;left:40%">Ground plane</div>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 5 of 7</span>
+          <h2>How Antennas Work</h2>
+          <p>An antenna is a transducer — it converts between <strong>guided electrical signals</strong> and <strong>free-space electromagnetic waves</strong>.</p>
+          <ul class="bullet-list">
+            <li><strong>Transmit:</strong> An oscillating current fed to the antenna accelerates electrons, radiating energy outward as EM waves.</li>
+            <li><strong>Receive:</strong> An incoming EM wave induces a tiny oscillating voltage in the metal — captured by the receiver circuit.</li>
+            <li><strong>Half-wave dipole:</strong> The most fundamental design; optimal length = λ/2, resonating at the target frequency.</li>
+          </ul>
+          <div class="formula-pill">L = λ / 2 = c / (2f)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 6 – PROPAGATION  ═══════════════════════ -->
+    <section class="scene hidden" id="scene-6" data-scene="6" aria-label="Propagation">
+      <div class="scene-inner">
+        <div class="scene-visual prop-visual">
+          <canvas id="prop-canvas" class="prop-canvas" aria-label="RF propagation diagram"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 6 of 7</span>
+          <h2>RF Propagation</h2>
+          <p>How RF waves travel from transmitter to receiver depends heavily on <strong>frequency</strong> and the <strong>environment</strong>.</p>
+          <div class="prop-modes">
+            <div class="prop-mode" data-mode="ground">
+              <span class="prop-icon">🌍</span>
+              <div>
+                <strong>Ground Wave</strong>
+                <p>Low frequencies (below ~3 MHz) follow Earth's curvature. AM radio uses this for long-range coverage.</p>
+              </div>
+            </div>
+            <div class="prop-mode" data-mode="sky">
+              <span class="prop-icon">🌌</span>
+              <div>
+                <strong>Sky Wave (Ionospheric)</strong>
+                <p>Medium/high frequencies (3–30 MHz) bounce off the ionosphere, enabling intercontinental transmission.</p>
+              </div>
+            </div>
+            <div class="prop-mode" data-mode="los">
+              <span class="prop-icon">📶</span>
+              <div>
+                <strong>Line-of-Sight</strong>
+                <p>VHF/UHF and above travel in straight lines. TV towers, cellular, Wi-Fi, and satellite links rely on LOS.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 7 – QUIZ  ══════════════════════════════ -->
+    <section class="scene hidden" id="scene-7" data-scene="7" aria-label="Quiz">
+      <div class="scene-inner layout-quiz">
+        <div class="quiz-header">
+          <span class="scene-tag">Scene 7 of 7</span>
+          <h2>Knowledge Check</h2>
+          <p>Test what you've learned about radio frequency.</p>
+        </div>
+        <div id="quiz-body" class="quiz-body"></div>
+        <div id="quiz-result" class="quiz-result hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Navigation controls ────────────────────────────────────── -->
+  <nav class="rf-nav" role="navigation" aria-label="Scene navigation">
+    <button class="nav-btn" id="btn-prev" aria-label="Previous scene" disabled>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Prev</span>
+    </button>
+
+    <div class="dot-nav" id="dot-nav" role="tablist" aria-label="Jump to scene"></div>
+
+    <button class="nav-btn primary" id="btn-next" aria-label="Next scene">
+      <span>Next</span>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
