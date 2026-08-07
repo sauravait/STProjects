@@ -41,7 +41,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
 const $ = (id) => document.getElementById(id);
 const VBW = 640;
 const VBH = 400;
-const svgWrap = (body, defs = '') => `<svg viewBox="0 0 ${VBW} ${VBH}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block" role="img" aria-hidden="true"><defs>${SHARED_DEFS}${defs}</defs>${body}</svg>`;
+const svgWrap = (body, defs = '') => `<svg viewBox="0 0 ${VBW} ${VBH}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" role="img" aria-hidden="true"><defs>${SHARED_DEFS}${defs}</defs>${body}</svg>`;
 
 // Shared gradients / filters reused across scenes.
 const SHARED_DEFS = `

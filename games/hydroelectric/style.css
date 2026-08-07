@@ -20,7 +20,7 @@ html, body {
   background: radial-gradient(ellipse at 20% 0%, #062a4a 0%, #020617 55%);
   overflow-x: hidden;
 }
-body { display: flex; flex-direction: column; height: 100vh; }
+body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
 #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .mod-header, .toggles-panel, .app-shell, .controls-bar, .dot-nav { position: relative; z-index: 1; }
@@ -95,7 +95,7 @@ body { display: flex; flex-direction: column; height: 100vh; }
   content: ""; position: absolute; inset: 0; border-radius: 18px; pointer-events: none;
   box-shadow: inset 0 1px 0 rgba(103, 232, 249, 0.14);
 }
-.scene-visual svg { width: 100%; height: 100%; }
+.scene-visual svg { width: 100%; height: auto; display: block; }
 .scene-eyebrow { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--aqua); font-weight: 700; }
 .scene-title { font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.2; }
 .scene-desc { color: var(--muted); line-height: 1.65; font-size: 0.95rem; }
@@ -160,14 +160,25 @@ body { display: flex; flex-direction: column; height: 100vh; }
 .hide-subtitles .scene-subtitle { display: none; }
 .hide-labels [data-label] { display: none !important; }
 
-@media (max-width: 1000px) {
+@media (max-width: 860px) {
   .scene-body { flex-direction: column; }
-  .scene-text { flex: auto; }
-  .scene-visual { min-height: 260px; }
+  .scene-text { flex: none; width: 100%; }
+  .scene-visual { min-height: 240px; }
 }
 @media (max-width: 640px) {
   .mod-header, .toggles-panel, .scene, .scene-text { padding-left: 14px; padding-right: 14px; }
   .stats-grid { grid-template-columns: 1fr; }
+  .scene-text { padding: 16px; }
+  .scene-visual { min-height: 200px; }
+}
+@media (max-width: 480px) {
+  .mod-header { gap: 8px; padding: 0 12px; }
+  .progress-wrap { width: 80px; }
+  .scene-counter { display: none; }
+  .scene { padding: 12px 12px 10px; gap: 10px; }
+  .controls-bar { gap: 6px; padding: 0 10px; }
+  .ctrl-btn { padding: 8px 10px; font-size: 0.85rem; }
+  .speed-label { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
