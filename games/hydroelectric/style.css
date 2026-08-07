@@ -20,7 +20,8 @@ html, body {
   background: radial-gradient(ellipse at 20% 0%, #062a4a 0%, #020617 55%);
   overflow-x: hidden;
 }
-body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+body { display: flex; flex-direction: column; height: 100vh; }
+@supports (height: 100dvh) { body { height: 100dvh; } }
 
 #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .mod-header, .toggles-panel, .app-shell, .controls-bar, .dot-nav { position: relative; z-index: 1; }
