@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive educational module explaining how an electric fan works — motor, blades, air flow, speed control, and a graded quiz."/>
+  <title>Electric Fan – How It Works</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── Canvas background ────────────────────────────────────── -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ── Header ────────────────────────────────────────────────── -->
+  <header class="mod-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M11 14L6 9l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Hub
+    </a>
+    <div class="header-center">
+      <span class="mod-eyebrow">🌀 STProjects · Engineering Module</span>
+      <h1 class="mod-title">Electric Fan</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track" aria-label="Module progress">
+        <div class="progress-fill" id="progress-fill" role="progressbar"
+             aria-valuenow="1" aria-valuemin="1" aria-valuemax="7"
+             style="width:14.28%"></div>
+      </div>
+      <span class="scene-label" id="scene-label" aria-live="polite">1 / 7</span>
+    </div>
+  </header>
+
+  <!-- ── Main stage ────────────────────────────────────────────── -->
+  <main class="mod-stage" id="mod-stage" role="main">
+
+    <!-- ═══════════════════  SCENE 1 – INTRO  ══════════════════════ -->
+    <section class="scene" id="scene-1" data-scene="1" aria-label="Introduction">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="fan-wrap" id="s1-fan-wrap">
+            <svg class="fan-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- hub -->
+              <circle cx="100" cy="100" r="16" fill="#1e40af" stroke="#3b82f6" stroke-width="2"/>
+              <circle cx="100" cy="100" r="7"  fill="#93c5fd"/>
+              <!-- blades (group rotated by JS) -->
+              <g id="fan-blades-s1">
+                <!-- blade 1 -->
+                <ellipse cx="100" cy="62" rx="14" ry="34" rx="14" ry="34"
+                         fill="rgba(59,130,246,0.8)" transform="rotate(0 100 100)"/>
+                <!-- blade 2 -->
+                <ellipse cx="100" cy="62" rx="14" ry="34"
+                         fill="rgba(59,130,246,0.8)" transform="rotate(90 100 100)"/>
+                <!-- blade 3 -->
+                <ellipse cx="100" cy="62" rx="14" ry="34"
+                         fill="rgba(59,130,246,0.8)" transform="rotate(180 100 100)"/>
+                <!-- blade 4 -->
+                <ellipse cx="100" cy="62" rx="14" ry="34"
+                         fill="rgba(59,130,246,0.8)" transform="rotate(270 100 100)"/>
+              </g>
+              <!-- stand -->
+              <rect x="94" y="116" width="12" height="40" rx="4" fill="#334155"/>
+              <ellipse cx="100" cy="158" rx="28" ry="7" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+            </svg>
+            <div class="wind-lines" id="wind-lines" aria-hidden="true">
+              <div class="wind-line wl1"></div>
+              <div class="wind-line wl2"></div>
+              <div class="wind-line wl3"></div>
+              <div class="wind-line wl4"></div>
+            </div>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 7</span>
+          <h2>What Is an Electric Fan?</h2>
+          <p>An electric fan converts <strong>electrical energy</strong> into <strong>mechanical rotation</strong>, driving blades that push air to create a cooling breeze.</p>
+          <div class="fact-grid">
+            <div class="fact-card">
+              <span class="fact-icon">⚡</span>
+              <span class="fact-label">Input</span>
+              <span class="fact-val">Electricity (AC/DC)</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">🔄</span>
+              <span class="fact-label">Conversion</span>
+              <span class="fact-val">Electrical → Mechanical</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">💨</span>
+              <span class="fact-label">Output</span>
+              <span class="fact-val">Moving Air (Airflow)</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">🌡️</span>
+              <span class="fact-label">Effect</span>
+              <span class="fact-val">Evaporative Cooling</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 2 – ELECTRIC MOTOR  ═══════════════════ -->
+    <section class="scene hidden" id="scene-2" data-scene="2" aria-label="The Electric Motor">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="motor-diagram">
+            <svg viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- stator outer ring -->
+              <circle cx="130" cy="110" r="85" stroke="#1e40af" stroke-width="6" fill="rgba(30,64,175,0.08)"/>
+              <!-- stator coils -->
+              <rect x="80"  y="32"  width="20" height="36" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <rect x="160" y="32"  width="20" height="36" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <rect x="28"  y="92"  width="36" height="20" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <rect x="197" y="92"  width="36" height="20" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <rect x="80"  y="152" width="20" height="36" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <rect x="160" y="152" width="20" height="36" rx="4" fill="#3b82f6" opacity="0.85"/>
+              <!-- rotor -->
+              <circle cx="130" cy="110" r="46" fill="rgba(16,185,129,0.12)" stroke="#10b981" stroke-width="2.5"/>
+              <circle cx="130" cy="110" r="14" fill="#10b981"/>
+              <!-- rotor shaft -->
+              <line x1="130" y1="64"  x2="130" y2="156" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round"/>
+              <line x1="84"  y1="110" x2="176" y2="110" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round"/>
+              <!-- magnetic field arrows (N/S) -->
+              <text x="88"  y="26"  font-size="10" fill="#93c5fd" font-family="sans-serif" font-weight="700">N</text>
+              <text x="168" y="26"  font-size="10" fill="#fca5a5" font-family="sans-serif" font-weight="700">S</text>
+              <text x="88"  y="200" font-size="10" fill="#fca5a5" font-family="sans-serif" font-weight="700">S</text>
+              <text x="168" y="200" font-size="10" fill="#93c5fd" font-family="sans-serif" font-weight="700">N</text>
+              <!-- force arrows -->
+              <path d="M130 78 L130 66" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr)"/>
+              <defs>
+                <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                  <path d="M0 0 L6 3 L0 6 Z" fill="#fbbf24"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 7</span>
+          <h2>The Electric Motor</h2>
+          <p>At the heart of every fan is an <strong>electric motor</strong>. It uses the interaction between a <em>magnetic field</em> and an <em>electric current</em> to spin a shaft.</p>
+          <ul class="bullet-list">
+            <li><strong>Stator:</strong> The outer fixed coil that creates a magnetic field when current flows through it.</li>
+            <li><strong>Rotor:</strong> The inner rotating part (armature) that spins due to electromagnetic forces.</li>
+            <li><strong>Commutator / Brushes:</strong> In DC motors, they reverse current direction to keep the rotor spinning continuously.</li>
+          </ul>
+          <div class="formula-pill">F = BIL</div>
+          <p class="formula-note">F = force &nbsp;·&nbsp; B = magnetic field &nbsp;·&nbsp; I = current &nbsp;·&nbsp; L = conductor length</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 3 – FAN BLADES & AIR FLOW  ═══════════ -->
+    <section class="scene hidden" id="scene-3" data-scene="3" aria-label="Fan Blades and Air Flow">
+      <div class="scene-inner layout-full">
+        <div class="scene-text full-text">
+          <span class="scene-tag">Scene 3 of 7</span>
+          <h2>Blades &amp; Airflow</h2>
+          <p>The rotating shaft spins the <strong>fan blades</strong>. Their angled pitch is the secret to generating airflow.</p>
+        </div>
+        <div class="blade-demo">
+          <canvas id="airflow-canvas" class="airflow-canvas" aria-label="Animated airflow diagram"></canvas>
+          <div class="blade-speed-ctrl">
+            <label for="speed-ctrl">Fan Speed &nbsp;<span id="speed-val">Medium</span></label>
+            <input type="range" id="speed-ctrl" min="1" max="3" value="2" step="1" aria-label="Fan speed selector"/>
+            <div class="speed-labels">
+              <span>Low</span><span>Medium</span><span>High</span>
+            </div>
+          </div>
+        </div>
+        <div class="blade-facts">
+          <div class="bf-item">
+            <span class="bf-icon">📐</span>
+            <div>
+              <strong>Blade Pitch Angle</strong>
+              <p>Blades are tilted ~15–20° from vertical. This angle determines how much air is pushed per rotation.</p>
+            </div>
+          </div>
+          <div class="bf-item">
+            <span class="bf-icon">🌀</span>
+            <div>
+              <strong>Number of Blades</strong>
+              <p>More blades increase airflow but add drag. Most fans use 3–5 blades for optimal balance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 4 – TYPES OF FANS  ══════════════════ -->
+    <section class="scene hidden" id="scene-4" data-scene="4" aria-label="Types of Fans">
+      <div class="scene-inner">
+        <div class="scene-visual fan-types-visual">
+          <div class="fan-type-cards">
+            <div class="fan-type-card active" data-type="ceiling">
+              <span class="ft-icon">🏠</span>
+              <span class="ft-name">Ceiling Fan</span>
+            </div>
+            <div class="fan-type-card" data-type="table">
+              <span class="ft-icon">🖥️</span>
+              <span class="ft-name">Table Fan</span>
+            </div>
+            <div class="fan-type-card" data-type="exhaust">
+              <span class="ft-icon">🔲</span>
+              <span class="ft-name">Exhaust Fan</span>
+            </div>
+            <div class="fan-type-card" data-type="tower">
+              <span class="ft-icon">🗼</span>
+              <span class="ft-name">Tower Fan</span>
+            </div>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 4 of 7</span>
+          <h2>Types of Electric Fans</h2>
+          <div class="fan-type-info" id="fan-type-info">
+            <div class="fti active" data-type="ceiling">
+              <h3>Ceiling Fan</h3>
+              <p>Mounted overhead, these use large blades to circulate air across an entire room. They reverse direction in winter to push warm air down.</p>
+            </div>
+            <div class="fti" data-type="table">
+              <h3>Table / Pedestal Fan</h3>
+              <p>Portable and adjustable, these use an oscillating mechanism to sweep back and forth, covering a wide area from a single position.</p>
+            </div>
+            <div class="fti" data-type="exhaust">
+              <h3>Exhaust Fan</h3>
+              <p>Mounted in walls or ceilings, they draw stale or humid air out of a room, improving ventilation in kitchens and bathrooms.</p>
+            </div>
+            <div class="fti" data-type="tower">
+              <h3>Tower Fan</h3>
+              <p>Tall and slim, tower fans use a vertical cylindrical impeller to move air quietly — ideal for bedrooms and offices.</p>
+            </div>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-mid);margin-top:.5rem">Click a fan type to learn more.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 5 – SPEED CONTROL  ══════════════════ -->
+    <section class="scene hidden" id="scene-5" data-scene="5" aria-label="Speed Control">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="regulator-wrap">
+            <svg viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- power source -->
+              <rect x="10" y="80" width="40" height="50" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+              <text x="18" y="111" font-size="8" fill="#94a3b8" font-family="sans-serif">AC</text>
+              <text x="16" y="121" font-size="8" fill="#94a3b8" font-family="sans-serif">230V</text>
+              <!-- wire in -->
+              <line x1="50" y1="105" x2="80" y2="105" stroke="#60a5fa" stroke-width="2.5" stroke-dasharray="4 2"/>
+              <!-- regulator / capacitor box -->
+              <rect x="80" y="78" width="60" height="54" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+              <text x="90" y="100" font-size="7" fill="#93c5fd" font-family="sans-serif">Regulator</text>
+              <text x="87" y="116" font-size="7" fill="#93c5fd" font-family="sans-serif">/ Capacitor</text>
+              <!-- knob -->
+              <circle cx="110" cy="132" r="10" fill="#1e40af" stroke="#60a5fa" stroke-width="1.5"/>
+              <line x1="110" y1="124" x2="110" y2="118" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" id="knob-hand"/>
+              <!-- wire out -->
+              <line x1="140" y1="105" x2="170" y2="105" stroke="#4ade80" stroke-width="2.5" stroke-dasharray="4 2"/>
+              <!-- motor -->
+              <circle cx="193" cy="105" r="22" fill="rgba(16,185,129,0.12)" stroke="#10b981" stroke-width="2"/>
+              <text x="183" y="110" font-size="9" fill="#6ee7b7" font-family="sans-serif">Motor</text>
+              <!-- labels -->
+              <text x="14" y="75"  font-size="8" fill="#94a3b8" font-family="sans-serif">Power</text>
+              <text x="87" y="73"  font-size="8" fill="#60a5fa" font-family="sans-serif">Control</text>
+              <text x="181" y="73" font-size="8" fill="#4ade80" font-family="sans-serif">Fan</text>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 5 of 7</span>
+          <h2>Speed Control</h2>
+          <p>Fan speed is controlled by varying the <strong>voltage</strong> delivered to the motor. There are two main methods:</p>
+          <div class="speed-methods">
+            <div class="sm-item">
+              <span class="sm-icon">🎛️</span>
+              <div>
+                <strong>Resistive Regulator</strong>
+                <p>An older method that uses resistors to drop voltage. Simple but wastes energy as heat.</p>
+              </div>
+            </div>
+            <div class="sm-item">
+              <span class="sm-icon">⚡</span>
+              <div>
+                <strong>Capacitor / Electronic Regulator</strong>
+                <p>Modern fans use capacitors or TRIAC-based electronics to reduce voltage efficiently with minimal energy loss.</p>
+              </div>
+            </div>
+            <div class="sm-item">
+              <span class="sm-icon">🔢</span>
+              <div>
+                <strong>BLDC Motor</strong>
+                <p>Brushless DC fans use an inverter circuit for infinitely variable, whisper-quiet speed control with very high efficiency.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 6 – ENERGY & EFFICIENCY  ═══════════ -->
+    <section class="scene hidden" id="scene-6" data-scene="6" aria-label="Energy and Efficiency">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <canvas id="energy-canvas" class="energy-canvas" aria-label="Energy flow diagram"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 6 of 7</span>
+          <h2>Energy &amp; Efficiency</h2>
+          <p>A fan doesn't actually cool the air — it <strong>accelerates evaporation</strong> of sweat from your skin, which removes heat. Fans use far less energy than air conditioners.</p>
+          <div class="energy-compare">
+            <div class="ec-row">
+              <span class="ec-label">Ceiling Fan</span>
+              <div class="ec-bar-wrap">
+                <div class="ec-bar" style="width:6%"></div>
+                <span class="ec-watts">~30 W</span>
+              </div>
+            </div>
+            <div class="ec-row">
+              <span class="ec-label">Pedestal Fan</span>
+              <div class="ec-bar-wrap">
+                <div class="ec-bar" style="width:10%"></div>
+                <span class="ec-watts">~55 W</span>
+              </div>
+            </div>
+            <div class="ec-row">
+              <span class="ec-label">Window AC</span>
+              <div class="ec-bar-wrap">
+                <div class="ec-bar ec-bar-red" style="width:90%"></div>
+                <span class="ec-watts">~900 W</span>
+              </div>
+            </div>
+            <div class="ec-row">
+              <span class="ec-label">Split AC (1.5T)</span>
+              <div class="ec-bar-wrap">
+                <div class="ec-bar ec-bar-red" style="width:100%"></div>
+                <span class="ec-watts">~1500 W</span>
+              </div>
+            </div>
+          </div>
+          <div class="formula-pill">Efficiency = P<sub>out</sub> / P<sub>in</sub> × 100%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 7 – QUIZ  ══════════════════════════ -->
+    <section class="scene hidden" id="scene-7" data-scene="7" aria-label="Quiz">
+      <div class="scene-inner layout-quiz">
+        <div class="quiz-header">
+          <span class="scene-tag">Scene 7 of 7</span>
+          <h2>Knowledge Check</h2>
+          <p>Test what you've learned about electric fans.</p>
+        </div>
+        <div id="quiz-body" class="quiz-body"></div>
+        <div id="quiz-result" class="quiz-result hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Navigation controls ─────────────────────────────────── -->
+  <nav class="mod-nav" role="navigation" aria-label="Scene navigation">
+    <button class="nav-btn" id="btn-prev" aria-label="Previous scene" disabled>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Prev</span>
+    </button>
+    <div class="dot-nav" id="dot-nav" role="tablist" aria-label="Jump to scene"></div>
+    <button class="nav-btn primary" id="btn-next" aria-label="Next scene">
+      <span>Next</span>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
