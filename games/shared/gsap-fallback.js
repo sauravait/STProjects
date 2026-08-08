@@ -12,7 +12,7 @@ if (typeof window !== 'undefined' && !window.gsap) {
     return [target];
   };
 
-  const applyVars = (target, vars = {}, baseDelaySec = 0) => {
+  const applyVars = (target, vars = {}, baseDelaySec = 0, timers = null) => {
     toList(target).forEach((el) => {
       if (!el || typeof el !== 'object') return;
       Object.entries(vars).forEach(([key, value]) => {
@@ -32,7 +32,8 @@ if (typeof window !== 'undefined' && !window.gsap) {
       const delaySec = Math.max(0, Number(vars.delay) || 0);
       const durationSec = Math.max(0, Number(vars.duration) || 0);
       const delayMs = (Math.max(0, baseDelaySec) + delaySec + durationSec) * 1000;
-      setTimeout(vars.onComplete, delayMs);
+      const id = setTimeout(vars.onComplete, delayMs);
+      if (Array.isArray(timers)) timers.push(id);
     }
   };
 
@@ -50,26 +51,34 @@ if (typeof window !== 'undefined' && !window.gsap) {
     return at;
   };
   const timelineProto = {
-    to(target, vars = {}, position) { applyVars(target, vars, advance(this, vars, position)); return this; },
-    fromTo(target, _fromVars, toVars = {}, position) { applyVars(target, toVars, advance(this, toVars, position)); return this; },
-    from(target, vars = {}, position) { applyVars(target, vars, advance(this, vars, position)); return this; },
-    set(target, vars = {}, position) { applyVars(target, vars, resolvePos(this, position)); return this; },
+    to(target, vars = {}, position) { applyVars(target, vars, advance(this, vars, position), this._timers); return this; },
+    fromTo(target, _fromVars, toVars = {}, position) { applyVars(target, toVars, advance(this, toVars, position), this._timers); return this; },
+    from(target, vars = {}, position) { applyVars(target, vars, advance(this, vars, position), this._timers); return this; },
+    set(target, vars = {}, position) { applyVars(target, vars, resolvePos(this, position), this._timers); return this; },
     call(fn, params = [], position) {
-      const at = resolvePos(this, position);
+      const at = advance(this, {}, position);
       const args = Array.isArray(params) ? params : [params];
-      if (typeof fn === 'function') setTimeout(() => fn(...args), at * 1000);
-      this._time = Math.max(this._time, at);
+      if (typeof fn === 'function') {
+        const id = setTimeout(() => fn(...args), at * 1000);
+        this._timers.push(id);
+      }
       return this;
     },
     addLabel(name, position) {
       if (name) this._labels[name] = resolvePos(this, position);
       return this;
     },
-    kill() { this._time = 0; this._labels = Object.create(null); },
+    kill() {
+      this._timers.forEach((id) => clearTimeout(id));
+      this._timers = [];
+      this._time = 0;
+      this._labels = Object.create(null);
+    },
   };
   const createTimeline = () => Object.assign(Object.create(timelineProto), {
     _time: 0,
     _labels: Object.create(null),
+    _timers: [],
   });
 
   window.gsap = {
