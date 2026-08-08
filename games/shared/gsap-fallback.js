@@ -37,7 +37,7 @@ if (typeof window !== 'undefined' && !window.gsap) {
     }
   };
 
-  const tween = { kill() {}, pause() {}, play() {}, restart() {} };
+  const createTween = () => ({ kill() {}, pause() {}, play() {}, restart() {} });
   const resolvePos = (tl, position) => {
     if (typeof position === 'number' && Number.isFinite(position)) return Math.max(0, position);
     if (typeof position === 'string' && tl._labels[position] !== undefined) return tl._labels[position];
@@ -82,10 +82,10 @@ if (typeof window !== 'undefined' && !window.gsap) {
   });
 
   window.gsap = {
-    to(target, vars) { applyVars(target, vars); return tween; },
-    fromTo(target, _fromVars, toVars) { applyVars(target, toVars); return tween; },
-    from(target, vars) { applyVars(target, vars); return tween; },
-    set(target, vars) { applyVars(target, vars); return tween; },
+    to(target, vars) { applyVars(target, vars); return createTween(); },
+    fromTo(target, _fromVars, toVars) { applyVars(target, toVars); return createTween(); },
+    from(target, vars) { applyVars(target, vars); return createTween(); },
+    set(target, vars) { applyVars(target, vars); return createTween(); },
     timeline() { return createTimeline(); },
   };
 }
