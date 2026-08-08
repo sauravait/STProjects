@@ -115,7 +115,6 @@ function goTo(n) {
   $$('.dot', dotNav).forEach((d, i) => d.classList.toggle('active', i + 1 === n));
   btnPrev.disabled = n === 1;
   btnNext.disabled = n === TOTAL_SCENES;
-  btnNext.textContent = n === TOTAL_SCENES ? '' : '';
   progFill.style.width = `${(n / TOTAL_SCENES) * 100}%`;
   progFill.setAttribute('aria-valuenow', n);
   sceneLabel.textContent = `${n} / ${TOTAL_SCENES}`;
@@ -162,7 +161,7 @@ goTo(1);
   function resize() {
     W = canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     H = canvas.height = canvas.offsetHeight * devicePixelRatio;
-    ctx.scale(devicePixelRatio, devicePixelRatio);
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     W = canvas.offsetWidth;
     H = canvas.offsetHeight;
     particles = createParticles();
