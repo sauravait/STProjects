@@ -28,7 +28,10 @@ if (typeof window !== 'undefined' && !window.gsap) {
         }
       });
     });
-    if (typeof vars.onComplete === 'function') setTimeout(vars.onComplete, 0);
+    if (typeof vars.onComplete === 'function') {
+      const delayMs = Math.max(0, Number(vars.delay) || 0) * 1000;
+      setTimeout(vars.onComplete, delayMs);
+    }
   };
 
   const tween = { kill() {}, pause() {}, play() {}, restart() {} };
