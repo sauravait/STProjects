@@ -184,11 +184,20 @@ function initWaveCanvas() {
   let animTime = 0;
 
   function resize() {
-    canvas.width  = canvas.offsetWidth  * devicePixelRatio;
-    canvas.height = canvas.offsetHeight * devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
   }
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvas);
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(() => requestAnimationFrame(resize));
+    ro.observe(canvas);
+  } else {
+    window.addEventListener('resize', resize);
+  }
   resize();
 
   function draw() {
@@ -304,11 +313,20 @@ function initModCanvas() {
   const ctx = canvas.getContext('2d');
 
   function resize() {
-    canvas.width  = canvas.offsetWidth  * devicePixelRatio;
-    canvas.height = canvas.offsetHeight * devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
   }
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvas);
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(() => requestAnimationFrame(resize));
+    ro.observe(canvas);
+  } else {
+    window.addEventListener('resize', resize);
+  }
   resize();
 
   $$('.mod-tab').forEach(btn => {
@@ -409,11 +427,20 @@ function initPropCanvas() {
   const ctx = canvas.getContext('2d');
 
   function resize() {
-    canvas.width  = canvas.offsetWidth  * devicePixelRatio;
-    canvas.height = canvas.offsetHeight * devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
   }
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvas);
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(() => requestAnimationFrame(resize));
+    ro.observe(canvas);
+  } else {
+    window.addEventListener('resize', resize);
+  }
   resize();
 
   function draw() {
