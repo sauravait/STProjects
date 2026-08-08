@@ -18,18 +18,21 @@ if (typeof window !== 'undefined' && !window.gsap) {
   const toList = (target) => {
     if (!target) return [];
     if (typeof target === 'string') return [...document.querySelectorAll(target)];
-    return Array.isArray(target) ? target : [target];
+    if (Array.isArray(target)) return target.flatMap(toList);
+    if (typeof NodeList !== 'undefined' && target instanceof NodeList) return [...target];
+    if (typeof HTMLCollection !== 'undefined' && target instanceof HTMLCollection) return [...target];
+    return [target];
   };
   const applyVars = (target, vars = {}) => {
     toList(target).forEach((el) => {
-      if (!el) return;
+      if (!el || typeof el !== 'object') return;
       Object.entries(vars).forEach(([key, value]) => {
         if (RESERVED.has(key)) return;
         if (key === 'attr' && value && typeof value === 'object') {
           Object.entries(value).forEach(([attr, attrVal]) => el.setAttribute(attr, attrVal));
           return;
         }
-        if (key in el.style) {
+        if (el.style && key in el.style) {
           el.style[key] = String(value);
         } else if (key in el) {
           el[key] = value;
