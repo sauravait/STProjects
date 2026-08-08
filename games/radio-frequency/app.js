@@ -73,6 +73,22 @@ const dotNav    = $('#dot-nav');
 const progFill  = $('#progress-fill');
 const sceneLabel = $('#scene-label');
 
+function syncSceneAnimations() {
+  const waveCanvas = $('#wave-canvas');
+  const modCanvas  = $('#mod-canvas');
+  const propCanvas = $('#prop-canvas');
+
+  if (waveCanvas && waveCanvas._init && waveCanvas._start && waveCanvas._stop) {
+    currentScene === 3 ? waveCanvas._start() : waveCanvas._stop();
+  }
+  if (modCanvas && modCanvas._init && modCanvas._start && modCanvas._stop) {
+    currentScene === 4 ? modCanvas._start() : modCanvas._stop();
+  }
+  if (propCanvas && propCanvas._init && propCanvas._start && propCanvas._stop) {
+    currentScene === 6 ? propCanvas._start() : propCanvas._stop();
+  }
+}
+
 // build dots
 for (let i = 1; i <= TOTAL_SCENES; i++) {
   const btn = document.createElement('button');
@@ -122,6 +138,7 @@ function goTo(n) {
   if (currentScene === 4) initModCanvas();
   if (currentScene === 6) initPropCanvas();
   if (currentScene === 7) initQuiz();
+  syncSceneAnimations();
 }
 
 btnPrev.addEventListener('click', () => goTo(currentScene - 1));
@@ -167,6 +184,7 @@ btnNext.addEventListener('click', () => {
    4. WAVE CANVAS (Scene 3)
 ════════════════════════════════════════════════════════════════ */
 let waveRaf = null;
+let waveRunning = false;
 
 function initWaveCanvas() {
   const canvas = $('#wave-canvas');
@@ -201,9 +219,13 @@ function initWaveCanvas() {
   resize();
 
   function draw() {
+    if (!waveRunning) {
+      waveRaf = null;
+      return;
+    }
     const W  = canvas.width;
     const H  = canvas.height;
-    const dpr = devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
     const freq  = parseFloat(freqCtrl.value);
     const amp   = parseFloat(ampCtrl.value) / 10;
     const phase = (parseFloat(phaseCtrl.value) * Math.PI) / 180;
@@ -283,8 +305,18 @@ function initWaveCanvas() {
     waveRaf = requestAnimationFrame(draw);
   }
 
-  if (waveRaf) cancelAnimationFrame(waveRaf);
-  waveRaf = requestAnimationFrame(draw);
+  canvas._start = () => {
+    waveRunning = true;
+    if (!waveRaf) waveRaf = requestAnimationFrame(draw);
+  };
+  canvas._stop = () => {
+    waveRunning = false;
+    if (waveRaf) {
+      cancelAnimationFrame(waveRaf);
+      waveRaf = null;
+    }
+  };
+  if (currentScene === 3) canvas._start();
 
   const update = () => {
     freqVal.textContent  = freqCtrl.value;
@@ -304,6 +336,7 @@ function initWaveCanvas() {
 let modRaf = null;
 let modType = 'AM';
 let modAnimT = 0;
+let modRunning = false;
 
 function initModCanvas() {
   const canvas = $('#mod-canvas');
@@ -341,9 +374,13 @@ function initModCanvas() {
   });
 
   function draw() {
+    if (!modRunning) {
+      modRaf = null;
+      return;
+    }
     const W  = canvas.width;
     const H  = canvas.height;
-    const dpr = devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
     const cY = H / 2;
 
     ctx.clearRect(0, 0, W, H);
@@ -408,8 +445,18 @@ function initModCanvas() {
     modRaf = requestAnimationFrame(draw);
   }
 
-  if (modRaf) cancelAnimationFrame(modRaf);
-  modRaf = requestAnimationFrame(draw);
+  canvas._start = () => {
+    modRunning = true;
+    if (!modRaf) modRaf = requestAnimationFrame(draw);
+  };
+  canvas._stop = () => {
+    modRunning = false;
+    if (modRaf) {
+      cancelAnimationFrame(modRaf);
+      modRaf = null;
+    }
+  };
+  if (currentScene === 4) canvas._start();
 }
 
 
@@ -418,6 +465,7 @@ function initModCanvas() {
 ════════════════════════════════════════════════════════════════ */
 let propRaf = null;
 let propT   = 0;
+let propRunning = false;
 
 function initPropCanvas() {
   const canvas = $('#prop-canvas');
@@ -444,9 +492,13 @@ function initPropCanvas() {
   resize();
 
   function draw() {
+    if (!propRunning) {
+      propRaf = null;
+      return;
+    }
     const W  = canvas.width;
     const H  = canvas.height;
-    const dpr = devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
 
     ctx.clearRect(0, 0, W, H);
 
@@ -558,8 +610,18 @@ function initPropCanvas() {
     propRaf = requestAnimationFrame(draw);
   }
 
-  if (propRaf) cancelAnimationFrame(propRaf);
-  propRaf = requestAnimationFrame(draw);
+  canvas._start = () => {
+    propRunning = true;
+    if (!propRaf) propRaf = requestAnimationFrame(draw);
+  };
+  canvas._stop = () => {
+    propRunning = false;
+    if (propRaf) {
+      cancelAnimationFrame(propRaf);
+      propRaf = null;
+    }
+  };
+  if (currentScene === 6) canvas._start();
 }
 
 
