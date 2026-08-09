@@ -995,7 +995,7 @@ goTo(1);
     // ══════════════════════════════════════════════════════
     // 2. AIRFLOW ARROWS  (mid zone, curved wind lines)
     // ══════════════════════════════════════════════════════
-    const airX0 = fanZoneW + fR + 6;
+    const airX0 = fanCX + fR + 7;
     const airX1 = fanZoneW + midZoneW - 10;
 
     for (let row = 0; row < 6; row++) {
@@ -1247,7 +1247,7 @@ goTo(1);
       ctx.font         = `bold ${fSize + 1}px sans-serif`;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('Power Comparison', infoX + infoW / 2, eY + 2);
+      ctx.fillText('Power Comparison', infoX + infoW / 2, eY - 2);
     }
 
     // ── Bottom caption ──────────────────────────────────
@@ -1255,7 +1255,7 @@ goTo(1);
     ctx.font         = `${Math.min(9, W * 0.022)}px sans-serif`;
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('Fan accelerates sweat evaporation → removes latent heat (Q = m·L\u1d65)', W / 2, H - 4);
+    ctx.fillText('Fan accelerates sweat evaporation \u2192 removes latent heat (Q = m\u00b7Lv)', W / 2, H - 4);
 
     if (running) raf = requestAnimationFrame(draw);
   }
