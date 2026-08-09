@@ -501,124 +501,383 @@ goTo(1);
     });
   }
 
-  function drawBlock(label, x, y, w, h, strokeColor, fillAlpha) {
-    ctx.fillStyle = `rgba(${fillAlpha})`;
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = `600 ${Math.min(10, w * 0.17)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x + w / 2, y + h / 2);
-  }
-
   function draw() {
     ctx.clearRect(0, 0, W, H);
     phase += 0.04;
 
-    const bw  = W * 0.18, bh = H * 0.3;
-    const y0  = H * 0.32;
-    const gap = (W - bw * 4) / 5;
+    const margin  = W * 0.04;
+    const usableW = W - margin * 2;
+    const cy      = H * 0.5;
 
-    const BLOCKS = [
-      { label: '230V AC', x: gap,               color: 'rgba(59,130,246,0.7)',  fill: '59,130,246,0.1'  },
-      { label: 'Regulator', x: gap * 2 + bw,    color: 'rgba(16,185,129,0.7)', fill: '16,185,129,0.1'  },
-      { label: 'Motor',     x: gap * 3 + bw * 2, color: 'rgba(245,158,11,0.7)', fill: '245,158,11,0.1' },
-      { label: 'Fan',       x: gap * 4 + bw * 3, color: 'rgba(6,182,212,0.7)',  fill: '6,182,212,0.1'  },
-    ];
+    // Section widths and x-positions
+    const acW    = usableW * 0.17;
+    const regW   = usableW * 0.21;
+    const motorW = usableW * 0.21;
+    const fanW   = usableW * 0.19;
+    const wireG  = (usableW - acW - regW - motorW - fanW) / 3;
 
-    // draw wires with animated current dots
-    BLOCKS.forEach((b, i) => {
-      if (i >= BLOCKS.length - 1) return;
-      const x1 = b.x + bw + 2;
-      const x2 = BLOCKS[i + 1].x - 2;
-      const wy = y0 + bh / 2;
+    const acX    = margin;
+    const regX   = acX    + acW    + wireG;
+    const motorX = regX   + regW   + wireG;
+    const fanX   = motorX + motorW + wireG;
 
-      // wire
+    // ── helper: animated current-dot wire ──────────────────
+    function drawWire(x1, x2, wy, speed, dotColor) {
       ctx.beginPath();
       ctx.moveTo(x1, wy);
       ctx.lineTo(x2, wy);
       ctx.strokeStyle = 'rgba(148,163,184,0.25)';
       ctx.lineWidth = 2;
       ctx.stroke();
-
-      // animated current dots
-      const DOT_COUNT = 4;
       const wireLen = x2 - x1;
-      for (let d = 0; d < DOT_COUNT; d++) {
-        let t = ((phase * voltPct * 2 + d / DOT_COUNT) % 1);
+      for (let d = 0; d < 4; d++) {
+        const t  = ((phase * speed + d / 4) % 1);
         const dx = x1 + t * wireLen;
-        const brightness = 0.5 + voltPct * 0.5;
         ctx.beginPath();
-        ctx.arc(dx, wy, 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(59,130,246,${brightness})`;
+        ctx.arc(dx, wy, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor;
         ctx.fill();
       }
-
       // arrowhead
       ctx.beginPath();
-      ctx.moveTo(x2 - 8, wy - 5);
-      ctx.lineTo(x2 - 2, wy);
-      ctx.lineTo(x2 - 8, wy + 5);
-      ctx.strokeStyle = 'rgba(148,163,184,0.5)';
-      ctx.lineWidth = 1.5;
+      ctx.moveTo(x2 - 7, wy - 4);
+      ctx.lineTo(x2 - 1, wy);
+      ctx.lineTo(x2 - 7, wy + 4);
+      ctx.strokeStyle = 'rgba(148,163,184,0.55)';
+      ctx.lineWidth = 1.2;
       ctx.stroke();
-    });
-
-    BLOCKS.forEach(b => drawBlock(b.label, b.x, y0, bw, bh, b.color, b.fill));
-
-    // motor RPM spinning ring (visual)
-    const motorB   = BLOCKS[2];
-    const motorCX  = motorB.x + bw / 2;
-    const motorCY  = y0 + bh + 28;
-    const rpmAngle = phase * voltPct * 3;
-
-    ctx.save();
-    ctx.translate(motorCX, motorCY);
-    for (let b2 = 0; b2 < 4; b2++) {
-      ctx.save();
-      ctx.rotate(rpmAngle + (b2 * Math.PI) / 2);
-      ctx.fillStyle = `rgba(245,158,11,${0.5 + voltPct * 0.4})`;
-      ctx.beginPath();
-      ctx.ellipse(0, -18, 4, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
     }
+
+    // ══════════════════════════════════════════════════════
+    // 1. AC OUTLET  (left)
+    // ══════════════════════════════════════════════════════
+    const outCX = acX + acW / 2;
+    const outCY = cy - H * 0.05;
+    const outR  = Math.min(acW * 0.44, H * 0.18);
+
+    // outlet face (rounded square)
+    ctx.fillStyle   = 'rgba(226,232,240,0.12)';
+    ctx.strokeStyle = 'rgba(148,163,184,0.55)';
+    ctx.lineWidth   = 1.5;
     ctx.beginPath();
-    ctx.arc(0, 0, 7, 0, Math.PI * 2);
+    ctx.roundRect(outCX - outR, outCY - outR, outR * 2, outR * 2, outR * 0.18);
+    ctx.fill();
+    ctx.stroke();
+
+    // plug slots
+    const slotW = outR * 0.14, slotH = outR * 0.44;
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    [-outR * 0.3, outR * 0.3].forEach(sx => {
+      ctx.beginPath();
+      ctx.roundRect(outCX + sx - slotW / 2, outCY - slotH / 2, slotW, slotH, 2);
+      ctx.fill();
+    });
+    // ground hole (U-shape bottom)
+    ctx.beginPath();
+    ctx.arc(outCX, outCY + outR * 0.42, outR * 0.1, 0, Math.PI);
+    ctx.strokeStyle = 'rgba(15,23,42,0.85)';
+    ctx.lineWidth   = outR * 0.12;
+    ctx.stroke();
+
+    // AC sine label
+    ctx.fillStyle    = 'rgba(148,163,184,0.85)';
+    ctx.font         = `bold ${Math.min(11, acW * 0.22)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('230 V AC', outCX, outCY + outR + 6);
+
+    // animated sine wave from outlet → regulator
+    const sineX1 = outCX + outR + 3;
+    const sineX2 = regX - 3;
+    const sineAmp = H * 0.055;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(59,130,246,0.85)';
+    ctx.lineWidth   = 1.8;
+    for (let x = 0; x <= sineX2 - sineX1; x++) {
+      const t = x / (sineX2 - sineX1);
+      const y = cy - Math.sin(t * Math.PI * 4 + phase) * sineAmp;
+      x === 0 ? ctx.moveTo(sineX1 + x, y) : ctx.lineTo(sineX1 + x, y);
+    }
+    ctx.stroke();
+
+    // ══════════════════════════════════════════════════════
+    // 2. SPEED REGULATOR  (center-left)
+    // ══════════════════════════════════════════════════════
+    const regCX = regX + regW / 2;
+    const regH  = H * 0.72;
+    const regY  = cy - regH / 2;
+
+    ctx.fillStyle   = 'rgba(16,185,129,0.07)';
+    ctx.strokeStyle = 'rgba(16,185,129,0.6)';
+    ctx.lineWidth   = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(regX, regY, regW, regH, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle    = 'rgba(16,185,129,0.9)';
+    ctx.font         = `bold ${Math.min(10, regW * 0.16)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Speed Regulator', regCX, regY + 6);
+
+    // TRIAC symbol inside: draw phase-cut sine waveform
+    const wfX  = regX + regW * 0.1;
+    const wfW  = regW * 0.8;
+    const wfY  = regY + regH * 0.28;
+    const wfAmp = regH * 0.12;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(16,185,129,0.9)';
+    ctx.lineWidth   = 1.5;
+    for (let x = 0; x <= wfW; x++) {
+      const t         = x / wfW;
+      const cyclePos  = (t * 3) % 1;         // 3 half-cycles shown
+      let y;
+      if (cyclePos < voltPct) {
+        y = wfY - Math.sin((cyclePos / voltPct) * Math.PI) * wfAmp;
+      } else {
+        y = wfY;
+      }
+      x === 0 ? ctx.moveTo(wfX + x, y) : ctx.lineTo(wfX + x, y);
+    }
+    ctx.stroke();
+    // zero-line
+    ctx.beginPath();
+    ctx.setLineDash([3, 3]);
+    ctx.moveTo(wfX, wfY);
+    ctx.lineTo(wfX + wfW, wfY);
+    ctx.strokeStyle = 'rgba(16,185,129,0.25)';
+    ctx.lineWidth   = 0.8;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle    = 'rgba(16,185,129,0.55)';
+    ctx.font         = `${Math.min(8, regW * 0.14)}px sans-serif`;
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Phase-cut waveform', regCX, wfY + wfAmp + 18);
+
+    // Rotary knob
+    const knobCX = regCX;
+    const knobCY = regY + regH * 0.68;
+    const knobR  = Math.min(regW, regH) * 0.14;
+
+    // knob body
+    const kGrad = ctx.createRadialGradient(knobCX - knobR * 0.25, knobCY - knobR * 0.25, knobR * 0.1, knobCX, knobCY, knobR);
+    kGrad.addColorStop(0, 'rgba(51,65,85,0.95)');
+    kGrad.addColorStop(1, 'rgba(15,23,42,0.9)');
+    ctx.beginPath();
+    ctx.arc(knobCX, knobCY, knobR, 0, Math.PI * 2);
+    ctx.fillStyle   = kGrad;
+    ctx.strokeStyle = 'rgba(16,185,129,0.7)';
+    ctx.lineWidth   = 2;
+    ctx.fill();
+    ctx.stroke();
+    // tick marks
+    for (let i = 0; i <= 10; i++) {
+      const a    = -Math.PI * 0.75 + (i / 10) * Math.PI * 1.5;
+      const r0   = knobR * 1.2;
+      const r1   = knobR * 1.35;
+      ctx.beginPath();
+      ctx.moveTo(knobCX + Math.cos(a) * r0, knobCY + Math.sin(a) * r0);
+      ctx.lineTo(knobCX + Math.cos(a) * r1, knobCY + Math.sin(a) * r1);
+      ctx.strokeStyle = i === 0 ? 'rgba(239,68,68,0.5)' : i === 10 ? 'rgba(16,185,129,0.6)' : 'rgba(148,163,184,0.3)';
+      ctx.lineWidth   = i % 5 === 0 ? 2 : 1;
+      ctx.stroke();
+    }
+    // indicator line on knob
+    const kAngle = -Math.PI * 0.75 + voltPct * Math.PI * 1.5;
+    ctx.beginPath();
+    ctx.moveTo(knobCX + Math.cos(kAngle) * knobR * 0.25, knobCY + Math.sin(kAngle) * knobR * 0.25);
+    ctx.lineTo(knobCX + Math.cos(kAngle) * knobR * 0.78, knobCY + Math.sin(kAngle) * knobR * 0.78);
+    ctx.strokeStyle = 'rgba(16,185,129,1)';
+    ctx.lineWidth   = 2.5;
+    ctx.stroke();
+    // center dot
+    ctx.beginPath();
+    ctx.arc(knobCX, knobCY, knobR * 0.1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(16,185,129,0.8)';
+    ctx.fill();
+
+    // voltage output label
+    ctx.fillStyle    = 'rgba(16,185,129,0.75)';
+    ctx.font         = `bold ${Math.min(9, regW * 0.15)}px monospace`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${Math.round(voltPct * 230)} V out`, regCX, knobCY + knobR * 1.55);
+
+    // wire: outlet → regulator (sine wave drawn above) already done
+    // wire: regulator → motor
+    drawWire(regX + regW + 2, motorX - 2, cy,
+      voltPct * 2,
+      `rgba(16,185,129,${0.5 + voltPct * 0.5})`);
+
+    // ══════════════════════════════════════════════════════
+    // 3. MOTOR CROSS-SECTION
+    // ══════════════════════════════════════════════════════
+    const mCX  = motorX + motorW / 2;
+    const mCY  = cy;
+    const mR   = Math.min(motorW * 0.42, H * 0.28);
+
+    // Stator outer housing
+    ctx.beginPath();
+    ctx.arc(mCX, mCY, mR, 0, Math.PI * 2);
+    ctx.fillStyle   = 'rgba(30,41,59,0.85)';
+    ctx.strokeStyle = 'rgba(245,158,11,0.55)';
+    ctx.lineWidth   = mR * 0.22;
+    ctx.fill();
+    ctx.stroke();
+
+    // Stator coil poles (4 poles, glowing with AC phase)
+    for (let i = 0; i < 4; i++) {
+      const a     = (i / 4) * Math.PI * 2;
+      const glow  = 0.35 + Math.max(0, Math.sin(phase * 2 + i * Math.PI * 0.5)) * 0.6;
+      const poleCX = mCX + Math.cos(a) * mR * 0.62;
+      const poleCY = mCY + Math.sin(a) * mR * 0.62;
+      ctx.beginPath();
+      ctx.arc(poleCX, poleCY, mR * 0.16, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(245,158,11,${glow})`;
+      ctx.fill();
+      // coil windings hint
+      ctx.strokeStyle = `rgba(245,158,11,${glow * 0.5})`;
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    // Air gap circle
+    ctx.beginPath();
+    ctx.arc(mCX, mCY, mR * 0.46, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148,163,184,0.12)';
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+
+    // Rotor (spinning)
+    const rotAngle = phase * voltPct * 4.5;
+    ctx.save();
+    ctx.translate(mCX, mCY);
+    ctx.rotate(rotAngle);
+    // Rotor body
+    ctx.beginPath();
+    ctx.arc(0, 0, mR * 0.36, 0, Math.PI * 2);
+    ctx.fillStyle   = 'rgba(51,65,85,0.9)';
+    ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+    ctx.lineWidth   = 1;
+    ctx.fill();
+    ctx.stroke();
+    // Squirrel-cage bars
+    for (let i = 0; i < 10; i++) {
+      const ba = (i / 10) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ba) * mR * 0.12, Math.sin(ba) * mR * 0.12);
+      ctx.lineTo(Math.cos(ba) * mR * 0.33, Math.sin(ba) * mR * 0.33);
+      ctx.strokeStyle = `rgba(148,163,184,${0.5 + voltPct * 0.4})`;
+      ctx.lineWidth   = 1.8;
+      ctx.stroke();
+    }
+    // shaft hub
+    ctx.beginPath();
+    ctx.arc(0, 0, mR * 0.09, 0, Math.PI * 2);
     ctx.fillStyle = '#f59e0b';
     ctx.fill();
     ctx.restore();
 
-    // voltage label
-    const vDisp = Math.round(voltPct * 230);
-    ctx.fillStyle = 'rgba(245,158,11,0.9)';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`~${vDisp} V → ${Math.round(voltPct * 100)}% speed`, motorCX, motorCY + 36);
+    // Motor label + RPM
+    ctx.fillStyle    = 'rgba(245,158,11,0.9)';
+    ctx.font         = `bold ${Math.min(10, motorW * 0.16)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Induction Motor', mCX, mCY - mR - 7);
+    ctx.font         = `bold ${Math.min(9, motorW * 0.14)}px monospace`;
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${Math.round(voltPct * 1450)} RPM`, mCX, mCY + mR + 7);
 
-    // PWM waveform (bottom left, capped to one block width so it doesn't overlap)
-    const wx0 = gap, wy0 = H * 0.78, wh2 = H * 0.14, ww = bw;
-    ctx.strokeStyle = 'rgba(16,185,129,0.7)';
-    ctx.lineWidth = 1.5;
+    // ══════════════════════════════════════════════════════
+    // 4. FAN BLADES
+    // ══════════════════════════════════════════════════════
+    const fCX     = fanX + fanW / 2;
+    const fCY     = cy;
+    const fR      = Math.min(fanW * 0.43, H * 0.28);
+    const fanAngle = phase * voltPct * 4.5;
+
+    // Shaft connecting motor → fan
     ctx.beginPath();
-    const duty = voltPct;
-    for (let x = 0; x < ww; x++) {
-      const period = ww / 6;
-      const pos = (x / period) % 1;
-      const high = pos < duty ? 1 : 0;
-      const y = wy0 + (1 - high) * wh2;
-      x === 0 ? ctx.moveTo(wx0 + x, y) : ctx.lineTo(wx0 + x, y);
-    }
+    ctx.moveTo(motorX + motorW, cy);
+    ctx.lineTo(fanX, cy);
+    ctx.strokeStyle = 'rgba(148,163,184,0.4)';
+    ctx.lineWidth   = 3;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(16,185,129,0.7)';
-    ctx.font = '8px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`PWM duty = ${Math.round(voltPct * 100)}%`, wx0, wy0 - 6);
+
+    // Fan guard ring
+    ctx.beginPath();
+    ctx.arc(fCX, fCY, fR + 7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148,163,184,0.28)';
+    ctx.lineWidth   = 5;
+    ctx.stroke();
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(fCX, fCY);
+      ctx.lineTo(fCX + Math.cos(a) * (fR + 7), fCY + Math.sin(a) * (fR + 7));
+      ctx.strokeStyle = 'rgba(148,163,184,0.12)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    // Spinning blades
+    ctx.save();
+    ctx.translate(fCX, fCY);
+    ctx.rotate(fanAngle);
+    for (let b = 0; b < 4; b++) {
+      ctx.save();
+      ctx.rotate((b / 4) * Math.PI * 2);
+      // blade shape: pitched ellipse
+      ctx.beginPath();
+      ctx.ellipse(0, -fR * 0.52, fR * 0.21, fR * 0.42, 0.18, 0, Math.PI * 2);
+      ctx.fillStyle   = `rgba(6,182,212,${0.55 + voltPct * 0.4})`;
+      ctx.strokeStyle = `rgba(34,211,238,${0.4 + voltPct * 0.3})`;
+      ctx.lineWidth   = 1;
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+    // Hub
+    ctx.beginPath();
+    ctx.arc(0, 0, fR * 0.13, 0, Math.PI * 2);
+    ctx.fillStyle   = '#1e40af';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth   = 1.5;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Wind lines flowing off the right side of the fan
+    for (let w = 0; w < 5; w++) {
+      const wy     = fCY + (w - 2) * fR * 0.36;
+      const t      = ((phase * voltPct + w * 0.22) % 1);
+      const windX  = fCX + fR + 8 + t * fanW * 0.5;
+      const alpha  = (1 - t) * voltPct * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(windX, wy);
+      ctx.lineTo(windX + 16, wy);
+      ctx.strokeStyle = `rgba(6,182,212,${alpha})`;
+      ctx.lineWidth   = 1.5;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle    = 'rgba(6,182,212,0.9)';
+    ctx.font         = `bold ${Math.min(10, fanW * 0.16)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Fan Blades', fCX, fCY - fR - 7);
+
+    // ── Summary bar ────────────────────────────────────────
+    ctx.fillStyle    = 'rgba(245,158,11,0.85)';
+    ctx.font         = `bold ${Math.min(11, W * 0.024)}px monospace`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(
+      `${Math.round(voltPct * 230)} V  →  ${Math.round(voltPct * 100)}% speed  →  ${Math.round(voltPct * 1450)} RPM`,
+      W / 2, H - 6
+    );
 
     if (running) raf = requestAnimationFrame(draw);
   }
@@ -654,92 +913,349 @@ goTo(1);
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    phase += 0.04;
+    phase += 0.035;
 
-    const bw = W * 0.16, bh = H * 0.26;
-    const y0 = H * 0.32;
-    const gap = (W - bw * 4) / 5;
+    // ── Layout ──────────────────────────────────────────────
+    const fanZoneW  = W * 0.28;
+    const midZoneW  = W * 0.26;
+    const bodyZoneW = W * 0.22;
+    const fanCX     = fanZoneW * 0.5;
+    const fanCY     = H * 0.46;
+    const fR        = Math.min(fanZoneW * 0.36, H * 0.26);
+    const bodyCX    = fanZoneW + midZoneW + bodyZoneW * 0.48;
+    const bodyTopY  = H * 0.14;
+    const bodyH     = H * 0.72;
 
-    const boxes = [
-      { label: '⚡ Power\nSupply', x: gap,               color: '59,130,246'  },
-      { label: '🎛️ Speed\nControl',  x: gap * 2 + bw,    color: '16,185,129'  },
-      { label: '🔄 Motor\nRotation', x: gap * 3 + bw * 2, color: '245,158,11' },
-      { label: '💨 Air\nFlow',       x: gap * 4 + bw * 3, color: '6,182,212'  },
-    ];
+    // ══════════════════════════════════════════════════════
+    // 1. SPINNING FAN  (left zone)
+    // ══════════════════════════════════════════════════════
+    const fanAngle = phase * 3;
 
-    // animated arrows
-    boxes.forEach((b, i) => {
-      if (i >= boxes.length - 1) return;
-      const ax = b.x + bw;
-      const ay = y0 + bh / 2;
-      const nx = boxes[i + 1].x;
-      ctx.beginPath();
-      ctx.setLineDash([6, 4]);
-      ctx.lineDashOffset = -phase * 4;
-      ctx.moveTo(ax + 2, ay);
-      ctx.lineTo(nx - 2, ay);
-      ctx.strokeStyle = 'rgba(148,163,184,0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(nx - 8, ay - 5);
-      ctx.lineTo(nx - 2, ay);
-      ctx.lineTo(nx - 8, ay + 5);
-      ctx.strokeStyle = 'rgba(148,163,184,0.7)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    });
-
-    boxes.forEach(b => {
-      ctx.fillStyle = `rgba(${b.color},0.12)`;
-      ctx.strokeStyle = `rgba(${b.color},0.7)`;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(b.x, y0, bw, bh, 8);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = '#f0f9ff';
-      ctx.font = `bold ${Math.min(10, bw * 0.17)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const lines = b.label.split('\n');
-      lines.forEach((line, li) => {
-        ctx.fillText(line, b.x + bw / 2, y0 + bh / 2 + (li - (lines.length - 1) / 2) * 13);
-      });
-    });
-
-    // evaporation diagram (person silhouette + sweat droplets floating up)
-    const personX = W * 0.5, personY = H * 0.85;
-    const dropPhase = phase * 0.8;
-
-    // body (simple circles + rect)
-    ctx.fillStyle = 'rgba(99,102,241,0.3)';
-    ctx.strokeStyle = 'rgba(129,140,248,0.5)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(personX, personY - 38, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = 'rgba(99,102,241,0.2)';
+    // Fan stand base
+    ctx.fillStyle   = 'rgba(30,41,59,0.7)';
+    ctx.strokeStyle = 'rgba(51,65,85,0.6)';
+    ctx.lineWidth   = 1;
     ctx.beginPath();
-    ctx.roundRect(personX - 10, personY - 24, 20, 28, 4);
-    ctx.fill(); ctx.stroke();
+    ctx.ellipse(fanCX, fanCY + fR + 28, fR * 0.45, fR * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // stand pole
+    ctx.beginPath();
+    ctx.roundRect(fanCX - 5, fanCY + fR, 10, 30, 3);
+    ctx.fillStyle = '#334155';
+    ctx.fill();
 
-    // sweat drops rising (evaporation)
-    for (let d = 0; d < 5; d++) {
-      const t = (dropPhase + d * 0.2) % 1;
-      const dy = personY - 10 - t * 55;
-      const dx = personX + (d - 2) * 12;
-      const a  = (1 - t);
+    // Guard ring
+    ctx.beginPath();
+    ctx.arc(fanCX, fanCY, fR + 7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+    ctx.lineWidth   = 5;
+    ctx.stroke();
+    for (let s = 0; s < 8; s++) {
+      const a = (s / 8) * Math.PI * 2;
       ctx.beginPath();
-      ctx.arc(dx, dy, 3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(6,182,212,${a * 0.7})`;
-      ctx.fill();
+      ctx.moveTo(fanCX, fanCY);
+      ctx.lineTo(fanCX + Math.cos(a) * (fR + 7), fanCY + Math.sin(a) * (fR + 7));
+      ctx.strokeStyle = 'rgba(148,163,184,0.1)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
     }
 
-    // label
-    ctx.fillStyle = 'rgba(6,182,212,0.7)';
-    ctx.font = '8px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Sweat evaporates → heat removed', personX, H - 4);
+    // Spinning blades
+    ctx.save();
+    ctx.translate(fanCX, fanCY);
+    ctx.rotate(fanAngle);
+    for (let b = 0; b < 4; b++) {
+      ctx.save();
+      ctx.rotate((b / 4) * Math.PI * 2);
+      ctx.beginPath();
+      ctx.ellipse(0, -fR * 0.52, fR * 0.2, fR * 0.42, 0.18, 0, Math.PI * 2);
+      ctx.fillStyle   = 'rgba(59,130,246,0.75)';
+      ctx.strokeStyle = 'rgba(96,165,250,0.5)';
+      ctx.lineWidth   = 1;
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, fR * 0.13, 0, Math.PI * 2);
+    ctx.fillStyle   = '#1e40af';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth   = 1.5;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle    = 'rgba(148,163,184,0.7)';
+    ctx.font         = `bold ${Math.min(10, fanZoneW * 0.11)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Electric Fan', fanCX, fanCY + fR + 40);
+
+    // ══════════════════════════════════════════════════════
+    // 2. AIRFLOW ARROWS  (mid zone, curved wind lines)
+    // ══════════════════════════════════════════════════════
+    const airX0 = fanZoneW + fR + 6;
+    const airX1 = fanZoneW + midZoneW - 10;
+
+    for (let row = 0; row < 6; row++) {
+      const wy       = H * 0.22 + row * H * 0.11;
+      const t        = ((phase + row * 0.18) % 1);
+      const xPos     = airX0 + t * (airX1 - airX0);
+      const alpha    = (1 - t) * 0.75;
+      const lineLen  = 18 + row % 2 * 8;
+
+      ctx.beginPath();
+      ctx.moveTo(xPos, wy);
+      ctx.lineTo(xPos + lineLen, wy);
+      ctx.strokeStyle = `rgba(6,182,212,${alpha})`;
+      ctx.lineWidth   = 1.8;
+      ctx.stroke();
+
+      // arrowhead
+      ctx.beginPath();
+      ctx.moveTo(xPos + lineLen - 6, wy - 3);
+      ctx.lineTo(xPos + lineLen,     wy);
+      ctx.lineTo(xPos + lineLen - 6, wy + 3);
+      ctx.strokeStyle = `rgba(6,182,212,${alpha * 0.7})`;
+      ctx.lineWidth   = 1.2;
+      ctx.stroke();
+    }
+
+    // "Moving Air" label in the middle zone
+    ctx.fillStyle    = 'rgba(6,182,212,0.55)';
+    ctx.font         = `${Math.min(9, midZoneW * 0.12)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Moving Air →', fanZoneW + midZoneW / 2, H * 0.08);
+
+    // ══════════════════════════════════════════════════════
+    // 3. PERSON SILHOUETTE with skin surface detail
+    // ══════════════════════════════════════════════════════
+    const headR  = bodyH * 0.1;
+    const headCX = bodyCX;
+    const headCY = bodyTopY + headR;
+    const torsoW = headR * 1.6;
+    const torsoH = bodyH * 0.32;
+    const torsoX = bodyCX - torsoW / 2;
+    const torsoY = headCY + headR + 4;
+
+    // Skin gradient (warm tone to show body temp)
+    const skinGrad = ctx.createLinearGradient(torsoX, torsoY, torsoX + torsoW, torsoY + torsoH);
+    skinGrad.addColorStop(0, 'rgba(251,146,60,0.35)');
+    skinGrad.addColorStop(1, 'rgba(234,88,12,0.2)');
+
+    // Torso
+    ctx.fillStyle   = skinGrad;
+    ctx.strokeStyle = 'rgba(251,146,60,0.5)';
+    ctx.lineWidth   = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(torsoX, torsoY, torsoW, torsoH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Arms
+    const armW = torsoW * 0.28, armH = torsoH * 0.85;
+    [[torsoX - armW - 2, torsoY + 4], [torsoX + torsoW + 2, torsoY + 4]].forEach(([ax, ay]) => {
+      ctx.beginPath();
+      ctx.roundRect(ax, ay, armW, armH, 5);
+      ctx.fillStyle   = skinGrad;
+      ctx.strokeStyle = 'rgba(251,146,60,0.4)';
+      ctx.lineWidth   = 1;
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // Legs
+    const legW = torsoW * 0.37, legH = bodyH * 0.3;
+    const legY  = torsoY + torsoH + 3;
+    [torsoX + 3, torsoX + torsoW - legW - 3].forEach(lx => {
+      ctx.beginPath();
+      ctx.roundRect(lx, legY, legW, legH, 5);
+      ctx.fillStyle   = skinGrad;
+      ctx.strokeStyle = 'rgba(251,146,60,0.4)';
+      ctx.lineWidth   = 1;
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(headCX, headCY, headR, 0, Math.PI * 2);
+    ctx.fillStyle   = skinGrad;
+    ctx.strokeStyle = 'rgba(251,146,60,0.5)';
+    ctx.lineWidth   = 1.5;
+    ctx.fill();
+    ctx.stroke();
+
+    // Face details: eyes
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    [headCX - headR * 0.3, headCX + headR * 0.3].forEach(ex => {
+      ctx.beginPath();
+      ctx.ellipse(ex, headCY - headR * 0.1, headR * 0.1, headR * 0.12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    // smile
+    ctx.beginPath();
+    ctx.arc(headCX, headCY + headR * 0.1, headR * 0.25, 0.2, Math.PI - 0.2);
+    ctx.strokeStyle = 'rgba(15,23,42,0.65)';
+    ctx.lineWidth   = 1.2;
+    ctx.stroke();
+
+    // Body temperature label
+    ctx.fillStyle    = 'rgba(251,146,60,0.7)';
+    ctx.font         = `${Math.min(8, bodyZoneW * 0.14)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('37°C skin', bodyCX, torsoY + torsoH / 2);
+
+    // ══════════════════════════════════════════════════════
+    // 4. SWEAT DROPLETS on skin + EVAPORATION  (right zone)
+    // ══════════════════════════════════════════════════════
+    const dropPhase = phase * 0.85;
+    const sweatPositions = [
+      { bx: headCX,        by: headCY + headR * 0.5 },   // forehead
+      { bx: torsoX + torsoW * 0.2, by: torsoY + torsoH * 0.25 },
+      { bx: torsoX + torsoW * 0.8, by: torsoY + torsoH * 0.3 },
+      { bx: torsoX + torsoW * 0.5, by: torsoY + torsoH * 0.6 },
+      { bx: torsoX - armW * 0.3,   by: torsoY + armH  * 0.4 },
+      { bx: torsoX + torsoW + armW * 1.3, by: torsoY + armH * 0.35 },
+    ];
+
+    sweatPositions.forEach((sp, si) => {
+      const t  = (dropPhase + si * 0.17) % 1;
+      const ey = sp.by - t * H * 0.28;          // rises upward
+      const a  = (1 - t * 0.9);                 // fades as it rises
+
+      // teardrop sweat drop (circle with pointed bottom) – shown on skin
+      if (t < 0.25) {
+        const dr = 4 * (1 - t / 0.25);           // shrinks as it lifts
+        ctx.beginPath();
+        ctx.arc(sp.bx, sp.by, dr, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(6,182,212,0.6)';
+        ctx.fill();
+      }
+
+      // rising droplet
+      const er = 3.5 * (1 - t * 0.6);
+      ctx.beginPath();
+      // teardrop: arc top + pointed bottom via quadratic
+      ctx.arc(sp.bx, ey - er * 0.5, er, Math.PI, 0);
+      ctx.quadraticCurveTo(sp.bx + er, ey + er * 0.4, sp.bx, ey + er);
+      ctx.quadraticCurveTo(sp.bx - er, ey + er * 0.4, sp.bx - er, ey - er * 0.5);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(6,182,212,${a * 0.65})`;
+      ctx.fill();
+      ctx.strokeStyle = `rgba(34,211,238,${a * 0.4})`;
+      ctx.lineWidth   = 0.8;
+      ctx.stroke();
+
+      // heat wavy line above evaporating drop (shimmer)
+      if (t > 0.4) {
+        const hx = sp.bx, hy = ey - er - 4;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        for (let i = 0; i < 16; i++) {
+          const wx = hx + Math.sin(i * 0.9 + phase * 2 + si) * 4;
+          ctx.lineTo(wx, hy - i * 2.2);
+        }
+        ctx.strokeStyle = `rgba(251,146,60,${(t - 0.4) * 0.6})`;
+        ctx.lineWidth   = 1;
+        ctx.stroke();
+      }
+    });
+
+    // ══════════════════════════════════════════════════════
+    // 5. INFO PANELS (right of person)
+    // ══════════════════════════════════════════════════════
+    const infoX = bodyCX + bodyZoneW * 0.55;
+    const infoW = W - infoX - 8;
+
+    if (infoW > 40) {
+      // Evaporation formula pill
+      const pilY = H * 0.18;
+      ctx.fillStyle   = 'rgba(6,182,212,0.1)';
+      ctx.strokeStyle = 'rgba(6,182,212,0.5)';
+      ctx.lineWidth   = 1;
+      ctx.beginPath();
+      ctx.roundRect(infoX, pilY, infoW, H * 0.14, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle    = 'rgba(6,182,212,0.9)';
+      ctx.font         = `bold ${Math.min(10, infoW * 0.2)}px monospace`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Q = m·Lv', infoX + infoW / 2, pilY + H * 0.05);
+      ctx.font         = `${Math.min(7, infoW * 0.14)}px sans-serif`;
+      ctx.fillStyle    = 'rgba(148,163,184,0.75)';
+      ctx.fillText('2260 J / g', infoX + infoW / 2, pilY + H * 0.095);
+
+      // Airflow arrows entering person
+      for (let aw = 0; aw < 3; aw++) {
+        const awy = H * (0.32 + aw * 0.14);
+        const at  = ((phase * 1.2 + aw * 0.35) % 1);
+        const axP = airX1 + at * (bodyCX - torsoW * 0.7 - airX1 - 8);
+        ctx.beginPath();
+        ctx.moveTo(axP, awy);
+        ctx.lineTo(axP + 14, awy);
+        ctx.strokeStyle = `rgba(6,182,212,${(1 - at) * 0.55})`;
+        ctx.lineWidth   = 1.5;
+        ctx.stroke();
+      }
+
+      // Energy saved label
+      const eY = H * 0.52;
+      ctx.fillStyle   = 'rgba(16,185,129,0.1)';
+      ctx.strokeStyle = 'rgba(16,185,129,0.45)';
+      ctx.lineWidth   = 1;
+      ctx.beginPath();
+      ctx.roundRect(infoX, eY, infoW, H * 0.4, 6);
+      ctx.fill();
+      ctx.stroke();
+      const rows = [
+        { lbl: 'Ceiling Fan', w: 0.06,  v: '30 W',   c: '6,182,212' },
+        { lbl: 'Pedestal Fan', w: 0.1,  v: '55 W',   c: '59,130,246' },
+        { lbl: 'Window AC',    w: 0.9,  v: '900 W',  c: '245,158,11' },
+        { lbl: 'Split AC 1.5T', w: 1.0, v: '1500 W', c: '239,68,68'  },
+      ];
+      const barAreaX = infoX + 4, barAreaW = infoW - 8;
+      const rowH  = H * 0.09;
+      const fSize = Math.min(7, infoW * 0.13);
+      rows.forEach((r, ri) => {
+        const ry = eY + 6 + ri * rowH;
+        ctx.fillStyle    = 'rgba(148,163,184,0.6)';
+        ctx.font         = `${fSize}px sans-serif`;
+        ctx.textAlign    = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(r.lbl, barAreaX, ry);
+        const bY = ry + fSize + 2;
+        const bH = rowH - fSize - 8;
+        ctx.fillStyle = 'rgba(30,41,59,0.6)';
+        ctx.beginPath();
+        ctx.roundRect(barAreaX, bY, barAreaW, bH, 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(${r.c},0.75)`;
+        ctx.beginPath();
+        ctx.roundRect(barAreaX, bY, barAreaW * r.w, bH, 2);
+        ctx.fill();
+        ctx.fillStyle    = '#f0f9ff';
+        ctx.font         = `bold ${fSize}px monospace`;
+        ctx.textAlign    = 'right';
+        ctx.fillText(r.v, barAreaX + barAreaW - 2, bY);
+      });
+      ctx.fillStyle    = 'rgba(16,185,129,0.7)';
+      ctx.font         = `bold ${fSize + 1}px sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('Power Comparison', infoX + infoW / 2, eY + 2);
+    }
+
+    // ── Bottom caption ──────────────────────────────────
+    ctx.fillStyle    = 'rgba(6,182,212,0.65)';
+    ctx.font         = `${Math.min(9, W * 0.022)}px sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Fan accelerates sweat evaporation → removes latent heat (Q = m·L\u1d65)', W / 2, H - 4);
 
     if (running) raf = requestAnimationFrame(draw);
   }
