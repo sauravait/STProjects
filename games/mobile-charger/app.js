@@ -354,7 +354,6 @@ goTo(1);
     const pwX = cx - s * 0.55, pwY = cy, pwW = s * 0.4, pwH = s * 0.35;
     ctx.strokeStyle = `rgba(245,158,11,${0.5 + glow * 0.35})`;
     ctx.lineWidth = 1;
-    const pulsePhase = (phase * 3) % 1;
     for (let i = 0; i < 3; i++) {
       const bx = pwX + (i / 3) * pwW;
       const bw2 = pwW / 3;
@@ -1078,14 +1077,6 @@ goTo(1);
 
     // Forward path x-positions
     const fxs = Array.from({ length: fwdN }, (_, i) => margin + i * (fwdBW + fwdGap));
-    // Feedback path x-positions (reversed for right→left flow)
-    const fks = [
-      margin + 3 * (fbkBW + fbkGap), // Vout (rightmost)
-      margin + 2 * (fbkBW + fbkGap), // divider
-      margin + 1 * (fbkBW + fbkGap), // error amp
-      margin + 0 * (fbkBW + fbkGap), // opto
-      // PWM and MOSFET share fwd positions
-    ];
 
     const glow = 0.45 + Math.sin(phase * 1.8) * 0.45;
 
@@ -1735,10 +1726,10 @@ goTo(1);
     ctx.stroke();
     // fill gradient (bottom-up)
     const fillH = bh2 * pct;
-    const fc = pct < 0.2 ? [239,68,68] : pct < 0.5 ? [245,158,11] : [74,222,128];
+    const [fr, fg, fb] = pct < 0.2 ? [239,68,68] : pct < 0.5 ? [245,158,11] : [74,222,128];
     const fillGrad = ctx.createLinearGradient(bx, by + bh2 - fillH, bx, by + bh2);
-    fillGrad.addColorStop(0, `rgba(${fc},0.5)`);
-    fillGrad.addColorStop(1, `rgba(${fc},0.9)`);
+    fillGrad.addColorStop(0, `rgba(${fr},${fg},${fb},0.5)`);
+    fillGrad.addColorStop(1, `rgba(${fr},${fg},${fb},0.9)`);
     ctx.fillStyle = fillGrad;
     ctx.beginPath();
     ctx.roundRect(bx + 2, by + bh2 - fillH + 2, bw2 - 4, fillH - 2, 4);
