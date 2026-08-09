@@ -140,9 +140,11 @@ function renderQuiz() {
 
 const bgCanvas = document.getElementById('bg-canvas');
 const bg = bgCanvas.getContext('2d');
-function drawBackground() {
+function resizeBackground() {
   bgCanvas.width = window.innerWidth;
   bgCanvas.height = window.innerHeight;
+}
+function drawBackground() {
   bg.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
   for (let i = 0; i < 50; i += 1) {
     const x = (i * 103 + performance.now() * 0.02) % bgCanvas.width;
@@ -153,6 +155,8 @@ function drawBackground() {
   requestAnimationFrame(drawBackground);
 }
 
+resizeBackground();
+window.addEventListener('resize', resizeBackground);
 showScene(0);
 renderQuiz();
 drawBackground();
