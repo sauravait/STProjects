@@ -601,8 +601,8 @@ goTo(1);
     ctx.textAlign = 'center';
     ctx.fillText(`~${vDisp} V → ${Math.round(voltPct * 100)}% speed`, motorCX, motorCY + 36);
 
-    // PWM waveform (bottom left)
-    const wx0 = gap, wy0 = H * 0.78, wh2 = H * 0.14, ww = bw * 2;
+    // PWM waveform (bottom left, capped to one block width so it doesn't overlap)
+    const wx0 = gap, wy0 = H * 0.78, wh2 = H * 0.14, ww = bw;
     ctx.strokeStyle = 'rgba(16,185,129,0.7)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
