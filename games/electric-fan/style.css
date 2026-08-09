@@ -713,3 +713,110 @@ body {
   .mod-stage { padding: 2rem 2rem 8rem; }
   .scene-inner { gap: 3rem; }
 }
+
+/* ── Scene 1 – energy conversion chain ──────────────────────── */
+.energy-chain {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-top: .3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1rem;
+}
+.ec-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  flex-shrink: 0;
+}
+.ec-step .ec-icon { font-size: 1.5rem; }
+.ec-step .ec-lbl {
+  font-size: .65rem;
+  color: var(--text-mid);
+  text-align: center;
+  line-height: 1.3;
+}
+.ec-arrow {
+  width: 30px;
+  height: 14px;
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .energy-chain { gap: .25rem; }
+  .ec-arrow { width: 20px; }
+}
+
+/* ── Scene 2 – motor canvas ──────────────────────────────────── */
+.motor-canvas {
+  width: 100%;
+  height: clamp(220px, 35vw, 320px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(16,185,129,.12));
+}
+
+/* ── Scene 3 – blade cross-section ──────────────────────────── */
+.blade-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  overflow: hidden;
+}
+.blade-xsect {
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  display: block;
+}
+
+/* ── Scene 4 – speed canvas ──────────────────────────────────── */
+.speed-canvas {
+  width: 100%;
+  height: clamp(200px, 35vw, 300px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: block;
+}
+
+.speed-demo-ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin-top: .5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .75rem 1rem;
+}
+.speed-demo-ctrl label {
+  font-size: .82rem;
+  color: var(--text-mid);
+  font-weight: 500;
+}
+.speed-demo-ctrl input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-card2);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+.speed-demo-ctrl input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  border: 2px solid var(--bg-deep);
+  cursor: pointer;
+  transition: transform .15s;
+}
+.speed-demo-ctrl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
