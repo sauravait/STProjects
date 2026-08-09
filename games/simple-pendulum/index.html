@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive module on simple pendulum motion, period, and gravity dependence."/>
+  <title>Simple Pendulum – Physics Module</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="mod-header">
+    <a class="back-link" href="../../index.html">Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">⏱️ STProjects · Physics Module</span>
+      <h1 class="mod-title">Simple Pendulum</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+      <span class="scene-label" id="scene-label">1 / 4</span>
+    </div>
+  </header>
+
+  <main class="mod-stage">
+    <section class="scene" data-scene="1">
+      <div class="scene-inner">
+        <div class="scene-visual hero-visual">⏱️</div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 4</span>
+          <h2>Pendulum Basics</h2>
+          <p>A simple pendulum is a bob on a light string. At small angles, it performs near <strong>simple harmonic motion</strong>.</p>
+          <div class="fact-grid">
+            <div class="fact-card"><span>Period</span><strong>T</strong></div>
+            <div class="fact-card"><span>Length</span><strong>L</strong></div>
+            <div class="fact-card"><span>Gravity</span><strong>g</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="2">
+      <div class="scene-inner">
+        <div class="scene-visual canvas-wrap">
+          <canvas id="concept-canvas" width="520" height="280"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 4</span>
+          <h2>Length vs Period</h2>
+          <p>Increase string length to observe slower oscillations. Longer pendulums swing with larger periods.</p>
+          <label for="length-control">Length (m): <strong id="control-value">1.0</strong></label>
+          <input id="length-control" type="range" min="0.5" max="2.5" step="0.1" value="1.0" />
+          <p class="formula-pill">T = 2π√(L/g)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="3">
+      <div class="scene-inner">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 3 of 4</span>
+          <h2>Core Observations</h2>
+          <div class="formula-grid">
+            <div class="formula-card"><strong>T ∝ √L</strong><p>Doubling length increases period by √2.</p></div>
+            <div class="formula-card"><strong>T ∝ 1/√g</strong><p>Lower gravity gives slower oscillations.</p></div>
+            <div class="formula-card"><strong>Small-angle model</strong><p>Formula is accurate for small angular displacement.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="4">
+      <div class="scene-inner quiz-layout">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 4 of 4</span>
+          <h2>Knowledge Check</h2>
+          <div id="quiz-body"></div>
+          <div id="quiz-result" class="quiz-result hidden"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mod-nav">
+    <button class="nav-btn" id="btn-prev" disabled>Prev</button>
+    <div class="dot-nav" id="dot-nav"></div>
+    <button class="nav-btn primary" id="btn-next">Next</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

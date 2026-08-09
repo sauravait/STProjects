@@ -8,18 +8,30 @@ A small browser-based game collection built with **HTML, CSS, and vanilla JavaSc
 - **Electrical Transformer** — animated educational transformer learning module.
 - **Truck Air Brake System** — animated engineering explainer module.
 - **Hydroelectric Generation** — fully animated hydro power generation module.
+- **Radio Frequency** — interactive electromagnetic wave and modulation module.
+- **Electric Fan** — animated electric fan working-principle module.
+- **Mobile Charger** — interactive charger and battery physics module.
+- **Projectile Motion** — launch-angle trajectory simulator with quiz.
+- **Simple Pendulum** — oscillation and period learning module with live control.
+- **Prism Optics** — refraction and dispersion visual module with quiz.
 
 ## Project Structure
-- `/home/runner/work/STProjects/STProjects/index.html` — main launcher page for all games.
-- `/home/runner/work/STProjects/STProjects/games/archers-path/` — Archer's Path assets.
-- `/home/runner/work/STProjects/STProjects/games/chess/` — Chess assets.
-- `/home/runner/work/STProjects/STProjects/games/transformer/` — Transformer module assets.
-- `/home/runner/work/STProjects/STProjects/games/truck-brake/` — Truck brake module assets.
-- `/home/runner/work/STProjects/STProjects/games/hydroelectric/` — Hydroelectric module assets.
+- `./index.html` — main launcher page for all games.
+- `./games/archers-path/` — Archer's Path assets.
+- `./games/chess/` — Chess assets.
+- `./games/transformer/` — Transformer module assets.
+- `./games/truck-brake/` — Truck brake module assets.
+- `./games/hydroelectric/` — Hydroelectric module assets.
+- `./games/radio-frequency/` — Radio frequency module assets.
+- `./games/electric-fan/` — Electric fan module assets.
+- `./games/mobile-charger/` — Mobile charger module assets.
+- `./games/projectile-motion/` — Projectile motion module assets.
+- `./games/simple-pendulum/` — Simple pendulum module assets.
+- `./games/prism-optics/` — Prism optics module assets.
 
 ## How to Run
 1. Clone/download the repository.
-2. Open `/home/runner/work/STProjects/STProjects/index.html` in any modern browser.
+2. Open `./index.html` in any modern browser.
 3. Choose a game from the launcher page.
 4. No build tools or server setup are required.
 

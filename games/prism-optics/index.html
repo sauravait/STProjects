@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive prism optics module: refraction, deviation, and dispersion of light."/>
+  <title>Prism Optics – Physics Module</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="mod-header">
+    <a class="back-link" href="../../index.html">Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">🔺 STProjects · Physics Module</span>
+      <h1 class="mod-title">Prism Optics</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+      <span class="scene-label" id="scene-label">1 / 4</span>
+    </div>
+  </header>
+
+  <main class="mod-stage">
+    <section class="scene" data-scene="1">
+      <div class="scene-inner">
+        <div class="scene-visual hero-visual">🔺</div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 4</span>
+          <h2>How a Prism Bends Light</h2>
+          <p>When light enters glass, speed changes. Different wavelengths bend by different amounts, producing <strong>dispersion</strong>.</p>
+          <div class="fact-grid">
+            <div class="fact-card"><span>Law</span><strong>Snell's Law</strong></div>
+            <div class="fact-card"><span>Short λ</span><strong>More bending</strong></div>
+            <div class="fact-card"><span>Long λ</span><strong>Less bending</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="2">
+      <div class="scene-inner">
+        <div class="scene-visual canvas-wrap">
+          <canvas id="concept-canvas" width="520" height="280"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 4</span>
+          <h2>Incidence vs Deviation</h2>
+          <p>Move the incidence angle to change the beam path and observe how rainbow splitting evolves.</p>
+          <label for="incidence-control">Incidence Angle: <strong id="control-value">35°</strong></label>
+          <input id="incidence-control" type="range" min="15" max="60" value="35" />
+          <p class="formula-pill">n₁ sinθ₁ = n₂ sinθ₂</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="3">
+      <div class="scene-inner">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 3 of 4</span>
+          <h2>Core Prism Relations</h2>
+          <div class="formula-grid">
+            <div class="formula-card"><strong>δ = (i + e) − A</strong><p>Deviation angle relation for a prism.</p></div>
+            <div class="formula-card"><strong>δₘ at symmetric path</strong><p>Minimum deviation occurs for balanced refraction.</p></div>
+            <div class="formula-card"><strong>n(blue) &gt; n(red)</strong><p>Blue/violet refract more than red.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="4">
+      <div class="scene-inner quiz-layout">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 4 of 4</span>
+          <h2>Knowledge Check</h2>
+          <div id="quiz-body"></div>
+          <div id="quiz-result" class="quiz-result hidden"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mod-nav">
+    <button class="nav-btn" id="btn-prev" disabled>Prev</button>
+    <div class="dot-nav" id="dot-nav"></div>
+    <button class="nav-btn primary" id="btn-next">Next</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

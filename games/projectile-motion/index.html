@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive physics module on projectile motion, trajectory, range, and launch angle."/>
+  <title>Projectile Motion – Physics Module</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="mod-header">
+    <a class="back-link" href="../../index.html">Hub</a>
+    <div class="header-center">
+      <span class="mod-eyebrow">🎯 STProjects · Physics Module</span>
+      <h1 class="mod-title">Projectile Motion</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+      <span class="scene-label" id="scene-label">1 / 4</span>
+    </div>
+  </header>
+
+  <main class="mod-stage">
+    <section class="scene" data-scene="1">
+      <div class="scene-inner">
+        <div class="scene-visual hero-visual">🎯</div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 4</span>
+          <h2>What is Projectile Motion?</h2>
+          <p>A projectile combines <strong>constant horizontal velocity</strong> with <strong>downward acceleration</strong> due to gravity. The resulting path is a parabola.</p>
+          <div class="fact-grid">
+            <div class="fact-card"><span>Gravity</span><strong>9.8 m/s²</strong></div>
+            <div class="fact-card"><span>Path</span><strong>Parabolic</strong></div>
+            <div class="fact-card"><span>Ideal Case</span><strong>No air drag</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="2">
+      <div class="scene-inner">
+        <div class="scene-visual canvas-wrap">
+          <canvas id="concept-canvas" width="520" height="280"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 4</span>
+          <h2>Angle vs Range</h2>
+          <p>Adjust the launch angle to see how the trajectory and horizontal range change in real time.</p>
+          <label for="angle-control">Launch Angle: <strong id="control-value">45°</strong></label>
+          <input id="angle-control" type="range" min="15" max="75" value="45" />
+          <p class="formula-pill">R = (v² sin 2θ) / g</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="3">
+      <div class="scene-inner">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 3 of 4</span>
+          <h2>Core Equations</h2>
+          <div class="formula-grid">
+            <div class="formula-card"><strong>x(t) = v₀ cosθ · t</strong><p>Horizontal motion has zero acceleration.</p></div>
+            <div class="formula-card"><strong>y(t) = v₀ sinθ · t − ½gt²</strong><p>Vertical motion is accelerated downward.</p></div>
+            <div class="formula-card"><strong>T = 2v₀ sinθ / g</strong><p>Total time of flight back to launch level.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene hidden" data-scene="4">
+      <div class="scene-inner quiz-layout">
+        <div class="scene-text full-width">
+          <span class="scene-tag">Scene 4 of 4</span>
+          <h2>Knowledge Check</h2>
+          <div id="quiz-body"></div>
+          <div id="quiz-result" class="quiz-result hidden"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mod-nav">
+    <button class="nav-btn" id="btn-prev" disabled>Prev</button>
+    <div class="dot-nav" id="dot-nav"></div>
+    <button class="nav-btn primary" id="btn-next">Next</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
