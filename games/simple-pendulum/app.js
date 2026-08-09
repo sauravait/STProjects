@@ -40,6 +40,7 @@ let tick = 0;
 
 function ensureConceptAnimation() {
   if (conceptAnimating) return;
+  tick = 0;
   conceptAnimating = true;
   requestAnimationFrame(drawPendulum);
 }

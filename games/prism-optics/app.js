@@ -103,7 +103,7 @@ incidenceControl.addEventListener('input', () => {
 
 const quiz = [
   { q: 'Which color generally bends most in a prism?', options: ['Red', 'Green', 'Violet'], answer: 2 },
-  { q: 'Refraction is governed by:', options: ['Newton’s law', 'Snell’s law', 'Ohm’s law'], answer: 1 },
+  { q: 'Refraction is governed by:', options: ["Newton's law", "Snell's law", "Ohm's law"], answer: 1 },
   { q: 'Dispersion happens because refractive index depends on:', options: ['Wavelength', 'Mass', 'Temperature only'], answer: 0 },
 ];
 

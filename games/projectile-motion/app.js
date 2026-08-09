@@ -40,6 +40,7 @@ let t = 0;
 
 function ensureConceptAnimation() {
   if (conceptAnimating) return;
+  t = 0;
   conceptAnimating = true;
   requestAnimationFrame(drawProjectile);
 }
