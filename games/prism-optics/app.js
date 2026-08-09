@@ -7,7 +7,6 @@ const dotNav = document.getElementById('dot-nav');
 
 let currentScene = 0;
 const totalScenes = scenes.length;
-let conceptAnimating = false;
 
 for (let i = 0; i < totalScenes; i += 1) {
   const dot = document.createElement('button');
@@ -37,17 +36,11 @@ const conceptCanvas = document.getElementById('concept-canvas');
 const ctx = conceptCanvas.getContext('2d');
 
 function ensureConceptAnimation() {
-  if (conceptAnimating) return;
-  conceptAnimating = true;
-  requestAnimationFrame(drawPrism);
+  if (currentScene !== 1) return;
+  drawPrism();
 }
 
 function drawPrism() {
-  if (currentScene !== 1) {
-    conceptAnimating = false;
-    return;
-  }
-
   const iDeg = Number(incidenceControl.value);
   const iRad = iDeg * (Math.PI / 180);
 
@@ -100,11 +93,11 @@ function drawPrism() {
   ctx.fillText(`Incidence: ${iDeg}°`, 18, 28);
   ctx.fillText('Dispersion: violet bends more than red', 18, 252);
 
-  requestAnimationFrame(drawPrism);
 }
 
 incidenceControl.addEventListener('input', () => {
   incidenceValue.textContent = `${incidenceControl.value}°`;
+  if (currentScene === 1) drawPrism();
 });
 
 const quiz = [
@@ -126,13 +119,21 @@ function renderQuiz() {
 
   document.getElementById('quiz-submit').addEventListener('click', () => {
     let score = 0;
+    let unanswered = 0;
     quiz.forEach((item, qi) => {
       const selectedInput = document.querySelector(`input[name="q${qi}"]:checked`);
-      if (!selectedInput) return;
+      if (!selectedInput) {
+        unanswered += 1;
+        return;
+      }
       const selected = Number(selectedInput.value);
       if (selected === item.answer) score += 1;
     });
     quizResult.classList.remove('hidden');
+    if (unanswered > 0) {
+      quizResult.textContent = `Please answer all questions before submitting (${unanswered} remaining).`;
+      return;
+    }
     quizResult.textContent = `Score: ${score} / ${quiz.length}`;
   });
 }

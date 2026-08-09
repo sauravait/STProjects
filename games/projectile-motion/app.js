@@ -119,13 +119,21 @@ function renderQuiz() {
 
   document.getElementById('quiz-submit').addEventListener('click', () => {
     let score = 0;
+    let unanswered = 0;
     quiz.forEach((item, qi) => {
       const selectedInput = document.querySelector(`input[name="q${qi}"]:checked`);
-      if (!selectedInput) return;
+      if (!selectedInput) {
+        unanswered += 1;
+        return;
+      }
       const selected = Number(selectedInput.value);
       if (selected === item.answer) score += 1;
     });
     quizResult.classList.remove('hidden');
+    if (unanswered > 0) {
+      quizResult.textContent = `Please answer all questions before submitting (${unanswered} remaining).`;
+      return;
+    }
     quizResult.textContent = `Score: ${score} / ${quiz.length}`;
   });
 }

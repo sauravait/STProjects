@@ -52,7 +52,8 @@ function drawPendulum() {
   const L = Number(lengthControl.value);
   const pxLength = 70 + (L - 0.5) * 70;
   const omega = Math.sqrt(9.8 / L);
-  const theta = Math.sin(tick * 0.035 * omega) * 0.45;
+  const maxTheta = 0.45;
+  const theta = Math.sin(tick * 0.035 * omega) * maxTheta;
   tick += 1;
 
   const originX = conceptCanvas.width / 2;
@@ -85,7 +86,7 @@ function drawPendulum() {
 
   ctx.strokeStyle = 'rgba(34,197,94,0.35)';
   ctx.beginPath();
-  ctx.arc(originX, originY, pxLength, Math.PI * 0.25, Math.PI * 0.75);
+  ctx.arc(originX, originY, pxLength, Math.PI / 2 - maxTheta, Math.PI / 2 + maxTheta);
   ctx.stroke();
 
   ctx.fillStyle = '#e2e8f0';
@@ -119,13 +120,21 @@ function renderQuiz() {
 
   document.getElementById('quiz-submit').addEventListener('click', () => {
     let score = 0;
+    let unanswered = 0;
     quiz.forEach((item, qi) => {
       const selectedInput = document.querySelector(`input[name="q${qi}"]:checked`);
-      if (!selectedInput) return;
+      if (!selectedInput) {
+        unanswered += 1;
+        return;
+      }
       const selected = Number(selectedInput.value);
       if (selected === item.answer) score += 1;
     });
     quizResult.classList.remove('hidden');
+    if (unanswered > 0) {
+      quizResult.textContent = `Please answer all questions before submitting (${unanswered} remaining).`;
+      return;
+    }
     quizResult.textContent = `Score: ${score} / ${quiz.length}`;
   });
 }
