@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Interactive educational module explaining how a mobile phone charger works — transformer, rectifier, voltage regulation, battery chemistry, and a graded quiz."/>
+  <title>Mobile Charger – How It Works</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── Canvas background ────────────────────────────────────── -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ── Header ────────────────────────────────────────────────── -->
+  <header class="mod-header" role="banner">
+    <a class="back-link" href="../../index.html" aria-label="Back to Game Hub">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M11 14L6 9l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Hub
+    </a>
+    <div class="header-center">
+      <span class="mod-eyebrow">🔌 STProjects · Electronics Module</span>
+      <h1 class="mod-title">Mobile Charger</h1>
+    </div>
+    <div class="header-right">
+      <div class="progress-track" aria-label="Module progress">
+        <div class="progress-fill" id="progress-fill" role="progressbar"
+             aria-valuenow="1" aria-valuemin="1" aria-valuemax="7"
+             style="width:14.28%"></div>
+      </div>
+      <span class="scene-label" id="scene-label" aria-live="polite">1 / 7</span>
+    </div>
+  </header>
+
+  <!-- ── Main stage ────────────────────────────────────────────── -->
+  <main class="mod-stage" id="mod-stage" role="main">
+
+    <!-- ═══════════════════  SCENE 1 – INTRO  ══════════════════════ -->
+    <section class="scene" id="scene-1" data-scene="1" aria-label="Introduction">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="charger-anim" id="charger-anim">
+            <svg viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- wall plug -->
+              <rect x="68" y="12" width="64" height="44" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+              <rect x="84" y="4" width="10" height="14" rx="3" fill="#64748b"/>
+              <rect x="106" y="4" width="10" height="14" rx="3" fill="#64748b"/>
+              <!-- wire -->
+              <path d="M100 56 C100 90, 80 100, 80 130 C80 160, 100 170, 100 200"
+                    stroke="#475569" stroke-width="5" stroke-linecap="round" fill="none"/>
+              <!-- animated charge pulse on wire -->
+              <circle id="charge-dot" cx="100" cy="56" r="4" fill="#a78bfa">
+                <animateMotion dur="1.8s" repeatCount="indefinite">
+                  <mpath xlink:href="#wire-path"/>
+                </animateMotion>
+              </circle>
+              <path id="wire-path" d="M100 56 C100 90, 80 100, 80 130 C80 160, 100 170, 100 200"
+                    fill="none" stroke="none"/>
+              <!-- phone -->
+              <rect x="64" y="200" width="72" height="36" rx="8" fill="#1e293b" stroke="#7c3aed" stroke-width="2"/>
+              <rect x="74" y="207" width="52" height="22" rx="4" fill="#1e1b4b"/>
+              <!-- battery bar -->
+              <rect x="76" y="209" width="12" height="18" rx="2" fill="#4ade80" id="batt-bar"/>
+              <!-- charging bolt -->
+              <text x="97" y="222" font-size="14" fill="#fbbf24" font-family="sans-serif" text-anchor="middle">⚡</text>
+              <!-- phone port -->
+              <rect x="90" y="233" width="20" height="4" rx="2" fill="#475569"/>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 1 of 7</span>
+          <h2>What Does a Mobile Charger Do?</h2>
+          <p>A mobile charger converts the <strong>high-voltage AC</strong> from your wall outlet into low-voltage <strong>DC electricity</strong> that safely charges your phone's battery.</p>
+          <div class="fact-grid">
+            <div class="fact-card">
+              <span class="fact-icon">🔌</span>
+              <span class="fact-label">Input</span>
+              <span class="fact-val">100–240 V AC</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">📱</span>
+              <span class="fact-label">Output</span>
+              <span class="fact-val">5–20 V DC</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">⚡</span>
+              <span class="fact-label">Fast Charge</span>
+              <span class="fact-val">Up to 120 W</span>
+            </div>
+            <div class="fact-card">
+              <span class="fact-icon">🔋</span>
+              <span class="fact-label">Standard</span>
+              <span class="fact-val">USB-PD / QC</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 2 – TRANSFORMER / SMPS  ══════════════ -->
+    <section class="scene hidden" id="scene-2" data-scene="2" aria-label="Transformer and SMPS">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="smps-diagram">
+            <svg viewBox="0 0 260 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- AC input -->
+              <rect x="5" y="70" width="38" height="40" rx="5" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+              <text x="24" y="92" font-size="8" fill="#94a3b8" font-family="sans-serif" text-anchor="middle">AC</text>
+              <text x="24" y="102" font-size="7" fill="#94a3b8" font-family="sans-serif" text-anchor="middle">230V</text>
+              <!-- filter cap -->
+              <rect x="53" y="72" width="26" height="36" rx="4" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+              <text x="66" y="93" font-size="7" fill="#93c5fd" font-family="sans-serif" text-anchor="middle">EMI</text>
+              <text x="66" y="103" font-size="7" fill="#93c5fd" font-family="sans-serif" text-anchor="middle">Filter</text>
+              <!-- rectifier -->
+              <rect x="89" y="68" width="34" height="44" rx="4" fill="#1e3a5f" stroke="#7c3aed" stroke-width="1.5"/>
+              <text x="106" y="89" font-size="7" fill="#c4b5fd" font-family="sans-serif" text-anchor="middle">Rect-</text>
+              <text x="106" y="99" font-size="7" fill="#c4b5fd" font-family="sans-serif" text-anchor="middle">ifier</text>
+              <!-- MOSFET / switch -->
+              <rect x="133" y="68" width="30" height="44" rx="4" fill="#1e2d40" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="148" y="90" font-size="7" fill="#fde68a" font-family="sans-serif" text-anchor="middle">PWM</text>
+              <text x="148" y="100" font-size="7" fill="#fde68a" font-family="sans-serif" text-anchor="middle">Switch</text>
+              <!-- transformer -->
+              <rect x="173" y="58" width="42" height="64" rx="6" fill="#1e2d1e" stroke="#10b981" stroke-width="1.5"/>
+              <text x="194" y="85" font-size="7" fill="#6ee7b7" font-family="sans-serif" text-anchor="middle">High-</text>
+              <text x="194" y="95" font-size="7" fill="#6ee7b7" font-family="sans-serif" text-anchor="middle">Freq</text>
+              <text x="194" y="105" font-size="7" fill="#6ee7b7" font-family="sans-serif" text-anchor="middle">Xfmr</text>
+              <!-- output -->
+              <rect x="225" y="68" width="30" height="44" rx="4" fill="#1e293b" stroke="#4ade80" stroke-width="1.5"/>
+              <text x="240" y="88" font-size="7" fill="#4ade80" font-family="sans-serif" text-anchor="middle">5V</text>
+              <text x="240" y="98" font-size="7" fill="#4ade80" font-family="sans-serif" text-anchor="middle">DC</text>
+              <!-- wires -->
+              <line x1="43"  y1="90" x2="53"  y2="90" stroke="#475569" stroke-width="1.5"/>
+              <line x1="79"  y1="90" x2="89"  y2="90" stroke="#3b82f6" stroke-width="1.5"/>
+              <line x1="123" y1="90" x2="133" y2="90" stroke="#7c3aed" stroke-width="1.5"/>
+              <line x1="163" y1="90" x2="173" y2="90" stroke="#f59e0b" stroke-width="1.5"/>
+              <line x1="215" y1="90" x2="225" y2="90" stroke="#10b981" stroke-width="1.5"/>
+              <!-- labels -->
+              <text x="24"  y="145" font-size="7" fill="#64748b" font-family="sans-serif" text-anchor="middle">Input</text>
+              <text x="66"  y="145" font-size="7" fill="#3b82f6" font-family="sans-serif" text-anchor="middle">Filter</text>
+              <text x="106" y="145" font-size="7" fill="#7c3aed" font-family="sans-serif" text-anchor="middle">Rectify</text>
+              <text x="148" y="145" font-size="7" fill="#f59e0b" font-family="sans-serif" text-anchor="middle">Switch</text>
+              <text x="194" y="145" font-size="7" fill="#10b981" font-family="sans-serif" text-anchor="middle">Transform</text>
+              <text x="240" y="145" font-size="7" fill="#4ade80" font-family="sans-serif" text-anchor="middle">Output</text>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 2 of 7</span>
+          <h2>Switched-Mode Power Supply (SMPS)</h2>
+          <p>Modern chargers use a <strong>Switched-Mode Power Supply</strong> — far smaller and more efficient than old linear supplies.</p>
+          <ul class="bullet-list">
+            <li><strong>EMI Filter:</strong> Blocks high-frequency noise from entering or leaving the charger.</li>
+            <li><strong>Rectifier:</strong> Converts incoming AC to pulsed DC using diodes.</li>
+            <li><strong>PWM Switch:</strong> A MOSFET rapidly switches the DC at 50–150 kHz, creating high-frequency AC for the transformer.</li>
+            <li><strong>HF Transformer:</strong> At high frequency a tiny ferrite core transformer efficiently steps voltage down.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 3 – RECTIFIER & FILTER  ═════════════ -->
+    <section class="scene hidden" id="scene-3" data-scene="3" aria-label="Rectifier and Filter">
+      <div class="scene-inner layout-full">
+        <div class="scene-text full-text">
+          <span class="scene-tag">Scene 3 of 7</span>
+          <h2>Rectifier &amp; Smoothing Filter</h2>
+          <p>After the transformer steps down voltage, the output is still AC. The rectifier and filter convert it into smooth DC.</p>
+        </div>
+        <canvas id="rect-canvas" class="rect-canvas" aria-label="Waveform rectification animation"></canvas>
+        <div class="wave-legend">
+          <div class="wl-item"><span class="wl-dot" style="background:#7c3aed"></span>AC Input</div>
+          <div class="wl-item"><span class="wl-dot" style="background:#f59e0b"></span>Half-wave rectified</div>
+          <div class="wl-item"><span class="wl-dot" style="background:#10b981"></span>Smoothed DC</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 4 – VOLTAGE REGULATION  ═════════════ -->
+    <section class="scene hidden" id="scene-4" data-scene="4" aria-label="Voltage Regulation">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="voltage-vis">
+            <svg viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- unregulated -->
+              <rect x="10" y="70" width="52" height="60" rx="7" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="36" y="97"  font-size="8" fill="#fde68a" font-family="sans-serif" text-anchor="middle">Unreg.</text>
+              <text x="36" y="109" font-size="8" fill="#fde68a" font-family="sans-serif" text-anchor="middle">8–12V</text>
+              <!-- arrow -->
+              <line x1="62" y1="100" x2="84" y2="100" stroke="#94a3b8" stroke-width="1.5"/>
+              <polygon points="84,96 92,100 84,104" fill="#94a3b8"/>
+              <!-- regulator IC -->
+              <rect x="92" y="60" width="60" height="80" rx="9" fill="#1e2d40" stroke="#a78bfa" stroke-width="2"/>
+              <text x="122" y="88"  font-size="8" fill="#c4b5fd" font-family="sans-serif" text-anchor="middle">Voltage</text>
+              <text x="122" y="100" font-size="8" fill="#c4b5fd" font-family="sans-serif" text-anchor="middle">Regulator</text>
+              <text x="122" y="112" font-size="7" fill="#a78bfa" font-family="sans-serif" text-anchor="middle">+ Feedback</text>
+              <text x="122" y="124" font-size="7" fill="#a78bfa" font-family="sans-serif" text-anchor="middle">Loop</text>
+              <!-- arrow out -->
+              <line x1="152" y1="100" x2="168" y2="100" stroke="#94a3b8" stroke-width="1.5"/>
+              <polygon points="168,96 176,100 168,104" fill="#94a3b8"/>
+              <!-- regulated output -->
+              <rect x="176" y="72" width="44" height="56" rx="7" fill="#1e2d1e" stroke="#4ade80" stroke-width="1.5"/>
+              <text x="198" y="99"  font-size="9" fill="#4ade80" font-family="sans-serif" text-anchor="middle">5V</text>
+              <text x="198" y="113" font-size="7" fill="#6ee7b7" font-family="sans-serif" text-anchor="middle">Stable DC</text>
+              <!-- feedback arrow -->
+              <path d="M198 128 C198 158, 122 158, 122 140" stroke="#a78bfa" stroke-width="1.5"
+                    stroke-dasharray="4 2" fill="none" marker-end="url(#arr2)"/>
+              <text x="155" y="168" font-size="7" fill="#a78bfa" font-family="sans-serif" text-anchor="middle">feedback</text>
+              <defs>
+                <marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                  <path d="M0 0 L6 3 L0 6 Z" fill="#a78bfa"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 4 of 7</span>
+          <h2>Voltage Regulation</h2>
+          <p>Raw rectified voltage fluctuates. A <strong>voltage regulator</strong> keeps output constant regardless of input variations or load changes.</p>
+          <ul class="bullet-list">
+            <li><strong>Feedback loop:</strong> Constantly monitors output voltage and adjusts the PWM duty cycle to maintain the target level.</li>
+            <li><strong>Optocoupler:</strong> Electrically isolates the feedback path between high-voltage primary and low-voltage secondary sides.</li>
+            <li><strong>USB Power Delivery (PD):</strong> A protocol letting the charger and phone negotiate the optimal voltage (5–20 V) and current.</li>
+          </ul>
+          <div class="formula-pill">V<sub>out</sub> = V<sub>ref</sub> × (1 + R1/R2)</div>
+          <p class="formula-note">Adjustable regulator output formula</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 5 – BATTERY CHEMISTRY  ═══════════════ -->
+    <section class="scene hidden" id="scene-5" data-scene="5" aria-label="Battery Chemistry">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <div class="battery-vis" id="battery-vis">
+            <svg viewBox="0 0 160 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- battery outline -->
+              <rect x="30" y="30" width="100" height="180" rx="10" fill="#1e293b" stroke="#7c3aed" stroke-width="2"/>
+              <rect x="60" y="18"  width="40" height="16" rx="5" fill="#334155" stroke="#475569" stroke-width="1.5"/>
+              <!-- fill level (animated via JS) -->
+              <rect id="batt-fill" x="36" y="36" width="88" height="0" rx="7"
+                    fill="url(#battGrad)" transform="translate(0,168) scale(1,-1)"/>
+              <!-- percentage text -->
+              <text id="batt-pct" x="80" y="128" font-size="22" font-weight="700"
+                    fill="#f0f9ff" font-family="sans-serif" text-anchor="middle">0%</text>
+              <text x="80" y="148" font-size="9" fill="#94a3b8" font-family="sans-serif" text-anchor="middle">Li-ion</text>
+              <!-- bolt -->
+              <text x="80" y="175" font-size="18" font-family="sans-serif" text-anchor="middle">⚡</text>
+              <defs>
+                <linearGradient id="battGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="#4ade80"/>
+                  <stop offset="70%"  stop-color="#22d3ee"/>
+                  <stop offset="100%" stop-color="#7c3aed"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 5 of 7</span>
+          <h2>Battery Chemistry</h2>
+          <p>Most phones use a <strong>Lithium-Ion (Li-ion)</strong> or <strong>Lithium-Polymer (LiPo)</strong> battery, charged through a two-phase process.</p>
+          <div class="charge-phases">
+            <div class="cp-item">
+              <span class="cp-badge">Phase 1</span>
+              <div>
+                <strong>Constant Current (CC)</strong>
+                <p>Charger pushes a fixed current (e.g., 2 A) into the battery until it reaches ~4.2 V. Battery fills quickly.</p>
+              </div>
+            </div>
+            <div class="cp-item">
+              <span class="cp-badge cp-2">Phase 2</span>
+              <div>
+                <strong>Constant Voltage (CV)</strong>
+                <p>Charger holds voltage at 4.2 V while current tapers off to ~0.05 C. Prevents overcharge and extends battery life.</p>
+              </div>
+            </div>
+          </div>
+          <div class="formula-pill">3.6–4.2 V nominal cell voltage</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 6 – FAST CHARGING & SAFETY  ═════════ -->
+    <section class="scene hidden" id="scene-6" data-scene="6" aria-label="Fast Charging and Safety">
+      <div class="scene-inner">
+        <div class="scene-visual">
+          <canvas id="fast-canvas" class="fast-canvas" aria-label="Charging speed comparison"></canvas>
+        </div>
+        <div class="scene-text">
+          <span class="scene-tag">Scene 6 of 7</span>
+          <h2>Fast Charging &amp; Safety</h2>
+          <p>Fast charging increases <strong>power (P = V × I)</strong> delivered to the battery. Modern standards push power up while managing heat.</p>
+          <div class="fast-standards">
+            <div class="fs-row">
+              <span class="fs-label">Standard 5W</span>
+              <div class="fs-bar-wrap">
+                <div class="fs-bar" style="width:8%"></div>
+                <span class="fs-val">5 W</span>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-label">USB-PD 18W</span>
+              <div class="fs-bar-wrap">
+                <div class="fs-bar" style="width:20%"></div>
+                <span class="fs-val">18 W</span>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-label">QC 4.0  27W</span>
+              <div class="fs-bar-wrap">
+                <div class="fs-bar" style="width:30%"></div>
+                <span class="fs-val">27 W</span>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-label">65W GaN</span>
+              <div class="fs-bar-wrap">
+                <div class="fs-bar" style="width:72%"></div>
+                <span class="fs-val">65 W</span>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-label">120W Turbo</span>
+              <div class="fs-bar-wrap">
+                <div class="fs-bar fs-bar-hi" style="width:100%"></div>
+                <span class="fs-val">120 W</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-mid);margin-top:.5rem">Built-in ICs monitor temperature, overvoltage, and short-circuits to keep charging safe.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════  SCENE 7 – QUIZ  ══════════════════════════ -->
+    <section class="scene hidden" id="scene-7" data-scene="7" aria-label="Quiz">
+      <div class="scene-inner layout-quiz">
+        <div class="quiz-header">
+          <span class="scene-tag">Scene 7 of 7</span>
+          <h2>Knowledge Check</h2>
+          <p>Test what you've learned about mobile chargers.</p>
+        </div>
+        <div id="quiz-body" class="quiz-body"></div>
+        <div id="quiz-result" class="quiz-result hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Navigation controls ─────────────────────────────────── -->
+  <nav class="mod-nav" role="navigation" aria-label="Scene navigation">
+    <button class="nav-btn" id="btn-prev" aria-label="Previous scene" disabled>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M13 4L7 10l6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Prev</span>
+    </button>
+    <div class="dot-nav" id="dot-nav" role="tablist" aria-label="Jump to scene"></div>
+    <button class="nav-btn primary" id="btn-next" aria-label="Next scene">
+      <span>Next</span>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

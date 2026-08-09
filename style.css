@@ -21,6 +21,10 @@
   --hydro-b: #3b82f6;
   --rf-a: #ec4899;
   --rf-b: #8b5cf6;
+  --fan-a: #3b82f6;
+  --fan-b: #10b981;
+  --charger-a: #7c3aed;
+  --charger-b: #a78bfa;
 }
 
 * { box-sizing: border-box; }
@@ -187,6 +191,8 @@ body {
 .game-card:nth-child(4) { animation-delay: 0.32s; }
 .game-card:nth-child(5) { animation-delay: 0.42s; }
 .game-card:nth-child(6) { animation-delay: 0.52s; }
+.game-card:nth-child(7) { animation-delay: 0.62s; }
+.game-card:nth-child(8) { animation-delay: 0.72s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -235,6 +241,8 @@ body {
 .card-brake       .card-glow { background: var(--brake-a); }
 .card-hydro       .card-glow { background: var(--hydro-a); }
 .card-rf          .card-glow { background: var(--rf-a); }
+.card-fan         .card-glow { background: var(--fan-a); }
+.card-charger     .card-glow { background: var(--charger-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -287,6 +295,7 @@ body {
 .tag-edu     { background: rgba(56, 189, 248, 0.1);  color: var(--tx-b);     border: 1px solid rgba(56, 189, 248, 0.2); }
 .tag-engineering { background: rgba(245, 158, 11, 0.12); color: var(--brake-a); border: 1px solid rgba(245, 158, 11, 0.25); }
 .tag-energy { background: rgba(6, 182, 212, 0.14); color: var(--hydro-a); border: 1px solid rgba(6, 182, 212, 0.3); }
+.tag-electronics { background: rgba(124, 58, 237, 0.14); color: var(--charger-b); border: 1px solid rgba(124, 58, 237, 0.3); }
 
 .card-body h2 {
   margin: 0;
@@ -390,6 +399,16 @@ body {
   color: #12001a;
 }
 
+.card-fan .launch-btn {
+  background: linear-gradient(135deg, var(--fan-a), var(--fan-b));
+  color: #001623;
+}
+
+.card-charger .launch-btn {
+  background: linear-gradient(135deg, var(--charger-a), var(--charger-b));
+  color: #0d0016;
+}
+
 /* Brake card accent */
 .card-brake:hover, .card-brake:focus-visible {
   box-shadow:
@@ -409,6 +428,20 @@ body {
   box-shadow:
     0 20px 60px rgba(236, 72, 153, 0.2),
     0 0 0 1px rgba(236, 72, 153, 0.3);
+}
+
+/* Fan card accent */
+.card-fan:hover, .card-fan:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(59, 130, 246, 0.2),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+/* Charger card accent */
+.card-charger:hover, .card-charger:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(124, 58, 237, 0.2),
+    0 0 0 1px rgba(124, 58, 237, 0.3);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
