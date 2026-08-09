@@ -12,6 +12,7 @@ for (let i = 0; i < totalScenes; i += 1) {
   const dot = document.createElement('button');
   dot.className = 'dot';
   dot.type = 'button';
+  dot.setAttribute('aria-label', `Go to scene ${i + 1}`);
   dot.addEventListener('click', () => showScene(i));
   dotNav.appendChild(dot);
 }

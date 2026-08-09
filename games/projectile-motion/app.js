@@ -52,7 +52,10 @@ function drawProjectile() {
 
   const angleDeg = Number(angleControl.value);
   const angle = angleDeg * (Math.PI / 180);
-  const speed = 32;
+  const speed = 22;
+  const xScale = 14;
+  const yScale = 9;
+  const g = 9.8;
 
   ctx.clearRect(0, 0, conceptCanvas.width, conceptCanvas.height);
   ctx.fillStyle = '#020617';
@@ -69,24 +72,26 @@ function drawProjectile() {
   ctx.strokeStyle = '#f97316';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  for (let x = 0; x < 340; x += 2) {
-    const worldT = x / (speed * Math.cos(angle));
-    const y = speed * Math.sin(angle) * worldT - 0.5 * 9.8 * worldT * worldT;
+  for (let worldT = 0; worldT <= 5; worldT += 0.03) {
+    const x = speed * Math.cos(angle) * worldT;
+    const y = speed * Math.sin(angle) * worldT - 0.5 * g * worldT * worldT;
     if (y < 0) break;
-    const px = 34 + x * 1.25;
-    const py = 240 - y * 4;
-    if (x === 0) ctx.moveTo(px, py);
+    const px = 34 + x * xScale;
+    const py = 240 - y * yScale;
+    if (px > conceptCanvas.width - 20) break;
+    if (worldT === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
   ctx.stroke();
 
   t += 0.02;
   const phase = (Math.sin(t) + 1) / 2;
-  const travel = phase * 300;
-  const worldT = travel / (speed * Math.cos(angle));
-  const y = Math.max(0, speed * Math.sin(angle) * worldT - 0.5 * 9.8 * worldT * worldT);
-  const bx = 34 + travel * 1.25;
-  const by = 240 - y * 4;
+  const flightTime = (2 * speed * Math.sin(angle)) / g;
+  const worldT = phase * flightTime;
+  const x = speed * Math.cos(angle) * worldT;
+  const y = Math.max(0, speed * Math.sin(angle) * worldT - 0.5 * g * worldT * worldT);
+  const bx = 34 + x * xScale;
+  const by = 240 - y * yScale;
 
   ctx.fillStyle = '#fb7185';
   ctx.beginPath();
