@@ -7,6 +7,7 @@ const dotNav = document.getElementById('dot-nav');
 
 let currentScene = 0;
 const totalScenes = scenes.length;
+let conceptAnimating = false;
 
 for (let i = 0; i < totalScenes; i += 1) {
   const dot = document.createElement('button');
@@ -24,6 +25,7 @@ function showScene(index) {
   progress.style.width = `${((currentScene + 1) / totalScenes) * 100}%`;
   prevBtn.disabled = currentScene === 0;
   nextBtn.textContent = currentScene === totalScenes - 1 ? 'Restart' : 'Next';
+  if (currentScene === 1) ensureConceptAnimation();
 }
 
 prevBtn.addEventListener('click', () => showScene(currentScene - 1));
@@ -34,7 +36,18 @@ const incidenceValue = document.getElementById('control-value');
 const conceptCanvas = document.getElementById('concept-canvas');
 const ctx = conceptCanvas.getContext('2d');
 
+function ensureConceptAnimation() {
+  if (conceptAnimating) return;
+  conceptAnimating = true;
+  requestAnimationFrame(drawPrism);
+}
+
 function drawPrism() {
+  if (currentScene !== 1) {
+    conceptAnimating = false;
+    return;
+  }
+
   const iDeg = Number(incidenceControl.value);
   const iRad = iDeg * (Math.PI / 180);
 
@@ -114,7 +127,9 @@ function renderQuiz() {
   document.getElementById('quiz-submit').addEventListener('click', () => {
     let score = 0;
     quiz.forEach((item, qi) => {
-      const selected = Number(document.querySelector(`input[name="q${qi}"]:checked`)?.value);
+      const selectedInput = document.querySelector(`input[name="q${qi}"]:checked`);
+      if (!selectedInput) return;
+      const selected = Number(selectedInput.value);
       if (selected === item.answer) score += 1;
     });
     quizResult.classList.remove('hidden');
@@ -139,5 +154,5 @@ function drawBackground() {
 
 showScene(0);
 renderQuiz();
-drawPrism();
+ensureConceptAnimation();
 drawBackground();
