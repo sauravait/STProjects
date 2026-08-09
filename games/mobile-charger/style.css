@@ -327,7 +327,7 @@ body {
 /* ── Scene 6 – fast charging canvas & bars ───────────────────── */
 .fast-canvas {
   width: 100%;
-  height: clamp(160px, 26vw, 220px);
+  height: clamp(220px, 38vw, 320px);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
