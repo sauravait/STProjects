@@ -25,6 +25,12 @@
   --fan-b: #10b981;
   --charger-a: #7c3aed;
   --charger-b: #a78bfa;
+  --projectile-a: #f97316;
+  --projectile-b: #fb7185;
+  --pendulum-a: #22c55e;
+  --pendulum-b: #06b6d4;
+  --prism-a: #a855f7;
+  --prism-b: #38bdf8;
 }
 
 * { box-sizing: border-box; }
@@ -193,6 +199,9 @@ body {
 .game-card:nth-child(6) { animation-delay: 0.52s; }
 .game-card:nth-child(7) { animation-delay: 0.62s; }
 .game-card:nth-child(8) { animation-delay: 0.72s; }
+.game-card:nth-child(9) { animation-delay: 0.82s; }
+.game-card:nth-child(10) { animation-delay: 0.92s; }
+.game-card:nth-child(11) { animation-delay: 1.02s; }
 
 .game-card:hover,
 .game-card:focus-visible {
@@ -243,6 +252,9 @@ body {
 .card-rf          .card-glow { background: var(--rf-a); }
 .card-fan         .card-glow { background: var(--fan-a); }
 .card-charger     .card-glow { background: var(--charger-a); }
+.card-projectile  .card-glow { background: var(--projectile-a); }
+.card-pendulum    .card-glow { background: var(--pendulum-a); }
+.card-prism       .card-glow { background: var(--prism-a); }
 
 .game-card:hover .card-glow,
 .game-card:focus-visible .card-glow {
@@ -409,6 +421,21 @@ body {
   color: #0d0016;
 }
 
+.card-projectile .launch-btn {
+  background: linear-gradient(135deg, var(--projectile-a), var(--projectile-b));
+  color: #2a1100;
+}
+
+.card-pendulum .launch-btn {
+  background: linear-gradient(135deg, var(--pendulum-a), var(--pendulum-b));
+  color: #00170f;
+}
+
+.card-prism .launch-btn {
+  background: linear-gradient(135deg, var(--prism-a), var(--prism-b));
+  color: #180025;
+}
+
 /* Brake card accent */
 .card-brake:hover, .card-brake:focus-visible {
   box-shadow:
@@ -442,6 +469,24 @@ body {
   box-shadow:
     0 20px 60px rgba(124, 58, 237, 0.2),
     0 0 0 1px rgba(124, 58, 237, 0.3);
+}
+
+.card-projectile:hover, .card-projectile:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(249, 115, 22, 0.2),
+    0 0 0 1px rgba(249, 115, 22, 0.3);
+}
+
+.card-pendulum:hover, .card-pendulum:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(34, 197, 94, 0.2),
+    0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
+.card-prism:hover, .card-prism:focus-visible {
+  box-shadow:
+    0 20px 60px rgba(168, 85, 247, 0.2),
+    0 0 0 1px rgba(168, 85, 247, 0.3);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */

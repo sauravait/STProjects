@@ -8,6 +8,12 @@ A small browser-based game collection built with **HTML, CSS, and vanilla JavaSc
 - **Electrical Transformer** — animated educational transformer learning module.
 - **Truck Air Brake System** — animated engineering explainer module.
 - **Hydroelectric Generation** — fully animated hydro power generation module.
+- **Radio Frequency** — interactive electromagnetic wave and modulation module.
+- **Electric Fan** — animated electric fan working-principle module.
+- **Mobile Charger** — interactive charger and battery physics module.
+- **Projectile Motion** — launch-angle trajectory simulator with quiz.
+- **Simple Pendulum** — oscillation and period learning module with live control.
+- **Prism Optics** — refraction and dispersion visual module with quiz.
 
 ## Project Structure
 - `/home/runner/work/STProjects/STProjects/index.html` — main launcher page for all games.
@@ -16,6 +22,12 @@ A small browser-based game collection built with **HTML, CSS, and vanilla JavaSc
 - `/home/runner/work/STProjects/STProjects/games/transformer/` — Transformer module assets.
 - `/home/runner/work/STProjects/STProjects/games/truck-brake/` — Truck brake module assets.
 - `/home/runner/work/STProjects/STProjects/games/hydroelectric/` — Hydroelectric module assets.
+- `/home/runner/work/STProjects/STProjects/games/radio-frequency/` — Radio frequency module assets.
+- `/home/runner/work/STProjects/STProjects/games/electric-fan/` — Electric fan module assets.
+- `/home/runner/work/STProjects/STProjects/games/mobile-charger/` — Mobile charger module assets.
+- `/home/runner/work/STProjects/STProjects/games/projectile-motion/` — Projectile motion module assets.
+- `/home/runner/work/STProjects/STProjects/games/simple-pendulum/` — Simple pendulum module assets.
+- `/home/runner/work/STProjects/STProjects/games/prism-optics/` — Prism optics module assets.
 
 ## How to Run
 1. Clone/download the repository.
