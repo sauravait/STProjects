@@ -154,5 +154,4 @@ function drawBackground() {
 
 showScene(0);
 renderQuiz();
-ensureConceptAnimation();
 drawBackground();
